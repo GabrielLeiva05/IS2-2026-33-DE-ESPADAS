@@ -20,7 +20,7 @@
     <section class="p-3">
         <div class="row">
             <div class="col-12">
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userForm">New User <i class="bi bi-people"></i> </button>
+                <button class="btn btn-primary newUser" data-bs-toggle="modal" data-bs-target="#userForm">New User <i class="bi bi-people"></i> </button>
             </div>
         </div>
 
@@ -43,54 +43,7 @@
                         <th>Action</th>
                     </thead>
                     <!-- La etiqueta tbody agrupa las filas con los datos principales -->
-                    <tbody id="data">
-                        <tr>
-                            <td>1</td>
-                            <td><img src="./images/pic01.png" alt="" width="50" height="50"></td>
-                            <td>Jorge Perez</td>
-                            <td>30</td>
-                            <td>Mendoza</td>
-                            <td>jorge123@gmail.com</td>
-                            <td>2611111111</td>
-                            <td>Oficinista</td>
-                            <td>13/07/2023</td>
-                            <td><button class="btn btn-success"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-primary"><i class="bi bi-pencil-square"></i></button>
-                            <button class="btn btn-danger"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>2</td>
-                            <td><img src="./images/pic01.png" alt="" width="50" height="50"></td>
-                            <td>Jorge Perez</td>
-                            <td>30</td>
-                            <td>Mendoza</td>
-                            <td>jorge123@gmail.com</td>
-                            <td>2611111111</td>
-                            <td>Oficinista</td>
-                            <td>13/07/2023</td>
-                            <td><button class="btn btn-success"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-primary"><i class="bi bi-pencil-square"></i></button>
-                            <button class="btn btn-danger"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>3</td>
-                            <td><img src="./images/pic01.png" alt="" width="50" height="50"></td>
-                            <td>Jorge Perez</td>
-                            <td>30</td>
-                            <td>Mendoza</td>
-                            <td>jorge123@gmail.com</td>
-                            <td>2611111111</td>
-                            <td>Oficinista</td>
-                            <td>13/07/2023</td>
-                            <td><button class="btn btn-success"><i class="bi bi-eye"></i></button>
-                            <button class="btn btn-primary"><i class="bi bi-pencil-square"></i></button>
-                            <button class="btn btn-danger"><i class="bi bi-trash"></i></button>
-                            </td>
-                        </tr>
-                    </tbody>
-
+                    <tbody id="data"></tbody>
                 </table>
             </div>
         </div>
@@ -113,46 +66,101 @@
                                 <input type="file" name="" id="imgInput">
                                 <i class="bi bi-plus-circle-dotted"></i>
                             </label>
-                            <img src="images/Profile Icon.webp" alt="" width="200" height="200">
+                            <img src="images/Profile Icon.webp" alt="" width="200" height="200" class="img">
                         </div>
 
                         <div class="inputField">
                             <div>
                                 <label for="name">Name:</label>
-                                <input type="text" name="" id="name">
+                                <input type="text" name="" id="name" required>
                             </div>
                             <div>
                                 <label for="age">Age:</label>
-                                <input type="number" name="" id="age">
+                                <input type="number" name="" id="age" required>
                             </div>
                             <div>
                                 <label for="city">City:</label>
-                                <input type="text" name="" id="city">
+                                <input type="text" name="" id="city" required>
                             </div>
                             <div>
                                 <label for="email">Email:</label>
-                                <input type="email" name="" id="email">
+                                <input type="email" name="" id="email" required>
                             </div>
                             <div>
                                 <label for="phone">Phone Number:</label>
-                                <input type="text" name="" id="phone" minlength="11" maxlength="11">
+                                <input type="text" name="" id="phone" minlength="11" maxlength="11" required>
                             </div>
                             <div>
                                 <label for="post">Post:</label>
-                                <input type="text" name="" id="post">
+                                <input type="text" name="" id="post" required>
                             </div>
                             <div>
                                 <label for="sDate">Start Date:</label>
-                                <input type="date" name="" id="sDate">
+                                <input type="date" name="" id="sDate" required>
                             </div>
                         </div>
                     </form>
                 </div>
+
+                <div class="modal-footer">
+                    <button type="submit" form="myForm" class="btn btn-primary submit">Submit</button>
+                </div>
             </div>
         </div>
     </div>
+    <!-- Read Data Modal-->
+    <div class="modal fade" id="readData">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Profile</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
 
+                <div class="modal-body">
+                    <form action="#" id="myForm">
 
+                        <div class="card imgholder">
+                            <img src="images/Profile Icon.webp" alt="" width="200" height="200" class="showImg">
+                        </div>
+
+                        <div class="inputField">
+                            <div>
+                                <label for="name">Name:</label>
+                                <input type="text" name="" id="showName" disabled>
+                            </div>
+                            <div>
+                                <label for="age">Age:</label>
+                                <input type="number" name="" id="showAge" disabled>
+                            </div>
+                            <div>
+                                <label for="city">City:</label>
+                                <input type="text" name="" id="showCity" disabled>
+                            </div>
+                            <div>
+                                <label for="email">Email:</label>
+                                <input type="email" name="" id="showEmail" disabled>
+                            </div>
+                            <div>
+                                <label for="phone">Phone Number:</label>
+                                <input type="text" name="" id="showPhone" minlength="11" maxlength="11" disabled>
+                            </div>
+                            <div>
+                                <label for="post">Post:</label>
+                                <input type="text" name="" id="showPost" disabled>
+                            </div>
+                            <div>
+                                <label for="sDate">Start Date:</label>
+                                <input type="date" name="" id="showsDate" disabled>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                
+            </div>
+        </div>
+    </div>
     <!-- Option 1: Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 

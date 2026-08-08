@@ -90,5 +90,15 @@ form .inputField > div input {
     padding: 10px;
     border: none;
     outline: none;
+    background: transparent;
     border-bottom: 2px solid blue;
+}
+
+.modal-footer .submit {
+    font-size: 18px;
+}
+
+#readData form .inputField > div input {
+    color: #000;
+    font-size: 18px;
 }
