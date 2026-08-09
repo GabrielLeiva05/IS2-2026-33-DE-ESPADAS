@@ -1,0 +1,91 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="-t8iWqtfsMh8GiTRPnin">
+    <mxGraphModel dx="2681" dy="535" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="9M4jglt0G8wSi_lix1g9-1" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="PERSONA" vertex="1">
+          <mxGeometry height="200" width="481" x="-830" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="9M4jglt0G8wSi_lix1g9-2" parent="9M4jglt0G8wSi_lix1g9-1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;-nombre: string&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;-apellido: string&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;-eliminado: boolean&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;-------------------------------------------------------------------------------------------------------------------&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;+crearPersona(nombre:string, apellido:string, direccion:Direccion): void&lt;br&gt;+validar(nombre:string, apellido:string, direccion:Direccion): void&lt;br&gt;+buscarPersonaApellido(apellido:string): Persona&lt;br&gt;+modificarPersona(persona:Persona, nombre:string, apellido:string, direccion:Direccion): void&lt;br&gt;+eliminarPersona(persona:Persona): void&lt;br&gt;+listarPersona(): Collection&amp;lt;Persona&amp;gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="94" width="471" x="10" y="72" as="geometry" />
+        </mxCell>
+        <mxCell id="9M4jglt0G8wSi_lix1g9-4" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="DEPARTAMENTO" vertex="1">
+          <mxGeometry height="174" width="400" x="-60" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="9M4jglt0G8wSi_lix1g9-5" parent="9M4jglt0G8wSi_lix1g9-4" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="-nombre: string&amp;nbsp;&lt;div&gt;-eliminado: boolean&lt;br&gt;&lt;div&gt;&lt;div&gt;---------------------------------------------------------------------------------------------------&lt;/div&gt;&lt;div&gt;&lt;div&gt;+crearDepartamento(nombre:string, provincia:Provincia): void&lt;/div&gt;&lt;div&gt;+validar(nombre:string, provincia:Provincia): void&lt;/div&gt;&lt;div&gt;+buscarDepartamentoPorNombre(nombre:string): Departamento&lt;/div&gt;&lt;div&gt;+modificarDepartamento(departamento:Departamento, nombre:string, provincia:Provincia): void&lt;/div&gt;&lt;div&gt;+eliminarDepartamento(departamento:Departamento): void&lt;/div&gt;&lt;div&gt;+listarDepartamento(provincia:Provincia): Collection&amp;lt;Departamento&amp;gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="107" width="400" y="43" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-2" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="PROVINCIA" vertex="1">
+          <mxGeometry height="163" width="609" x="-864.5" y="637" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-3" parent="CmyTJ8Xak5ZXVkq0K6Hx-2" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;-nombre: string&lt;/div&gt;&lt;div&gt;-eliminado: boolean&lt;/div&gt;&lt;div&gt;&lt;div&gt;---------------------------------------------------------------------------------------------------&lt;/div&gt;&lt;div&gt;&lt;div&gt;+crearProvincia(nombre:string, pais:Pais): void&lt;/div&gt;&lt;div&gt;+validar(nombre:string, pais:Pais): void&lt;/div&gt;&lt;div&gt;+buscarProvinciaPorNombre(nombre:string): Provincia&lt;/div&gt;&lt;div&gt;+modificarProvincia(provincia:Provincia, nombre:string, pais:Pais): void&lt;/div&gt;&lt;div&gt;+eliminarProvincia(provincia:Provincia): void&lt;/div&gt;&lt;div&gt;+listarProvincia(pais:Pais): Collection&amp;lt;Provincia&amp;gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="107" width="400" y="43" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-4" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="PAIS" vertex="1">
+          <mxGeometry height="174" width="400" x="-760" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-5" parent="CmyTJ8Xak5ZXVkq0K6Hx-4" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;-nombre: string&lt;/div&gt;&lt;div&gt;-eliminado: boolean&lt;/div&gt;&lt;div&gt;&lt;div&gt;---------------------------------------------------------------------------------------------------&lt;/div&gt;&lt;div&gt;&lt;div&gt;+crearPais(nombre:string): void&lt;/div&gt;&lt;div&gt;+validar(nombre:string): void&lt;/div&gt;&lt;div&gt;+buscarPaisPorNombre(nombre:string): Pais&lt;/div&gt;&lt;div&gt;+modificarPais(pais:Pais, nombre:string): void&lt;/div&gt;&lt;div&gt;+eliminarPais(pais:Pais): void&lt;/div&gt;&lt;div&gt;+listarPais(): Collection&amp;lt;Pais&amp;gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="107" width="400" y="43" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-6" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="LOCALIDAD" vertex="1">
+          <mxGeometry height="182" width="620" x="-170" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-7" parent="CmyTJ8Xak5ZXVkq0K6Hx-6" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;-&lt;span style=&quot;background-color: transparent;&quot;&gt;-nombre: string&lt;/span&gt;&lt;/div&gt;&lt;div&gt;-codigoPostal: string&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;-eliminado: boolean&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;----------------------------------------------------------------------------------------------------------------------------------------------------------&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;+crearLocalidad(nombre:string, codigoPostal:string, departamento:Departamento): void&lt;/div&gt;&lt;div&gt;+validar(nombre:string, codigoPostal:string, departamento:Departamento): void&lt;/div&gt;&lt;div&gt;+buscarLocalidadPorNombre(nombre:string): Localidad&lt;/div&gt;&lt;div&gt;+buscarLocalidadPorCodigoPostal(codigoPostal:string): Localidad&lt;/div&gt;&lt;div&gt;+modificarLocalidad(localidad:Localidad, nombre:string, codigoPostal:string, departamento:Departamento): void&lt;/div&gt;&lt;div&gt;+eliminarLocalidad(localidad:Localidad): void&lt;/div&gt;&lt;div&gt;+listarLocalidad(departamento:Departamento): Collection&amp;lt;Localidad&amp;gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="620" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-8" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="DIRECCION" vertex="1">
+          <mxGeometry height="260" width="700" x="-210" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-9" parent="CmyTJ8Xak5ZXVkq0K6Hx-8" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div&gt;&lt;div&gt;-calle: string&lt;/div&gt;&lt;div&gt;-numeracion: string&lt;/div&gt;&lt;div&gt;-barrio: string&lt;/div&gt;&lt;div&gt;-manzanaPiso: string&lt;/div&gt;&lt;div&gt;-casaDepartamento: string&lt;/div&gt;&lt;div&gt;-referencia: string&lt;/div&gt;&lt;div&gt;-eliminado: boolean&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;------------------------------------------------------------------------------------------------------------------------------------------------------------------------------&lt;/span&gt;&lt;/div&gt;&lt;div&gt;+crearDireccion(calle:string, numeracion:string, barrio:string, manzanaPiso:string, casaDepartamento:string, referencia:string,localidad:Localidad): Direccion&amp;nbsp;&lt;/div&gt;&lt;div&gt;+validar(calle:string, numeracion:string, barrio:string, manzanaPiso:string, casaDepartamento:string, referencia:string, localidad:Localidad): void&amp;nbsp;&lt;/div&gt;&lt;div&gt;+buscarDireccionPorCalleNumeracion(calle:string,numeracion:string): Direccion&amp;nbsp;&lt;/div&gt;&lt;div&gt;+modificarDireccion(direccion:Direccion,calle:string,numeracion:string,barrio:string,manzanaPiso:string,casaDepartamento:string, referencia:string, idDireccion:string): void&amp;nbsp;&lt;/div&gt;&lt;div&gt;+eliminarDireccion(direccion:Direccion): void&lt;/div&gt;" vertex="1">
+          <mxGeometry height="20" width="700" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-10" edge="1" parent="1" source="9M4jglt0G8wSi_lix1g9-1" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="CmyTJ8Xak5ZXVkq0K6Hx-8" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="-349" y="149.41" as="sourcePoint" />
+            <mxPoint x="-240" y="150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-11" edge="1" parent="1" source="CmyTJ8Xak5ZXVkq0K6Hx-8" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="CmyTJ8Xak5ZXVkq0K6Hx-6" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="50" y="300" as="sourcePoint" />
+            <mxPoint x="210" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-12" edge="1" parent="1" source="CmyTJ8Xak5ZXVkq0K6Hx-6" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="9M4jglt0G8wSi_lix1g9-4" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="80" y="590" as="sourcePoint" />
+            <mxPoint x="240" y="590" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-13" edge="1" parent="1" source="9M4jglt0G8wSi_lix1g9-5" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" target="CmyTJ8Xak5ZXVkq0K6Hx-2" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="-250" y="720" as="sourcePoint" />
+            <mxPoint x="-90" y="720" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-14" edge="1" parent="1" source="CmyTJ8Xak5ZXVkq0K6Hx-2" style="endArrow=open;endFill=1;endSize=12;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" target="CmyTJ8Xak5ZXVkq0K6Hx-4" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="-620" y="590" as="sourcePoint" />
+            <mxPoint x="-460" y="590" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-15" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="1...*" vertex="1">
+          <mxGeometry height="30" width="60" x="-315.5" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="1...*" vertex="1">
+          <mxGeometry height="30" width="60" x="140" y="291" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-17" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="1...*" vertex="1">
+          <mxGeometry height="30" width="60" x="148" y="568" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-18" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="1...*" vertex="1">
+          <mxGeometry height="30" width="60" x="-190" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="CmyTJ8Xak5ZXVkq0K6Hx-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="1...*" vertex="1">
+          <mxGeometry height="30" width="60" x="-570" y="568" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
