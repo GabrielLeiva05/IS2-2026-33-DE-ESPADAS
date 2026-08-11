@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="5MmeVffyOT11xLwnFAx9">
+    <mxGraphModel dx="1030" dy="562" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="rmjZkxIoKpPDZso13vZB-3" edge="1" parent="1" source="rmjZkxIoKpPDZso13vZB-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="rmjZkxIoKpPDZso13vZB-2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;APLICACIÓN&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;INTERFAZ / USUARIO&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="160" x="310" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-5" edge="1" parent="1" source="rmjZkxIoKpPDZso13vZB-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="rmjZkxIoKpPDZso13vZB-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-2" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="&lt;b&gt;LÓGICA DE NEGOCIO&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;ClienteService&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="140" x="320" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-7" edge="1" parent="1" source="rmjZkxIoKpPDZso13vZB-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="rmjZkxIoKpPDZso13vZB-6" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-4" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="&lt;b&gt;CLIENTEDAO&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;+crear()&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;+buscarPorId()&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;+listar()&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;+actualizar()&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;+eliminar()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="112" width="190" x="295" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-6" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="&lt;b&gt;BASE DE DATOS&lt;/b&gt;" vertex="1">
+          <mxGeometry height="60" width="120" x="330" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="SOLICITA LAS OPERACIONES" vertex="1">
+          <mxGeometry height="30" width="160" x="390" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ACCESO A DATOS" vertex="1">
+          <mxGeometry height="30" width="160" x="390" y="406" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
