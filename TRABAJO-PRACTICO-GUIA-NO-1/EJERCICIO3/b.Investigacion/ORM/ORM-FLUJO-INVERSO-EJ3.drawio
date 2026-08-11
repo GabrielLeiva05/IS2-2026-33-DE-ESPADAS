@@ -1,0 +1,31 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="5MmeVffyOT11xLwnFAx9">
+    <mxGraphModel dx="1030" dy="562" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="rmjZkxIoKpPDZso13vZB-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;APLICACIÓN&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Clases y Objetos&lt;/div&gt;&lt;div&gt;Persona&lt;/div&gt;&lt;div&gt;Cliente&lt;/div&gt;&lt;div&gt;Venta&lt;/div&gt;" vertex="1">
+          <mxGeometry height="90" width="160" x="305" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="82vxtt467i9glDVKZKib-2" edge="1" parent="1" source="rmjZkxIoKpPDZso13vZB-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="rmjZkxIoKpPDZso13vZB-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-2" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="&lt;div&gt;&lt;b&gt;ORM&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Mapeo objeto-relacional&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Clase -&amp;gt; Tabla&lt;/div&gt;&lt;div&gt;Atributo -&amp;gt; Columna&lt;/div&gt;&lt;div&gt;Objeto -&amp;gt; Fila&lt;/div&gt;" vertex="1">
+          <mxGeometry height="100" width="140" x="315" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="82vxtt467i9glDVKZKib-1" edge="1" parent="1" source="rmjZkxIoKpPDZso13vZB-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="rmjZkxIoKpPDZso13vZB-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-4" parent="1" style="whiteSpace=wrap;html=1;rounded=1;" value="&lt;b&gt;BASE DE DATOS RELACIONAL&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Tablas&lt;/div&gt;&lt;div&gt;Filas&lt;/div&gt;&lt;div&gt;Columnas&lt;/div&gt;&lt;div&gt;Claves Primarias&lt;/div&gt;&lt;div&gt;Claves Foráneas&lt;/div&gt;" vertex="1">
+          <mxGeometry height="112" width="190" x="290" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="SELECT" vertex="1">
+          <mxGeometry height="30" width="160" x="380" y="191" as="geometry" />
+        </mxCell>
+        <mxCell id="rmjZkxIoKpPDZso13vZB-9" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="TRANSFORMA RESULTADO A OBJETO" vertex="1">
+          <mxGeometry height="30" width="160" x="380" y="350" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
