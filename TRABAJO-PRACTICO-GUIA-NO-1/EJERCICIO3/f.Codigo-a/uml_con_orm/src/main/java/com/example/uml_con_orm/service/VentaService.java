@@ -21,7 +21,9 @@ public class VentaService {
         return ventaRepo.save(v);
     }
 
-    public Venta editar(Venta v) {
+    public Venta editar(Venta v, int idCliente) {
+        Cliente c = clienteRepo.findById(idCliente).orElseThrow();
+        v.setCliente(c);
         return ventaRepo.save(v);
     }
 

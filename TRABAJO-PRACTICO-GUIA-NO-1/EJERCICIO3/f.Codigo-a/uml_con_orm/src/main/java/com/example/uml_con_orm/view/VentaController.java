@@ -53,9 +53,9 @@ public class VentaController {
     }
 
     //Modificacion de una venta desde el lado de usuario
-    @PutMapping("/{id}")
-    public Venta modificar(@PathVariable int id, @RequestBody Venta venta) {
+    @PutMapping("/{id}/{idCliente}")
+    public Venta modificar(@PathVariable int id, @PathVariable int idCliente, @RequestBody Venta venta) {
         venta.setIdVenta(id);
-        return ventaService.editar(venta);
+        return ventaService.editar(venta, idCliente);
     }
 }
