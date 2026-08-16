@@ -1,0 +1,4 @@
+Las diferencias que se encontraron al no utilizar ORM son las siguientes;
+1- En este caso, se tuvo que crear la base de datos manualmente.
+2- Se debió de escribir comandos SQL mientras que con ORM los solucionaba JPaRepository.
+3- Las anotaciones en las clases Java se redujeron; no se hizo uso de @Entity, @Id, @OneToMany, etc.
