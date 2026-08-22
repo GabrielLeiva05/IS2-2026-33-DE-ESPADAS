@@ -1,0 +1,245 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorias</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="/html-bootstrap/styles/styles.css">
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
+        <div class="container-fluid">
+
+            <a href="/html-bootstrap/templates/index.html" class="navbar-brand">JUEGOS 33 DE ESPADAS</a>
+
+            <button class="navbar-toggler" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="/html-bootstrap/templates/index.html">Inicio</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="/html-bootstrap/templates/videojuegos/listaVid.html">
+                            Videojuegos
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/html-bootstrap/templates/categorias/listaCat.html">
+                            Categorias
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="/html-bootstrap/templates/estudios/listaEst.html">
+                            Estudios
+                        </a>
+                    </li>
+
+                </ul>
+
+                <!-- Opciones para pantallas pequeñas -->
+                <div class="d-md-none">
+                    <ul class="navbar-nav me-auto mb-2 mb-md-0">
+
+                        <li class="nav-item">
+                            <a href="" class="nav-link">Carrito</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="" class="nav-link">Perfil</a>
+                        </li>
+
+                    </ul>
+                </div>
+
+                <!-- Iconos para pantallas medianas/grandes -->
+                <div class="d-none d-md-flex gap-2">
+
+                    <a href="" class="nav-item nav-link p-1">
+                        <i class="bi bi-cart" style="font-size: 1.5rem;"></i>
+                    </a>
+
+                    <a href="" class="nav-item nav-link p-1">
+                        <i class="bi bi-person-circle" style="font-size: 1.5rem;"></i>
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+
+    <main class="container py-5 mt-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <h1>Categorias</h1>
+
+            <!-- Nueva categoria -->
+            <a href="/html-bootstrap/templates/categorias/formularioCat.html"
+               class="btn btn-success"
+               title="Nueva categoria">
+                <i class="bi bi-plus-lg"></i>
+            </a>
+
+        </div>
+
+
+        <!-- TABLA DE VIDEOJUEGOS -->
+        <div class="table-responsive">
+
+            <table class="table table-striped table-hover align-middle">
+
+                <!-- ENCABEZADO -->
+                <thead class="table-primary">
+                    <tr>
+                        <th scope="col">Nombre</th>
+                        <th scope="col" class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+
+
+                <!-- CUERPO -->
+                <tbody>
+
+                    <!-- Categoria 1 -->
+                    <tr>
+                        <td>Survival</td>
+                        <td class="text-center">
+
+                            <a href="/html-bootstrap/templates/categorias/formularioCat.html"
+                               class="btn btn-warning btn-sm me-1"
+                               title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    title="Borrar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </td>
+                    </tr>
+
+
+                    <!--Categoria 2 -->
+                    <tr>
+                        <td>MMORPG</td>
+
+                        <td class="text-center">
+
+                            <a href="/html-bootstrap/templates/categorias/formularioCat.html"
+                               class="btn btn-warning btn-sm me-1"
+                               title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    title="Borrar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </td>
+                    </tr>
+
+
+                    <!-- Categoria 3 -->
+                    <tr>
+                        <td>Acción</td>
+
+                        <td class="text-center">
+
+                            <a href="/html-bootstrap/templates/categoriasformularioCat.html"
+                               class="btn btn-warning btn-sm me-1"
+                               title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <button type="button"
+                                    class="btn btn-danger btn-sm"
+                                    title="Borrar">
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </main>
+
+
+    <!-- FOOTER -->
+    <div class="container">
+        <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+
+            <div class="col-md-4 d-flex align-items-center">
+
+                <a href=""
+                   class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
+                    JUEGOS 33 DE ESPADAS
+                </a>
+
+                <span class="mb-3 mb-md-0 text-body-secondary">
+                    &copy; 2026 33 DE ESPADAS
+                </span>
+
+            </div>
+
+            <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+
+                <li class="ms-3">
+                    <a href="" class="text-body-secondary">
+                        <i class="bi bi-discord"></i>
+                    </a>
+                </li>
+
+                <li class="ms-3">
+                    <a href="" class="text-body-secondary">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                </li>
+
+                <li class="ms-3">
+                    <a href="" class="text-body-secondary">
+                        <i class="bi bi-snapchat"></i>
+                    </a>
+                </li>
+
+            </ul>
+
+        </footer>
+    </div>
+
+
+    <!-- BOOTSTRAP JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+            crossorigin="anonymous">
+    </script>
+
+</body>
+</html>
