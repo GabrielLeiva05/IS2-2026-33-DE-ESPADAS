@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Videojuegos</title>
+    <title>Estudios</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/html-bootstrap/styles/styles.css">
 </head>
 
 <body>
@@ -17,7 +17,7 @@
     <nav class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
         <div class="container-fluid">
 
-            <a href="/templates/index.html" class="navbar-brand">JUEGOS 33 DE ESPADAS</a>
+            <a href="/html-bootstrap/templates/index.html" class="navbar-brand">JUEGOS 33 DE ESPADAS</a>
 
             <button class="navbar-toggler" type="button"
                     data-bs-toggle="collapse"
@@ -30,23 +30,23 @@
                 <ul class="navbar-nav me-auto mb-2 mb-md-0">
 
                     <li class="nav-item">
-                        <a class="nav-link" href="/templates/index.html">Inicio</a>
+                        <a class="nav-link" href="/html-bootstrap/templates/index.html">Inicio</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link active" href="/templates/videojuegos/listaVid.html">
+                        <a class="nav-link" href="/html-bootstrap/templates/videojuegos/listaVid.html">
                             Videojuegos
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="/templates/categorias/listaCat.html">
+                        <a class="nav-link" href="/html-bootstrap/templates/categorias/listaCat.html">
                             Categorias
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="/templates/estudios/listaEst.html">
+                        <a class="nav-link active" href="/html-bootstrap/templates/estudios/listaEst.html">
                             Estudios
                         </a>
                     </li>
@@ -90,12 +90,12 @@
 
         <div class="d-flex justify-content-between align-items-center mb-4">
 
-            <h1>Videojuegos</h1>
+            <h1>Estudios</h1>
 
             <!-- Nuevo videojuego -->
-            <a href="/templates/videojuegos/formularioVid.html"
+            <a href="/html-bootstrap/templates/estudios/formularioEst.html"
                class="btn btn-success"
-               title="Nuevo videojuego">
+               title="Nuevo Estudio">
                 <i class="bi bi-plus-lg"></i>
             </a>
 
@@ -110,12 +110,7 @@
                 <!-- ENCABEZADO -->
                 <thead class="table-primary">
                     <tr>
-                        <th scope="col">Título</th>
-                        <th scope="col">Categoría</th>
-                        <th scope="col">Estudio</th>
-                        <th scope="col">Precio</th>
-                        <th scope="col">Cantidad</th>
-                        <th scope="col">Oferta</th>
+                        <th scope="col">Nombre</th>
                         <th scope="col" class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -126,16 +121,11 @@
 
                     <!-- Videojuego 1 -->
                     <tr>
-                        <td>Minecraft</td>
-                        <td>Survival</td>
-                        <td>Mojang</td>
-                        <td>$49.99</td>
-                        <td>10</td>
-                        <td>No</td>
+                        <td>Blizzard</td>
 
                         <td class="text-center">
 
-                            <a href="/templates/videojuegos/formularioVid.html"
+                            <a href="/html-bootstrap/templates/estudios/formularioEst.html"
                                class="btn btn-warning btn-sm me-1"
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
@@ -153,16 +143,11 @@
 
                     <!-- Videojuego 2 -->
                     <tr>
-                        <td>World of Warcraft</td>
-                        <td>MMORPG</td>
-                        <td>Blizzard</td>
-                        <td>$59.99</td>
-                        <td>5</td>
-                        <td>Sí</td>
+                        <td>Mojang</td>
 
                         <td class="text-center">
 
-                            <a href="/templates/videojuegos/formularioVid.html"
+                            <a href="/html-bootstrap/templates/estudios/formularioEst.html"
                                class="btn btn-warning btn-sm me-1"
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
@@ -180,16 +165,11 @@
 
                     <!-- Videojuego 3 -->
                     <tr>
-                        <td>GTA VI</td>
-                        <td>Acción</td>
-                        <td>Rockstar Games</td>
-                        <td>$29.99</td>
-                        <td>15</td>
-                        <td>No</td>
+                        <td>Rockstar</td>
 
                         <td class="text-center">
 
-                            <a href="/templates/videojuegos/formularioVid.html"
+                            <a href="/html-bootstrap/templates/estudios/formularioEst.html"
                                class="btn btn-warning btn-sm me-1"
                                title="Editar">
                                 <i class="bi bi-pencil"></i>
@@ -264,4 +244,3 @@
 
 </body>
 </html>
-```
