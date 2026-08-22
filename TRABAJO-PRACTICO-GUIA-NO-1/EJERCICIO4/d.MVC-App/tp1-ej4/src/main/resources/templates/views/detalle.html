@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{components/recursos :: recursos}"></th:block>
+    <title>Detalle videojuego</title>
+</head>
+<body>
+    <nav th:replace="~{components/navbar :: nav_bar(activo='videojuegos')}"></nav>
+    <div class="container py-5 mt-5">
+        <div class="row" th:object="${videojuego}">
+            <div class="col-4">
+                <img th:src="@{'/imagenes/' + *{imagen}}" alt="" class="img-fluid">
+            </div>
+            <div class="col-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="*{titulo}">Card title</h5>
+                        <p class="card-text">Precio : <span th:text="'$' + *{precio}">1</span></p>
+                        <p class="card-text" th:if="*{stock}">
+                            Cantidad: <span th:text="*{stock}"></span>
+                        </p>
+                        <p class="card-text" th:unless="*{stock}">
+                            <span class="text-danger">No hay stock</span>
+                        </p>
+                    </div>
+                    <hr>
+                    <div class="card-body">
+                        <p class="card-text" th:text="*{descripcion}"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 mt-5">
+                <a th:href="@{/inicio}" class="btn btn-outline-dark">Volver</a>
+            </div>
+        </div>
+    </div>
+    <div th:replace="~{components/footer :: pie}"></div>
+    <th:block th:replace="~{components/scripts :: scripts}"></th:block>
+</body>
+</html>
