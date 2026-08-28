@@ -3,6 +3,7 @@ package com.is2.tinder.entities;
 import java.time.LocalDateTime;
 
 import com.is2.tinder.enumerations.Sexo;
+import com.is2.tinder.enumerations.Tipo;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -30,6 +31,9 @@ public class Mascota {
     @Enumerated(EnumType.STRING)
     private Sexo sexo;
 
+    @Enumerated(EnumType.STRING)
+    private Tipo tipo;
+
     @OneToOne
     private Foto foto;
 
@@ -50,6 +54,12 @@ public class Mascota {
     }
     public void setSexo(Sexo sexo) {
         this.sexo = sexo;
+    }
+    public Tipo getTipo() {
+        return tipo;
+    }
+    public void setTipo(Tipo tipo) {
+        this.tipo = tipo;
     }
     public String getId() {
         return id;

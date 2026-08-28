@@ -17,19 +17,24 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.is2.tinder.entities.Foto;
 import com.is2.tinder.entities.Usuario;
+import com.is2.tinder.dtos.UsuarioDTO;
+import com.is2.tinder.entities.Zona;
 import com.is2.tinder.errors.ErrorService;
 import com.is2.tinder.repositories.UsuarioRepository;
+import com.is2.tinder.repositories.ZonaRepository;
 
 @Service
 public class UsuarioService implements UserDetailsService {
     private final UsuarioRepository usuarioRepository;
     private final FotoService fotoService;
     private final NotificacionService notificationService;
+    private final ZonaRepository zonaRepository;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, FotoService fotoService, NotificacionService notificationService) {
+    public UsuarioService(UsuarioRepository usuarioRepository, FotoService fotoService, NotificacionService notificationService, ZonaRepository zonaRepository) {
         this.usuarioRepository = usuarioRepository;
         this.fotoService = fotoService;
         this.notificationService = notificationService;
+        this.zonaRepository = zonaRepository;
     }
 
     public void registrar(MultipartFile archivo, String nombre, String apellido, String mail, String clave) throws ErrorService {
@@ -51,6 +56,53 @@ public class UsuarioService implements UserDetailsService {
         usuarioRepository.save(usuario);
 
         notificationService.enviar("Bienvenidos", "Tinder", usuario.getMail());
+    }
+
+    public void registrar(String nombre, String apellido, String mail, String clave, String clave2,
+            MultipartFile archivo, String idZona) throws ErrorService {
+        if (!clave.equals(clave2)) {
+            throw new ErrorService("Las claves deben coincidir");
+        }
+        Zona zona = zonaRepository.findById(idZona)
+                .orElseThrow(() -> new ErrorService("No se encontró la zona solicitada"));
+        registrar(archivo, nombre, apellido, mail, clave);
+        Usuario usuario = usuarioRepository.buscarPorMail(mail);
+        usuario.setZona(zona);
+        usuarioRepository.save(usuario);
+    }
+
+    public UsuarioDTO login(String mail, String clave) throws ErrorService {
+        if (mail == null || mail.isBlank() || clave == null || clave.isBlank()) {
+            throw new ErrorService("Debe indicar usuario y clave");
+        }
+        Usuario usuario = usuarioRepository.buscarPorMail(mail);
+        if (usuario == null || usuario.getBaja() != null
+                || !new BCryptPasswordEncoder().matches(clave, usuario.getClave())) {
+            throw new ErrorService("No existe usuario con ese correo y clave");
+        }
+        return UsuarioDTO.fromEntity(usuario);
+    }
+
+    public UsuarioDTO buscarUsuario(String id) throws ErrorService {
+        if (id == null || id.isBlank()) {
+            throw new ErrorService("Debe indicar el usuario");
+        }
+        Usuario usuario = usuarioRepository.findById(id).orElse(null);
+        return usuario == null || usuario.getBaja() != null ? null : UsuarioDTO.fromEntity(usuario);
+    }
+
+    public void modificar(String id, String nombre, String apellido, String mail, String clave1, String clave2,
+            MultipartFile archivo, String idZona) throws ErrorService {
+        if (!clave1.equals(clave2)) {
+            throw new ErrorService("Las claves deben coincidir");
+        }
+        Zona zona = zonaRepository.findById(idZona)
+                .orElseThrow(() -> new ErrorService("No se encontró la zona solicitada"));
+        modificar(archivo, id, nombre, apellido, mail, clave1);
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ErrorService("No se encontró el usuario solicitado"));
+        usuario.setZona(zona);
+        usuarioRepository.save(usuario);
     }
 
     public void modificar(MultipartFile archivo, String id, String nombre, String apellido, String mail, String clave) throws ErrorService {

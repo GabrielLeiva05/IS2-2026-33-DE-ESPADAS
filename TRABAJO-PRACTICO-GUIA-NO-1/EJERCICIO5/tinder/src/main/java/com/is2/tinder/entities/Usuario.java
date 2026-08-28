@@ -65,6 +65,12 @@ public class Usuario {
     public void setClave(String clave) {
         this.clave = clave;
     }
+    public Zona getZona() {
+        return zona;
+    }
+    public void setZona(Zona zona) {
+        this.zona = zona;
+    }
     public LocalDateTime getAlta() {
         return alta;
     }

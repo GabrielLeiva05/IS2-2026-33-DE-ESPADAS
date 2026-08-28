@@ -9,7 +9,9 @@ import com.is2.tinder.errors.ErrorService;
 import com.is2.tinder.repositories.FotoRepository;
 
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
 
+@Service
 public class FotoService {
     private final FotoRepository fotoRepository;
 

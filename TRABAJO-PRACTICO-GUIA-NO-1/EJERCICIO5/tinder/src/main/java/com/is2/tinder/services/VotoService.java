@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.is2.tinder.entities.Mascota;
 import com.is2.tinder.entities.Voto;
+import com.is2.tinder.dtos.ReporteVotosDTO;
 import com.is2.tinder.errors.ErrorService;
 import com.is2.tinder.repositories.MascotaRepository;
 
@@ -20,7 +21,7 @@ public class VotoService {
     public VotoService(MascotaRepository mascotaRepository, VotoRepository votoRepository, NotificacionService notificacionService) {
         this.mascotaRepository = mascotaRepository;
         this.votoRepository = votoRepository;
-        this.notificacionService = null;
+        this.notificacionService = notificacionService;
     }
 
     public void votar(String idUsuario, String idMascota1, String idMascota2) throws ErrorService {
@@ -54,6 +55,10 @@ public class VotoService {
         }
 
         votoRepository.save(voto);
+    }
+
+    public java.util.List<ReporteVotosDTO> listarReporteVotos() {
+        return votoRepository.reporteVotos();
     }
 
     public void responder(String idUsuario, String idVoto) throws ErrorService {
