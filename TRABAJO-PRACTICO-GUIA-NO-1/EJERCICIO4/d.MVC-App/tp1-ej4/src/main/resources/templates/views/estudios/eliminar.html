@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{components/recursos :: recursos}"></th:block>
+    <title>Confirmar</title>
+</head>
+<body>
+<nav th:replace="~{components/navbar :: nav_bar(activo='estudios')}"></nav>
+<main class="container py-5 mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form th:action="@{/eliminar/estudio/{id}(id=${estudio.id})}" method="post">
+                        <div class="row g-3 text-center">
+                            <div class="col-md-12">
+                                <h4 th:if="${estudio.activo}">¿Esta seguro de eliminar "<span th:text="${estudio.nombre}"></span>"?</h4>
+                                <h4 th:unless="${estudio.activo}">¿Esta seguro de reactivar "<span th:text="${estudio.nombre}"></span>"?</h4>
+                            </div>
+                        </div>
+                        <div class="row m-3">
+                            <div class="col-md-6">
+                                <button class="btn btn-outline-secondary" type="submit" style="width:100%">Si</button>
+                            </div>
+                            <div class="col-md-6">
+                                <a class="btn btn-success" th:href="@{/estudios}" style="width:100%">No</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<div th:replace="~{components/footer :: pie}"></div>
+<th:block th:replace="~{components/scripts :: scripts}"></th:block>
+</body>
+</html>
