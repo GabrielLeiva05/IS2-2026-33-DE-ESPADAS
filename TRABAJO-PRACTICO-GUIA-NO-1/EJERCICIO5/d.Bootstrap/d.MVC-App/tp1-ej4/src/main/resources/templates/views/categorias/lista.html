@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{components/admin/recursos :: recursos}"></th:block>
+    <title>Categorias</title>
+</head>
+<body class="sb-nav-fixed">
+
+    <nav th:replace="~{components/admin/topnav :: top_nav}"></nav>
+
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <div th:replace="~{components/admin/sidebar :: side_nav(activo='categorias')}"></div>
+        </div>
+
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+
+                    <h1 class="mt-4">Categorias</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item active">Categorias</li>
+                    </ol>
+
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-tags me-1"></i> Listado de categorias</span>
+                            <a th:href="@{/formulario/categoria/0}" class="btn btn-success btn-sm" title="Nueva categoria">
+                                <i class="fas fa-plus"></i> Nueva
+                            </a>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover align-middle">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col">Nombre</th>
+                                            <th scope="col" class="text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="categoria : ${categorias}"
+                                            th:classappend="${categoria.activo} ? '' : 'table-danger'">
+                                            <td th:text="${categoria.nombre}"></td>
+                                            <td class="text-center">
+                                                <a th:href="@{/formulario/categoria/{id}(id=${categoria.id})}"
+                                                   class="btn btn-warning btn-sm me-1" title="Editar">
+                                                    <i class="fas fa-pencil-alt"></i>
+                                                </a>
+                                                <a th:href="@{/eliminar/categoria/{id}(id=${categoria.id})}"
+                                                   th:if="${categoria.activo}"
+                                                   class="btn btn-danger btn-sm" title="Borrar">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                                <a th:href="@{/eliminar/categoria/{id}(id=${categoria.id})}"
+                                                   th:unless="${categoria.activo}"
+                                                   class="btn btn-secondary btn-sm" title="Reactivar">
+                                                    <i class="fas fa-undo"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
+            <th:block th:replace="~{components/admin/footer :: pie_y_scripts}"></th:block>
+        </div>
+    </div>
+
+</body>
+</html>
