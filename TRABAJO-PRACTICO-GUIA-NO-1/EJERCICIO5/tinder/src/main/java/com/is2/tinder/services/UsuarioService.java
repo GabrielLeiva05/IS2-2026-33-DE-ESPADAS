@@ -75,6 +75,7 @@ public class UsuarioService implements UserDetailsService {
         if (mail == null || mail.isBlank() || clave == null || clave.isBlank()) {
             throw new ErrorService("Debe indicar usuario y clave");
         }
+        mail = mail.trim().toLowerCase();
         Usuario usuario = usuarioRepository.buscarPorMail(mail);
         if (usuario == null || usuario.getBaja() != null
                 || !new BCryptPasswordEncoder().matches(clave, usuario.getClave())) {

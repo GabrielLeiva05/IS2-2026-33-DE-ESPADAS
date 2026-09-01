@@ -40,7 +40,7 @@ public class UsuarioController {
             return "redirect:/inicio";
         } catch (ErrorService exception) {
             model.put("error", exception.getMessage());
-            model.put("email", email);
+            model.put("email", email == null ? null : email.trim());
             return "login.html";
         }
     }

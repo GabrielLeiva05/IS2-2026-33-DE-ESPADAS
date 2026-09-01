@@ -10,7 +10,7 @@ import com.is2.tinder.dtos.ReporteVotosDTO;
 import com.is2.tinder.entities.Voto;
 
 public interface VotoRepository extends JpaRepository<Voto, String> {
-    @Query("SELECT new ReporteVotosDTO(v.mascota2.usuario.nombre, v.mascota2.usuario.apellido, v.mascota2.nombre, COUNT(v)) "
+    @Query("SELECT new com.is2.tinder.dtos.ReporteVotosDTO(v.mascota2.usuario.nombre, v.mascota2.usuario.apellido, v.mascota2.nombre, COUNT(v)) "
             + "FROM Voto v GROUP BY v.mascota2.usuario.nombre, v.mascota2.usuario.apellido, v.mascota2.nombre "
             + "ORDER BY COUNT(v) DESC")
     List<ReporteVotosDTO> reporteVotos();
