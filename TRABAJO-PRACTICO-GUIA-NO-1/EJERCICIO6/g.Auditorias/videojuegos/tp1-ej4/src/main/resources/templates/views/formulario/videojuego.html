@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{components/admin/recursos :: recursos}"></th:block>
+    <title th:text="${videojuego.id == 0} ? 'Agregar Videojuego' : 'Editar Videojuego'">Formulario Videojuego</title>
+</head>
+<body class="sb-nav-fixed">
+
+    <nav th:replace="~{components/admin/topnav :: top_nav}"></nav>
+
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <div th:replace="~{components/admin/sidebar :: side_nav(activo='videojuegos')}"></div>
+        </div>
+
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+
+                    <h1 class="mt-4" th:text="${videojuego.id == 0} ? 'Agregar Videojuego' : 'Editar Videojuego'">Agregar Videojuego</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item"><a th:href="@{/crud}">Videojuegos</a></li>
+                        <li class="breadcrumb-item active" th:text="${videojuego.id == 0} ? 'Agregar' : 'Editar'">Agregar</li>
+                    </ol>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-gamepad me-1"></i>
+                            Datos del videojuego
+                        </div>
+                        <div class="card-body">
+<form th:action="@{/formulario/videojuego/{id}(id=${videojuego.id})}" method="post" th:object="${videojuego}" enctype="multipart/form-data">
+
+            <input type="hidden" id="imagen" th:field="*{imagen}">
+
+            <!-- Titulo y Categoria -->
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <label for="titulo" class="form-label">
+                        Nombre del videojuego
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           id="titulo"
+                           th:field="*{titulo}"
+                           placeholder="Ej: GTA VI">
+                    <div class="text-danger" th:if="${#fields.hasErrors('titulo')}" th:errors="*{titulo}"></div>
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+                    <label for="categoria" class="form-label">
+                        Categoria
+                    </label>
+
+                    <select id="categoria" class="form-select" th:field="*{categoria}">
+                        <option th:each="categoria : ${categorias}" th:value="${categoria.id}" th:text="${categoria.nombre}"></option>
+                    </select>
+                    <div class="text-danger" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></div>
+                </div>
+
+            </div>
+
+
+            <!-- Estudio y precio -->
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label for="estudio" class="form-label">
+                        Estudio
+                    </label>
+
+                    <select id="estudio" class="form-select" th:field="*{estudio}">
+                        <option th:each="estudio : ${estudios}" th:value="${estudio.id}" th:text="${estudio.nombre}"></option>
+                    </select>
+                    <div class="text-danger" th:if="${#fields.hasErrors('estudio')}" th:errors="*{estudio}"></div>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                    <label for="precio" class="form-label">
+                        Precio
+                    </label>
+
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number"
+                               class="form-control"
+                               id="precio"
+                               th:field="*{precio}"
+                               placeholder="49.99"
+                               step="0.01"
+                               min="0">
+                    </div>
+                    <div class="text-danger" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Cantidad y fecha de lanzamiento -->
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label for="cantidad" class="form-label">
+                        Cantidad disponible
+                    </label>
+
+                    <input type="number"
+                           class="form-control"
+                           id="cantidad"
+                           th:field="*{stock}"
+                           placeholder="10"
+                           min="0">
+                    <div class="text-danger" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></div>
+
+                </div>
+
+
+                <div class="col-md-6 mb-3">
+
+                    <label for="lanzamiento" class="form-label">
+                        Fecha de lanzamiento
+                    </label>
+
+                    <input type="date"
+                           class="form-control"
+                           id="lanzamiento"
+                           th:field="*{fechaLanzamiento}">
+                    <div class="text-danger" th:if="${#fields.hasErrors('fechaLanzamiento')}" th:errors="*{fechaLanzamiento}"></div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Descripcion -->
+            <div class="mb-3">
+
+                <label for="descripcion" class="form-label">
+                    Descripcion
+                </label>
+
+                <textarea class="form-control"
+                          id="descripcion"
+                          rows="4"
+                          th:field="*{descripcion}"
+                          placeholder="Ingrese una descripcion del videojuego"></textarea>
+                <div class="text-danger" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></div>
+
+            </div>
+
+
+            <!-- Imagen -->
+            <div class="mb-3">
+
+                <label for="archivo" class="form-label">
+                    Imagen del videojuego
+                </label>
+
+                <input type="file"
+                       class="form-control"
+                       id="archivo"
+                       name="archivo"
+                       accept="image/*">
+                <div class="text-danger" th:if="${errorImagenMsg}" th:text="${errorImagenMsg}"></div>
+
+            </div>
+
+
+            <!-- Botones -->
+            <div class="d-flex gap-2">
+
+                <button type="reset" class="btn btn-outline-secondary">
+                    Resetear Formulario
+                </button>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i>
+                    Guardar
+                </button>
+
+            </div>
+
+        </form>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
+            <th:block th:replace="~{components/admin/footer :: pie_y_scripts}"></th:block>
+        </div>
+    </div>
+
+</body>
+</html>

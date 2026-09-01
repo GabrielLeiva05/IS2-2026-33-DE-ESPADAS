@@ -1,0 +1,13 @@
+<!-- Fragment de la barra superior del panel admin. Uso: th:replace="~{components/admin/topnav :: top_nav}" -->
+<nav th:fragment="top_nav" class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+    <a class="navbar-brand ps-3" th:href="@{/}">Juegos 33 de Espadas - Panel</a>
+    <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+    <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/}" title="Ir al sitio">
+                <i class="fas fa-store fa-fw"></i>
+                Ver sitio
+            </a>
+        </li>
+    </ul>
+</nav>

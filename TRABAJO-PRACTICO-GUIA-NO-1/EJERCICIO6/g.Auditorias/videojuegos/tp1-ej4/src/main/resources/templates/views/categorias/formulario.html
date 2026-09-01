@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{components/admin/recursos :: recursos}"></th:block>
+    <title th:text="${categoria.id == 0} ? 'Agregar Categoria' : 'Editar Categoria'">Agregar Categoria</title>
+</head>
+<body class="sb-nav-fixed">
+
+    <nav th:replace="~{components/admin/topnav :: top_nav}"></nav>
+
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <div th:replace="~{components/admin/sidebar :: side_nav(activo='categorias')}"></div>
+        </div>
+
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+
+                    <h1 class="mt-4" th:text="${categoria.id == 0} ? 'Agregar categoria' : 'Editar categoria'">Agregar categoria</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item"><a th:href="@{/categorias}">Categorias</a></li>
+                        <li class="breadcrumb-item active" th:text="${categoria.id == 0} ? 'Agregar' : 'Editar'">Agregar</li>
+                    </ol>
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <i class="fas fa-tags me-1"></i>
+                            Datos de la categoria
+                        </div>
+                        <div class="card-body">
+
+                            <form th:action="@{/formulario/categoria/{id}(id=${categoria.id})}" method="post" th:object="${categoria}">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nombre" class="form-label">
+                                            Categoria
+                                        </label>
+                                        <input type="text"
+                                               class="form-control"
+                                               id="nombre"
+                                               th:field="*{nombre}"
+                                               placeholder="Ej: Terror">
+                                        <div class="text-danger" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-check"></i>
+                                        Guardar
+                                    </button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
+            <th:block th:replace="~{components/admin/footer :: pie_y_scripts}"></th:block>
+        </div>
+    </div>
+
+</body>
+</html>
