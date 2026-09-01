@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.is2.tinder.entities.Zona;
 import com.is2.tinder.dtos.ZonaDTO;
 import com.is2.tinder.errors.ErrorService;
 import com.is2.tinder.repositories.ZonaRepository;
