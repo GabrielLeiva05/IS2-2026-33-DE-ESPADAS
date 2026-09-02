@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Explorar mascotas</title>
+  <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/one-page-wonder.min.css" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="/inicio">Tinder de Mascotas</a>
+    <div class="navbar-nav">
+      <a class="nav-link" href="/mascota/mis-mascotas">Mis Mascotas</a>
+      <a class="nav-link" href="/logout">Salir</a>
+    </div>
+  </div>
+</nav>
+<main class="container" style="margin-top: 90px;">
+  <h1 class="text-center">Explorar mascotas</h1>
+  <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+  <section th:if="${mascotaSeleccionada == null}">
+    <h2 class="h4 mt-4">Selecciona tu mascota</h2>
+    <div class="row">
+      <div class="col-md-4 mb-3" th:each="mascota : ${misMascotas}">
+        <div class="card h-100">
+          <img th:if="${mascota.foto != null}" th:src="@{/foto/mascota/{id}(id=${mascota.id})}" class="card-img-top" style="height:180px; object-fit:cover" alt="Foto de mascota">
+          <div class="card-body">
+            <h3 class="h5" th:text="${mascota.nombre}">Mascota</h3>
+            <p th:text="${mascota.sexo + ' - ' + mascota.tipo}">Datos</p>
+            <a class="btn btn-primary" th:href="@{/mascota/explorar-mascotas(idMascotaPropia=${mascota.id})}">Explorar</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section th:if="${mascotaSeleccionada != null}">
+    <p class="mt-4">Explorando con <strong th:text="${mascotaSeleccionada.nombre}">mascota</strong>.</p>
+    <a class="btn btn-outline-secondary mb-3" href="/mascota/explorar-mascotas">Cambiar mascota</a>
+    <table class="table table-hover" th:if="${mascotas != null && !mascotas.isEmpty()}">
+      <thead><tr><th>Foto</th><th>Nombre</th><th>Sexo</th><th>Tipo</th><th>Dueño</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="mascota : ${mascotas}">
+          <td><img th:if="${mascota.foto != null}" th:src="@{/foto/mascota/{id}(id=${mascota.id})}" style="height:50px; width:50px; object-fit:cover" alt="Foto"></td>
+          <td th:text="${mascota.nombre}">Mascota</td>
+          <td th:text="${mascota.sexo}">Sexo</td>
+          <td th:text="${mascota.tipo}">Tipo</td>
+          <td th:text="${mascota.usuario.nombre + ' ' + mascota.usuario.apellido}">Dueño</td>
+          <td>
+            <form action="/votar" method="post">
+              <input type="hidden" name="idMascotaPropia" th:value="${mascotaSeleccionada.id}">
+              <input type="hidden" name="idMascotaVotada" th:value="${mascota.id}">
+              <button class="btn btn-success btn-sm" type="submit">Votar</button>
+            </form>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <p th:if="${mascotas == null || mascotas.isEmpty()}" class="alert alert-info">No hay mascotas disponibles.</p>
+  </section>
+</main>
+</body>
+</html>
