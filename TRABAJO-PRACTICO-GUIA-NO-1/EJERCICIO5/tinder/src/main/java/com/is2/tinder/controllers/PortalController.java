@@ -26,10 +26,10 @@ public class PortalController {
         this.zonaService = zonaService;
     }
 
-    @GetMapping({"/", "/index"})
-    public String index() { return "index.html"; }
+    /*@GetMapping({"/", "/index"})
+    public String index() { return "index.html"; }*/
 
-    @GetMapping("/inicio")
+    @GetMapping({"/", "/index", "/inicio"})
     public String inicio(HttpSession session, HttpServletRequest request) {
         if (session.getAttribute("usuariosession") == null) {
             Cookie cookie = buscarCookie(request, "usuarioRecordado");

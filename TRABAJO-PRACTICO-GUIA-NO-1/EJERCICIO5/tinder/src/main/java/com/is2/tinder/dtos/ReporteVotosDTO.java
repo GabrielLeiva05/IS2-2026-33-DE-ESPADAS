@@ -4,9 +4,9 @@ public class ReporteVotosDTO {
     private final String nombreUsuario;
     private final String apellidoUsuario;
     private final String nombreMascota;
-    private final long cantidadVotos;
+    private final Long cantidadVotos;
 
-    public ReporteVotosDTO(String nombreUsuario, String apellidoUsuario, String nombreMascota, long cantidadVotos) {
+    public ReporteVotosDTO(String nombreUsuario, String apellidoUsuario, String nombreMascota, Long cantidadVotos) {
         this.nombreUsuario = nombreUsuario;
         this.apellidoUsuario = apellidoUsuario;
         this.nombreMascota = nombreMascota;
@@ -16,5 +16,5 @@ public class ReporteVotosDTO {
     public String getNombreUsuario() { return nombreUsuario; }
     public String getApellidoUsuario() { return apellidoUsuario; }
     public String getNombreMascota() { return nombreMascota; }
-    public long getCantidadVotos() { return cantidadVotos; }
+    public Long getCantidadVotos() { return cantidadVotos; }
 }
