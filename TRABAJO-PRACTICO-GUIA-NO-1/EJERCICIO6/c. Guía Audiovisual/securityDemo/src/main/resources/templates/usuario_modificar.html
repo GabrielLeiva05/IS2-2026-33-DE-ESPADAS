@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modificar Perfil - Biblioteca</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f3f4f6;
+            padding: 20px;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 450px;
+            background-color: #ffffff;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .register-container h1 {
+            text-align: center;
+            margin-bottom: 6px;
+            color: #1f2937;
+            font-size: 24px;
+        }
+
+        .register-container .subtitle {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .profile-img-preview {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        .profile-img-preview img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #2563eb;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #f87171;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .form-group input[readonly] {
+            background-color: #f3f4f6;
+            cursor: not-allowed;
+            color: #6b7280;
+        }
+
+        .btn-toggle-password {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .btn-toggle-password:hover {
+            text-decoration: underline;
+        }
+
+        .password-section {
+            display: none;
+            padding-top: 6px;
+            border-top: 1px dashed #e5e7eb;
+            margin-bottom: 6px;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-register:hover {
+            background-color: #1d4ed8;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #4b5563;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="register-container">
+
+        <h1>Modificar Perfil</h1>
+        <p class="subtitle">Actualizá tus datos personales</p>
+
+        <div th:if="${error != null}" class="alert-error">
+            <p th:text="${error}"></p>
+        </div>
+        <div th:if="${exito != null}" class="alert-success">
+            <p th:text="${exito}"></p>
+        </div>
+
+        <div th:if="${usuario != null and usuario.imagen != null}" class="profile-img-preview">
+            <img th:src="@{/imagen/perfil/__${usuario.id}__}" alt="Foto de perfil">
+        </div>
+
+        <form th:action="@{/perfil/__${usuario.id}__}" method="POST" enctype="multipart/form-data">
+
+            <div class="form-group" th:if="${usuario != null and usuario.dni != null}">
+                <label for="dni">DNI</label>
+                <input type="text" id="dni" th:value="${usuario.dni}" readonly>
+            </div>
+
+            <div class="form-group">
+                <label for="nombre">Nombre completo</label>
+                <input type="text" id="nombre" name="nombre" th:value="${usuario != null ? usuario.nombre : ''}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email" name="email" th:value="${usuario != null ? usuario.email : ''}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="imagen">Foto de perfil (opcional)</label>
+                <input type="file" id="imagen" name="archivo" accept="image/*">
+            </div>
+
+            <button type="button" class="btn-toggle-password" id="togglePasswordBtn" onclick="togglePasswordFields()">
+                + Cambiar contraseña
+            </button>
+
+            <div id="passwordFields" class="password-section">
+                <div class="form-group">
+                    <label for="clave">Nueva Contraseña</label>
+                    <input type="password" id="clave" name="clave" placeholder="Dejar en blanco para no cambiar">
+                </div>
+
+                <div class="form-group">
+                    <label for="clave2">Confirmar Contraseña</label>
+                    <input type="password" id="clave2" name="clave2" placeholder="Repita la contraseña">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register">
+                Guardar cambios
+            </button>
+        </form>
+
+        <a th:href="@{/inicio}" class="back-link">Volver al inicio</a>
+    </div>
+
+    <script>
+        function togglePasswordFields() {
+            const container = document.getElementById('passwordFields');
+            const btn = document.getElementById('togglePasswordBtn');
+            const claveInput = document.getElementById('clave');
+            const clave2Input = document.getElementById('clave2');
+
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                btn.textContent = '+ Cambiar contraseña';
+                claveInput.value = '';
+                clave2Input.value = '';
+            } else {
+                container.style.display = 'block';
+                btn.textContent = '- Cancelar cambio de contraseña';
+                claveInput.focus();
+            }
+        }
+    </script>
+</body>
+</html>

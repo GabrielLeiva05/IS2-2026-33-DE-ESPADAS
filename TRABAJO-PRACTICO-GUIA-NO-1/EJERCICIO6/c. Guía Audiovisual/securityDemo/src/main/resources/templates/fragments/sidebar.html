@@ -1,0 +1,37 @@
+<aside class="sidebar" th:fragment="sidebar">
+
+    <div class="sidebar-top">
+        <h2>Sistema biblioteca</h2>
+
+        <ul class="menu">
+            <li>
+                <a href="#" class="menu-link active" data-section="inicio">
+                    Inicio
+                </a>
+            </li>
+            <li>
+                <a href="#" class="menu-link" data-section="libros">
+                    Libros
+                </a>
+            </li>
+        </ul>
+    </div>
+
+<div class="sidebar-footer">
+    <a th:href="@{/perfil}" class="btn-mod" style="text-decoration: none; display: block; text-align: center;">
+        Modificar usuario
+    </a>
+
+    <form th:action="@{/logout}" method="POST">
+        <button type="submit" class="btn-logout">
+            Cerrar sesión
+        </button>
+    </form>
+</div>
+
+
+
+</div>
+
+
+</aside>

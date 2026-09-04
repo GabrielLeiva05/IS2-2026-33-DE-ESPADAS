@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es" 
+      xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/head :: head}"></head>
+
+<body>
+
+    <aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+    <!-- =========================
+         CONTENIDO PRINCIPAL
+    ========================== -->
+
+    <main class="main">
+
+        <!-- INICIO -->
+        <section id="inicio" class="section active">
+            <div class="header">
+                <h1>Panel de Administrador</h1>
+                <p th:if="${session.usuariosession != null}" 
+                   th:text="'Bienvenido al sistema ' + ${session.usuariosession.nombre}"></p>
+            </div>
+
+            <div class="cards">
+                <div class="card">
+                    <h3>Libros</h3>
+                    <p>25</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- =========================
+             ABM USUARIOS / LIBROS
+        ========================== -->
+        <section id="libros" class="section">
+            <div class="header">
+                <h1>Libros</h1>
+                <p>Vista.</p>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Listado de libros</h2>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Editorial</th>
+                            <th>Autor</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Libro1</td>
+                            <td>editorial1</td>
+                            <td>John Doe</td>
+                            <td>
+                                <button class="btn-edit">Editar</button>
+                                <button class="btn-delete">Eliminar</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Libro2</td>
+                            <td>editorial1</td>
+                            <td>John Pork</td>
+                            <td>
+                                <button class="btn-edit">Editar</button>
+                                <button class="btn-delete">Eliminar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main> <!-- Etiqueta agregada -->
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================== -->
+    <script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

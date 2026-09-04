@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f3f4f6;
+            padding: 20px;
+        }
+
+        .login-container,
+        .register-container {
+            width: 100%;
+            max-width: 420px;
+            background-color: #ffffff;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-container h1,
+        .register-container h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #1f2937;
+            font-size: 26px;
+        }
+
+        .login-container .subtitle,
+        .register-container .subtitle {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #f87171;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .btn-login,
+        .btn-register {
+            width: 100%;
+            padding: 13px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-login:hover,
+        .btn-register:hover {
+            background-color: #1d4ed8;
+        }
+
+        .register-link,
+        .login-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .register-link:hover,
+        .login-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="register-container">
+
+        <h1>Crear cuenta</h1>
+
+        <p class="subtitle">
+            Registrá un nuevo usuario
+        </p>
+        <div data-th-if="${error != null}" class="alert-error">
+            <p data-th-text="${error}"></p>
+        </div>
+        <form data-th-action="@{registro}" method="POST" enctype="multipart/form-data">
+
+            <!-- DNI -->
+            <div class="form-group">
+                <label for="dni">DNI</label>
+
+                <input
+                    type="text"
+                    id="dni"
+                    name="dni"
+                    placeholder="Ingrese su DNI"
+                    required
+                >
+            </div>
+
+            <!-- Nombre -->
+            <div class="form-group">
+                <label for="nombre">Nombre</label>
+
+                <input
+                    type="text"
+                    id="nombre"
+                    name="nombre"
+                    placeholder="Ingrese su nombre"
+                    required
+                >
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-group">
+                <label for="telefono">Teléfono</label>
+
+                <input
+                    type="tel"
+                    id="telefono"
+                    name="telefono"
+                    placeholder="Ingrese su teléfono"
+                    required
+                >
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email">Correo electrónico</label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Ingrese su correo electrónico"
+                    required
+                >
+            </div>
+            
+            <!-- Imagen -->
+            <div class="form-group">
+                <label for="imagen"></label>
+
+                <input
+                    type="file"
+                    id="imagen"
+                    name="archivo"
+                >
+            </div>
+
+            <!-- Clave -->
+            <div class="form-group">
+                <label for="clave">Contraseña</label>
+
+                <input
+                    type="password"
+                    id="clave"
+                    name="clave"
+                    placeholder="Ingrese su contraseña"
+                    required
+                >
+            </div>
+
+            <!-- Clave2 -->
+            <div class="form-group">
+                <label for="clave2">Confirmar contraseña</label>
+
+                <input
+                    type="password"
+                    id="clave2"
+                    name="clave2"
+                    placeholder="Confirme su contraseña"
+                    required
+                >
+            </div>
+
+            <!-- Botón -->
+            <button type="submit" class="btn-register">
+                Registrarse
+            </button>
+
+        </form>
+
+        <a href="/login" class="login-link">
+            ¿Ya tenés una cuenta? Iniciar sesión
+        </a>
+
+    </div>
+
+</body>
+</html>
