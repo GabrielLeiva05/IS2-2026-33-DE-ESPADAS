@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
 
 @Controller
 @RequestMapping("/")
@@ -92,10 +93,18 @@ public String actualizar(MultipartFile archivo,
                          @RequestParam String email,
                          @RequestParam String clave, 
                          @RequestParam String clave2, 
-                         ModelMap modelo) throws MiException {
+                         ModelMap modelo,
+                         Authentication authentication) throws MiException {
 
-    usuarioServicio.actualizar(archivo, id, nombre, email, clave, clave2);
     modelo.put("exito", "Usuario actualizado correctamente!");
+
+    if (authentication.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+
+        return "panel.html";
+    }
+
     return "index.html";
 }
 }
+

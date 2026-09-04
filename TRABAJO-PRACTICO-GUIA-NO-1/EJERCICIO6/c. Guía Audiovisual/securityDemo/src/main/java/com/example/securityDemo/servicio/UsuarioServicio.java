@@ -70,8 +70,6 @@ public class UsuarioServicio implements UserDetailsService {
                 usuario.setClave(new BCryptPasswordEncoder().encode(clave));
             }
 
-            usuario.setRol(Rol.USER);
-
             Long idImagen = null;
             if (usuario.getImagen() != null) {
                 idImagen = usuario.getImagen().getId();
