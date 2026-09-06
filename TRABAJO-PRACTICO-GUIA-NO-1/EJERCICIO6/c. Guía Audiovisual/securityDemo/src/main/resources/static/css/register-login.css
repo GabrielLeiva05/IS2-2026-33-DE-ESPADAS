@@ -1,0 +1,131 @@
+/* Reseteo y centrado general en pantalla */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f3f4f6;
+    padding: 20px;
+}
+
+/* Contenedor (aplica tanto a login como a register) */
+.login-container,
+.register-container {
+    width: 100%;
+    max-width: 420px;
+    background-color: #ffffff;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-container h1,
+.register-container h1 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #1f2937;
+    font-size: 26px;
+}
+
+.login-container .subtitle,
+.register-container .subtitle {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* Alertas de error y éxito */
+.alert-error {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #f87171;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Campos de formulario */
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 7px;
+    color: #374151;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-group input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Botones de acción */
+.btn-login,
+.btn-register {
+    width: 100%;
+    padding: 13px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 6px;
+    background-color: #2563eb;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-login:hover,
+.btn-register:hover {
+    background-color: #1d4ed8;
+}
+
+/* Enlaces inferiores entre login y registro */
+.register-link,
+.login-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.register-link:hover,
+.login-link:hover {
+    text-decoration: underline;
+}
