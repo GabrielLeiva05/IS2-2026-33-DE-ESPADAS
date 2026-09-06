@@ -29,31 +29,22 @@ public class MascotaService {
         this.usuarioRepository = usuarioRepository;
     }
 
-    public void agregarMascota(MultipartFile archivo, String idUsuario, String nombre, Sexo sexo) throws ErrorService {
+    public void agregarMascota(String idUsuario, String nombre, Sexo sexo, MultipartFile archivo, Tipo tipo) throws ErrorService {
         Usuario usuario = usuarioRepository.findById(idUsuario).get();
-        
+
         validar(nombre, sexo);
 
         Mascota mascota = new Mascota();
         mascota.setNombre(nombre);
         mascota.setSexo(sexo);
+        mascota.setTipo(tipo);
         mascota.setAlta(LocalDateTime.now());
         mascota.setUsuario(usuario);
 
         Foto foto = fotoService.guardar(archivo);
         mascota.setFoto(foto);
 
-        mascotaRepository.save(mascota);
-    }
-
-    public void agregarMascota(String idUsuario, String nombre, Sexo sexo, MultipartFile archivo, Tipo tipo) throws ErrorService {
-        agregarMascota(archivo, idUsuario, nombre, sexo);
-        Mascota mascota = mascotaRepository.buscarMascotasPorUsuario(idUsuario).stream()
-                .filter(item -> nombre.equals(item.getNombre()))
-                .findFirst()
-                .orElseThrow(() -> new ErrorService("No se pudo guardar la mascota"));
-        mascota.setTipo(tipo);
-        mascotaRepository.save(mascota);
+        mascotaRepository.save(mascota); // un unico save -> una unica revision en mascota_aud
     }
 
     public void modificar(MultipartFile archivo, String idUsuario, String idMascota, String nombre, Sexo sexo) throws ErrorService {

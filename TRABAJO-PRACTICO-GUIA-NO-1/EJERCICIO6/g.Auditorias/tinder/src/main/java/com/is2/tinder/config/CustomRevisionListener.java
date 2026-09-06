@@ -18,15 +18,5 @@ public class CustomRevisionListener implements RevisionListener {
         // Si hubiera una entidad Usuario (con login), aca iria algo asi:
         //
         revision.setUsuario(UsuarioActualHolder.get());
-        //
-        // usando un ThreadLocal (UsuarioActualHolder) que un interceptor
-        // de Spring completa al principio de cada request con el usuario
-        // logueado (SecurityContextHolder). No se puede inyectar el
-        // usuario actual directamente aca porque, como dijimos arriba,
-        // esta clase no vive dentro del contenedor de Spring.
-        //
-        // Como este proyecto no tiene usuarios todavia, no seteamos nada:
-        // la Revision se guarda solo con id y fecha (autocompletados por
-        // Envers gracias a @RevisionNumber y @RevisionTimestamp).
     }
 }

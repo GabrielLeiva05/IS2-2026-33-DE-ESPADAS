@@ -1,8 +1,5 @@
 package com.is2.tinder.audit;
 
-// Clase de utilidad, nunca se instancia con "new" (por eso el
-// constructor privado). Se usa siempre por sus metodos estaticos,
-// igual que Math.max(...).
 public class UsuarioActualHolder {
 
     private static final ThreadLocal<String> USUARIO_ID = new ThreadLocal<>();
