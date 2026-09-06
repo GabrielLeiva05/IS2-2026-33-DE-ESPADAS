@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{components/recursos :: recursos}"></th:block>
+    <title>Inicio</title>
+</head>
+<body>
+  <nav th:replace="~{components/navbar :: nav_bar(activo='videojuegos')}"></nav>
+  <div class="container py-5 mt-5">
+    <div class="row">
+      <div class="col-12 col-md-3" th:each="videojuego : ${videojuegos}">
+        <div th:replace="~{components/card :: _card}"></div>
+      </div>
+    </div>
+  </div>
+  <div th:replace="~{components/footer :: pie}"></div>
+  <th:block th:replace="~{components/scripts :: scripts}"></th:block>
+</body>
+</html>

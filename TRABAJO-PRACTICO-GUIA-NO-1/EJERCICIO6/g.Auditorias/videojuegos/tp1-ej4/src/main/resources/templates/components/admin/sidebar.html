@@ -1,0 +1,28 @@
+<!-- Fragment del menu lateral del panel admin. Uso: th:replace="~{components/admin/sidebar :: side_nav(activo='videojuegos')}" -->
+<nav th:fragment="side_nav(activo)" class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+    <div class="sb-sidenav-menu">
+        <div class="nav">
+            <div class="sb-sidenav-menu-heading">Administracion</div>
+
+            <a class="nav-link" th:classappend="${activo == 'videojuegos'} ? '' : ' collapsed'" th:href="@{/crud}">
+                <div class="sb-nav-link-icon"><i class="fas fa-gamepad"></i></div>
+                Videojuegos
+            </a>
+
+            <a class="nav-link" th:classappend="${activo == 'categorias'} ? '' : ' collapsed'" th:href="@{/categorias}">
+                <div class="sb-nav-link-icon"><i class="fas fa-tags"></i></div>
+                Categorias
+            </a>
+
+            <a class="nav-link" th:classappend="${activo == 'estudios'} ? '' : ' collapsed'" th:href="@{/estudios}">
+                <div class="sb-nav-link-icon"><i class="fas fa-building"></i></div>
+                Estudios
+            </a>
+
+        </div>
+    </div>
+    <div class="sb-sidenav-footer">
+        <div class="small">Sesion:</div>
+        Juegos 33 de Espadas
+    </div>
+</nav>

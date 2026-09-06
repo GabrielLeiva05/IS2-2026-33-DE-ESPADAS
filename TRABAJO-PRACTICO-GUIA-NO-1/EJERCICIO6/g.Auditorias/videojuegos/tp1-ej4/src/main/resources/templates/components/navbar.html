@@ -1,0 +1,71 @@
+<!-- Fragment de navegacion. Uso: th:replace="~{components/navbar :: nav_bar(activo='videojuegos')}" -->
+<nav th:fragment="nav_bar(activo)" class="navbar navbar-expand-md navbar-dark bg-primary fixed-top">
+    <div class="container-fluid">
+
+        <a th:href="@{/}" class="navbar-brand">JUEGOS 33 DE ESPADAS</a>
+
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarCollapse">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+
+            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activo == 'inicio'} ? ' active'" th:href="@{/}">Inicio</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activo == 'videojuegos'} ? ' active'" th:href="@{/crud}">
+                        Videojuegos
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activo == 'categorias'} ? ' active'" th:href="@{/categorias}">
+                        Categorias
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${activo == 'estudios'} ? ' active'" th:href="@{/estudios}">
+                        Estudios
+                    </a>
+                </li>
+
+            </ul>
+
+            <!-- Opciones para pantallas pequenas -->
+            <div class="d-md-none">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">Carrito</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">Perfil</a>
+                    </li>
+
+                </ul>
+            </div>
+
+            <!-- Iconos para pantallas medianas/grandes -->
+            <div class="d-none d-md-flex gap-2">
+
+                <a href="#" class="nav-item nav-link p-1">
+                    <i class="bi bi-cart" style="font-size: 1.5rem;"></i>
+                </a>
+
+                <a href="#" class="nav-item nav-link p-1">
+                    <i class="bi bi-person-circle" style="font-size: 1.5rem;"></i>
+                </a>
+
+            </div>
+
+        </div>
+    </div>
+</nav>
