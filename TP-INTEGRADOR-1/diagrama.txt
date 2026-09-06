@@ -1,0 +1,157 @@
+@startuml
+skinparam classAttributeIconSize 0
+hide circle
+
+' ========== CLASES PRINCIPALES ==========
+
+abstract class Usuario {
+  - email: String
+  - contraseña: String
+  + login()
+  + logout()
+}
+
+class Cliente {
+  - nombre: String
+  - apellido: String
+  - sexo: String
+  - fechaNacimiento: Date
+  - telefono: String
+  - codigoActivacion: String
+  - activo: Boolean
+  + registrarse()
+  + activarCuenta()
+  + realizarCompra()
+  + anularCompra()
+  + verSeguimiento()
+  + modificarDatos()
+}
+
+class Administrador {
+  + ABMUsuarios()
+  + ABMProductos()
+  + ABMPrecios()
+  + ABMProveedores()
+  + generarOrdenCompra()
+  + actualizarOrdenCompra()
+  + actualizarStock()
+}
+
+class Rol {
+  - id: Integer
+  - nombre: String
+  + getPermisos()
+}
+
+class Direccion {
+  - provincia: String
+  - departamento: String
+  - localidad: String
+  - codigoPostal: String
+  - calle: String
+  - numeroCalle: String
+  - manzanaPiso: String
+  - numeroCasaDepto: String
+}
+
+class Producto {
+  - id: Integer
+  - imagen: String
+  - nombre: String
+  - descripcion: String
+  - talle: String
+  - enOferta: Boolean
+  - precio: Float
+  - stock: Integer
+  - fechaActualizacionPrecio: Date
+  + crear()
+  + actualizarPrecio()
+  + actualizarStock()
+  + verificarStock()
+}
+
+class Categoria {
+  - id: Integer
+  - nombre: String
+}
+
+class Subcategoria {
+  - id: Integer
+  - nombre: String
+}
+
+class Compra {
+  - id: Integer
+  - fecha: Date
+  - estado: Enum
+  - total: Float
+  + pagar()
+  + anular()
+  + verSeguimiento()
+  + enviarEmailConfirmacion()
+}
+
+class DetalleCompra {
+  - cantidad: Integer
+  - precioUnitario: Float
+  - subtotal: Float
+}
+
+class FormaPago {
+  - tipo: String
+  + procesarPago()
+}
+
+class Proveedor {
+  - id: Integer
+  - razonSocial: String
+  - email: String
+  - telefono: String
+  + registrar()
+  + contactarWhatsApp()
+}
+
+class OrdenCompra {
+  - id: Integer
+  - fecha: Date
+  - cantidad: Integer
+  - precioCompra: Float
+  - total: Float
+  - entregada: Boolean
+  + recibirMercaderia()
+  + actualizarStock()
+}
+
+' ========== ENUMERACIONES ==========
+
+enum EstadoCompra {
+  PENDIENTE_PAGO
+  PAGO_REALIZADO
+  PENDIENTE_ENTREGA
+  PENDIENTE_ENVIO
+  ENTREGADO
+}
+
+' ========== RELACIONES ==========
+
+Usuario <|-- Cliente : hereda
+Usuario <|-- Administrador : hereda
+
+Usuario "1" -- "1" Rol : tiene
+Cliente "1" -- "1" Direccion : posee
+Cliente "1" -- "0..*" Compra : realiza
+
+Compra "1" -- "1..*" DetalleCompra : contiene
+DetalleCompra "*" -- "1" Producto : referencia
+
+Producto "0..*" -- "1" Categoria : pertenece a
+Producto "0..*" -- "1" Subcategoria : tiene
+Compra "1" -- "1" FormaPago : se paga con
+Compra "*" -- "1" EstadoCompra : tiene estado
+
+OrdenCompra "*" -- "1" Proveedor : solicita a
+OrdenCompra "*" -- "1" Producto : compra de
+
+' ========== ASOCIACIONES DE NEGOCIO ==========
+Proveedor "1" -- "1" Producto : precio_costo >
+@enduml
