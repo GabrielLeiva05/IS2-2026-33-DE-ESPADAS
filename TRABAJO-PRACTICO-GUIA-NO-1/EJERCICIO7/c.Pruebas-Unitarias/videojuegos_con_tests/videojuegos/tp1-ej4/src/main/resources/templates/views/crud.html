@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{components/admin/recursos :: recursos}"></th:block>
+    <title>Videojuegos</title>
+</head>
+<body class="sb-nav-fixed">
+
+    <nav th:replace="~{components/admin/topnav :: top_nav}"></nav>
+
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <div th:replace="~{components/admin/sidebar :: side_nav(activo='videojuegos')}"></div>
+        </div>
+
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+
+                    <h1 class="mt-4">Videojuegos</h1>
+                    <ol class="breadcrumb mb-4">
+                        <li class="breadcrumb-item active">Videojuegos</li>
+                    </ol>
+
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-gamepad me-1"></i> Listado de videojuegos</span>
+                            <a th:href="@{/formulario/videojuego/0}" class="btn btn-success btn-sm" title="Nuevo videojuego">
+                                <i class="fas fa-plus"></i> Nuevo
+                            </a>
+                        </div>
+                        <div class="card-body">
+
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover align-middle">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th scope="col">Titulo</th>
+                                            <th scope="col">Categoria</th>
+                                            <th scope="col">Estudio</th>
+                                            <th scope="col">Precio</th>
+                                            <th scope="col">Cantidad</th>
+                                            <th scope="col" class="text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="videojuego : ${videojuegos}"
+                                            th:classappend="${videojuego.activo} ? '' : 'table-danger'">
+                                            <td th:text="${videojuego.titulo}"></td>
+                                            <td th:text="${videojuego.categoria.nombre}"></td>
+                                            <td th:text="${videojuego.estudio.nombre}"></td>
+                                            <td th:text="'$' + ${videojuego.precio}"></td>
+                                            <td th:text="${videojuego.stock}"></td>
+                                            <td class="text-center">
+                                                <a th:href="@{/formulario/videojuego/{id}(id=${videojuego.id})}"
+                                                   class="btn btn-warning btn-sm me-1" title="Editar">
+                                                    <i class="fas fa-pencil-alt"></i>
+                                                </a>
+                                                <a th:href="@{/eliminar/videojuego/{id}(id=${videojuego.id})}"
+                                                   th:if="${videojuego.activo}"
+                                                   class="btn btn-danger btn-sm" title="Borrar">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                                <a th:href="@{/eliminar/videojuego/{id}(id=${videojuego.id})}"
+                                                   th:unless="${videojuego.activo}"
+                                                   class="btn btn-secondary btn-sm" title="Reactivar">
+                                                    <i class="fas fa-undo"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
+            <th:block th:replace="~{components/admin/footer :: pie_y_scripts}"></th:block>
+        </div>
+    </div>
+
+</body>
+</html>
