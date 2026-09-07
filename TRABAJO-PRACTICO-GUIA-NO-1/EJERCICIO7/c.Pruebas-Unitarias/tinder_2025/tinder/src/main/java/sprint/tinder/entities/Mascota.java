@@ -1,0 +1,46 @@
+package sprint.tinder.entities;
+
+import jakarta.persistence.*;
+import sprint.tinder.enumerations.Sexo;
+
+import java.util.Date;
+
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import sprint.tinder.enumerations.Tipo;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name="mascota")
+@Entity
+@Audited
+public class Mascota {
+    @Id
+    @GeneratedValue
+    @UuidGenerator
+    private String id;
+    private String nombre;
+    @ManyToOne
+    private Usuario usuario;
+    @Enumerated(EnumType.STRING)
+    private Sexo sexo;
+    @Enumerated(EnumType.STRING)
+    private Tipo tipo;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date alta;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date baja;
+
+    @OneToOne
+    @NotAudited
+    private Foto foto;
+
+    private boolean eliminado;
+}
