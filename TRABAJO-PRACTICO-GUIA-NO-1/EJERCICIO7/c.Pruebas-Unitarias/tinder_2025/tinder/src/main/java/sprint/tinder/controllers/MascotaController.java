@@ -182,7 +182,7 @@ public class MascotaController {
                 Collection<Mascota> mascotas = mascotaService.listarMascotasPorTipo(login.getId(), tipoMascota);
                 model.put("mascotas", mascotas);
             }
-            return "mascotas_explorar";
+            return "mascotas-explorar";
 
         } catch (Exception e) {
             e.printStackTrace();
