@@ -27,7 +27,7 @@ public class ServicioCategoria implements ServicioBase<Categoria> {
 
     @Override
     @Transactional
-    public Categoria findById(long id) throws Exception {
+    public Categoria findById(String id) throws Exception {
         try {
             Optional<Categoria> opt = this.repositorio.findById(id);
             return opt.get();
@@ -49,7 +49,7 @@ public class ServicioCategoria implements ServicioBase<Categoria> {
 
     @Override
     @Transactional
-    public Categoria updateOne(Categoria entity, long id) throws Exception {
+    public Categoria updateOne(Categoria entity, String id) throws Exception {
         try {
             Optional<Categoria> opt = this.repositorio.findById(id);
             Categoria categoria = opt.get();
@@ -62,7 +62,7 @@ public class ServicioCategoria implements ServicioBase<Categoria> {
 
     @Override
     @Transactional
-    public boolean deleteById(long id) throws Exception {
+    public boolean deleteById(String id) throws Exception {
         try {
             Optional<Categoria> opt = this.repositorio.findById(id);
             if (!opt.isEmpty()) {

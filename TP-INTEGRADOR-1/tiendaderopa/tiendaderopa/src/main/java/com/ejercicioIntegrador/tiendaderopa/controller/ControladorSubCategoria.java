@@ -32,9 +32,9 @@ public class ControladorSubCategoria {
     }
 
     @GetMapping("/formulario/subcategoria/{id}")
-    public String formularioSubCategoria(Model model, @PathVariable("id") long id) {
+    public String formularioSubCategoria(Model model, @PathVariable("id") String id) {
         try {
-            if (id == 0) {
+            if (id == "") {
                 model.addAttribute("subcategoria", new SubCategoria());
             } else {
                 model.addAttribute("subcategoria", this.svcSubCategoria.findById(id));
@@ -50,13 +50,13 @@ public class ControladorSubCategoria {
     public String guardarSubCategoria(
             @Valid @ModelAttribute("subcategoria") SubCategoria subCategoria,
             BindingResult result,
-            Model model, @PathVariable("id") long id
+            Model model, @PathVariable("id") String id
     ) {
         try {
             if (result.hasErrors()) {
                 return "views/subcategorias/formulario";
             }
-            if (id == 0) {
+            if (id == "") {
                 this.svcSubCategoria.saveOne(subCategoria);
             } else {
                 this.svcSubCategoria.updateOne(subCategoria, id);
@@ -69,9 +69,9 @@ public class ControladorSubCategoria {
     }
 
     @GetMapping("/eliminar/subcategoria/{id}")
-    public String eliminarSubCategoria(Model model, @PathVariable("id") long id) {
+    public String eliminarSubCategoria(Model model, @PathVariable("id") String id) {
         try {
-            model.addAttribute("categoria", this.svcSubCategoria.findById(id));
+            model.addAttribute("subcategoria", this.svcSubCategoria.findById(id));
             return "views/subcategorias/eliminar";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
@@ -79,8 +79,8 @@ public class ControladorSubCategoria {
         }
     }
 
-    @PostMapping("/eliminar/categoria/{id}")
-    public String desactivarSubCategoria(Model model, @PathVariable("id") long id) {
+    @PostMapping("/eliminar/subcategoria/{id}")
+    public String desactivarSubCategoria(Model model, @PathVariable("id") String id) {
         try {
             this.svcSubCategoria.deleteById(id);
             return "redirect:/subcategorias";

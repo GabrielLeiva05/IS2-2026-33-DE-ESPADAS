@@ -8,14 +8,14 @@ import lombok.Setter;
 
 
 @Entity
-@Table(name = "sub-categorias")
+@Table(name = "subcategorias")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class SubCategoria {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
     private String nombre;
     private boolean activo = true;

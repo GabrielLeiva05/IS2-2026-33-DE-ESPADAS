@@ -28,7 +28,7 @@ public class ServicioSubCategoria implements ServicioBase<SubCategoria> {
 
     @Override
     @Transactional
-    public SubCategoria findById(long id) throws Exception {
+    public SubCategoria findById(String id) throws Exception {
         try {
             Optional<SubCategoria> opt = this.repositorio.findById(id);
             return opt.get();
@@ -50,7 +50,7 @@ public class ServicioSubCategoria implements ServicioBase<SubCategoria> {
 
     @Override
     @Transactional
-    public SubCategoria updateOne(SubCategoria entity, long id) throws Exception {
+    public SubCategoria updateOne(SubCategoria entity, String id) throws Exception {
         try {
             Optional<SubCategoria> opt = this.repositorio.findById(id);
             SubCategoria subCategoria = opt.get();
@@ -63,7 +63,7 @@ public class ServicioSubCategoria implements ServicioBase<SubCategoria> {
 
     @Override
     @Transactional
-    public boolean deleteById(long id) throws Exception {
+    public boolean deleteById(String id) throws Exception {
         try {
             Optional<SubCategoria> opt = this.repositorio.findById(id);
             if (!opt.isEmpty()) {

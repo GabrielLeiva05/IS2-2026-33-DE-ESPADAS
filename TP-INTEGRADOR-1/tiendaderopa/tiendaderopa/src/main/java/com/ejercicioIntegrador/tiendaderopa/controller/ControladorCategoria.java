@@ -27,9 +27,9 @@ public class ControladorCategoria {
     }
 
     @GetMapping("/formulario/categoria/{id}")
-    public String formularioCategoria(Model model, @PathVariable("id") long id) {
+    public String formularioCategoria(Model model, @PathVariable("id") String id) {
         try {
-            if (id == 0) {
+            if (id == "") {
                 model.addAttribute("categoria", new Categoria());
             } else {
                 model.addAttribute("categoria", this.svcCategoria.findById(id));
@@ -45,13 +45,13 @@ public class ControladorCategoria {
     public String guardarCategoria(
             @Valid @ModelAttribute("categoria") Categoria categoria,
             BindingResult result,
-            Model model, @PathVariable("id") long id
+            Model model, @PathVariable("id") String id
     ) {
         try {
             if (result.hasErrors()) {
                 return "views/categorias/formulario";
             }
-            if (id == 0) {
+            if (id == "") {
                 this.svcCategoria.saveOne(categoria);
             } else {
                 this.svcCategoria.updateOne(categoria, id);
@@ -64,7 +64,7 @@ public class ControladorCategoria {
     }
 
     @GetMapping("/eliminar/categoria/{id}")
-    public String eliminarCategoria(Model model, @PathVariable("id") long id) {
+    public String eliminarCategoria(Model model, @PathVariable("id") String id) {
         try {
             model.addAttribute("categoria", this.svcCategoria.findById(id));
             return "views/categorias/eliminar";
@@ -75,7 +75,7 @@ public class ControladorCategoria {
     }
 
     @PostMapping("/eliminar/categoria/{id}")
-    public String desactivarCategoria(Model model, @PathVariable("id") long id) {
+    public String desactivarCategoria(Model model, @PathVariable("id") String id) {
         try {
             this.svcCategoria.deleteById(id);
             return "redirect:/categorias";
