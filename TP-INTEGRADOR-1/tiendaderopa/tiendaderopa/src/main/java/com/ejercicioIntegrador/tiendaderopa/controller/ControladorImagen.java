@@ -12,16 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/imagen")
-public class ImagenControlador {
+public class ControladorImagen {
 
     private final ServicioImagen imagenServicio;
 
-    public ImagenControlador(ServicioImagen imagenServicio) {
+    public ControladorImagen(ServicioImagen imagenServicio) {
         this.imagenServicio = imagenServicio;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<byte[]> obtenerImagen(@PathVariable Long id) {
+    public ResponseEntity<byte[]> obtenerImagen(@PathVariable Long id) throws Exception {
 
         Imagen imagen = imagenServicio.findById(id);
 

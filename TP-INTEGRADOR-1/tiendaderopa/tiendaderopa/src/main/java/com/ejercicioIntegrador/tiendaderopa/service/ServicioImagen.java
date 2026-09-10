@@ -53,7 +53,12 @@ public class ServicioImagen {
         return null;
     }
 
-    public Imagen findById(Long id) {
-        return imagenRepositorio.findById(id).orElse(null);
+    public Imagen findById(Long id) throws Exception {
+        try {
+            Optional<Imagen> opt = imagenRepositorio.findById(id);
+            return opt.get();
+        } catch (Exception e){
+            throw new Exception(e.getMessage());
+        }
     }
 }
