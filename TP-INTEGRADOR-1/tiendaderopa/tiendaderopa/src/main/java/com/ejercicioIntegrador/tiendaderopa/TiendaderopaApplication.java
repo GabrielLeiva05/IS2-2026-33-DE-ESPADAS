@@ -11,8 +11,6 @@ public class TiendaderopaApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(TiendaderopaApplication.class, args);
-        
-        
-    
+
     }
 }

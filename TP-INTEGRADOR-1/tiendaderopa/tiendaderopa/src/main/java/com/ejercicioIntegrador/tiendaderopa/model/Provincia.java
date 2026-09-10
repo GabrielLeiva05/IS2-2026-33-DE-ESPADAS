@@ -46,59 +46,6 @@ public class Provincia implements Serializable{
         this.nombre = nombre;
         this.pais = pais;
     }
-
-    
-    public void addDepartamento(Departamento depto) {
-        departamentos.add(depto);
-        depto.setProvincia(this);
-    }
-
-    public void removeDepartamento(Departamento depto) {
-        departamentos.remove(depto);
-        depto.setProvincia(null);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public boolean isEliminado() {
-        return eliminado;
-    }
-
-    public void setEliminado(boolean eliminado) {
-        this.eliminado = eliminado;
-    }
-
-    public Pais getPais() {
-        return pais;
-    }
-
-    public void setPais(Pais pais) {
-        this.pais = pais;
-    }
-
-    public List<Departamento> getDepartamentos() {
-        return departamentos;
-    }
-
-    public void setDepartamentos(List<Departamento> departamentos) {
-        this.departamentos = departamentos;
-    }
-    
-    
     
     
     

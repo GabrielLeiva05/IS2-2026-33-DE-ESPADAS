@@ -35,13 +35,11 @@ public class Pais implements Serializable{
     @OneToMany(mappedBy = "pais", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Provincia> provincias = new ArrayList<>();
 
-    public Pais() {
-    }
-        
     public Pais(String nombre) {
         this.nombre = nombre;
     }
 
+    /*
     public String getId() {
         return id;
     }
@@ -73,7 +71,7 @@ public class Pais implements Serializable{
     public void setProvincias(List<Provincia> provincias) {
         this.provincias = provincias;
     }
-    
+    */
     
     
 }
