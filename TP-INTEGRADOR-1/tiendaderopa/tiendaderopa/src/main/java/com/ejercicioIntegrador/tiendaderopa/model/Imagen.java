@@ -1,5 +1,6 @@
 package com.ejercicioIntegrador.tiendaderopa.model;
 
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoImagen;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
