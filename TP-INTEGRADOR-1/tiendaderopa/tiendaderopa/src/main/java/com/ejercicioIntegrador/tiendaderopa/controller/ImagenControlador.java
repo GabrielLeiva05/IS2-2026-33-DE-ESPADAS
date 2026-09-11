@@ -21,7 +21,7 @@ public class ImagenControlador {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<byte[]> obtenerImagen(@PathVariable Long id) {
+    public ResponseEntity<byte[]> obtenerImagen(@PathVariable String id) {
 
         Imagen imagen = imagenServicio.findById(id);
 
