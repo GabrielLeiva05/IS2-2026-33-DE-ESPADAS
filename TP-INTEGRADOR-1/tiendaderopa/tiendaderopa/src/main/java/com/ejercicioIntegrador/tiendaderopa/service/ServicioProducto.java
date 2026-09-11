@@ -89,7 +89,13 @@ public class ServicioProducto {
         return repositorio.findByNombre(nombre);
     }
 
-    public Producto buscarProductoPorCodigo(String codigo) {
-        return repositorio.findByCodigo(codigo);
+    public Producto buscarProductoPorCodigo(String codigo) throws Exception {
+        Producto producto = repositorio.findByCodigo(codigo);
+
+        if (producto == null) {
+            throw new Exception("No existe el producto con el codigo: " + codigo);
+        }
+
+        return producto;
     }
 }
