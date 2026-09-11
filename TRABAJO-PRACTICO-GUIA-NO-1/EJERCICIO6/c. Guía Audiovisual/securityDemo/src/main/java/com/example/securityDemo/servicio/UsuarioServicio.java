@@ -115,6 +115,7 @@ public class UsuarioServicio implements UserDetailsService {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new MiException("El nombre no puede estar vacío");
         }
+
         if (email == null || email.trim().isEmpty()) {
             throw new MiException("El email no puede estar vacío");
         }

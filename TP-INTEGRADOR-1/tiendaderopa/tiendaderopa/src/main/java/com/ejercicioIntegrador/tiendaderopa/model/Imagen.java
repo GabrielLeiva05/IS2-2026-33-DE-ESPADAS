@@ -17,6 +17,8 @@ import java.util.UUID;
 public class Imagen {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false)
     private String id;
 
     @Column(nullable = false, length = 100)
@@ -35,11 +37,12 @@ public class Imagen {
     private TipoImagen tipoImagen;
 
     // Como id es String, generamos un UUID para cada nueva imagen antes de persistirla en la base de datos
-    @PrePersist 
+    /*
+    @PrePersist
     public void generarId() {
         if (id == null) {
             id = UUID.randomUUID().toString();
         }
-    }
+    }*/
 
 }
