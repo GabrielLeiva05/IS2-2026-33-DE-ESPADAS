@@ -124,7 +124,7 @@ public class UsuarioServicio implements UserDetailsService {
     }
 
     @Transactional
-    public Usuario getById(Long id) {
+    public Usuario getById(String id) {
         return usuarioRepositorio.findById(id).orElse(null);
     }
 }
