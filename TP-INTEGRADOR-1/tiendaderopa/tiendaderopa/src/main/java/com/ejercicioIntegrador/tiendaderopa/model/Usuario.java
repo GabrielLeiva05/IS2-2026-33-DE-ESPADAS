@@ -17,6 +17,7 @@ public class Usuario implements Serializable{
 
 
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(nullable = false)
     private String id;
 
@@ -31,7 +32,6 @@ public class Usuario implements Serializable{
     @OneToOne(optional = false) // No puede existir sin una Persona
     @JoinColumn(name = "persona_id", nullable = false, unique = true)
     private Persona persona;
-
     @Column
     @Enumerated(EnumType.STRING)
     private RolUsuario rolUsuario;

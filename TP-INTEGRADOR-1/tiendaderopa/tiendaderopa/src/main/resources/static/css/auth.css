@@ -191,6 +191,67 @@ body {
     background-color: #1d4ed8;
 }
 
+/* Asegura que tome el select sin importar su ID */
+.form-group select {
+    width: 100%;
+    padding: 0.65rem 2.2rem 0.65rem 0.85rem;
+    font-size: 0.95rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    outline: none;
+    background-color: #ffffff;
+    color: #1f2937;
+    cursor: pointer;
+    font-weight: 500;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+
+    /* Quita la flecha tosca nativa */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    /* Dibuja una flecha minimalista usando gradientes CSS puros */
+    background-image:
+            linear-gradient(45deg, transparent 50%, #6b7280 50%),
+            linear-gradient(135deg, #6b7280 50%, transparent 50%);
+    background-position:
+            calc(100% - 20px) calc(1em + 2px),
+            calc(100% - 15px) calc(1em + 2px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+}
+
+/* Efecto al pasar el cursor */
+.form-group select:hover {
+    border-color: #93c5fd;
+    background-color: #f9fafb;
+}
+
+/* Efecto al hacer clic / abrir */
+.form-group select:focus {
+    border-color: #2563eb;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+    /* Cambia el color de la flecha a azul */
+    background-image:
+            linear-gradient(45deg, transparent 50%, #2563eb 50%),
+            linear-gradient(135deg, #2563eb 50%, transparent 50%);
+}
+
+/* Color suave para el texto placeholder cuando aún no se eligió opción */
+.form-group select:invalid,
+.form-group select option[value=""] {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+/* Opciones desplegadas */
+.form-group select option {
+    color: #1f2937;
+    background-color: #ffffff;
+    font-weight: normal;
+}
+
 /* Responsividad: en pantallas pequeñas vuelve a 1 columna */
 @media (max-width: 640px) {
     .form-grid {
