@@ -45,6 +45,10 @@ public class Direccion implements Serializable {
     @JoinColumn(name = "localidad_id", nullable = false)
     private Localidad localidad;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "persona_id", nullable = false)
+    private Persona persona;
+
     public Direccion(String calle, String numeracion, String barrio, String manzanaPiso, String casaDepartamento, String referencia, Localidad localidad) {
         this.calle = calle;
         this.numeracion = numeracion;

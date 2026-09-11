@@ -3,6 +3,7 @@ package com.ejercicioIntegrador.tiendaderopa.service;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.RolUsuario;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
+import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.repository.PersonaRepositorio;
@@ -29,10 +30,12 @@ public class UsuarioServicio implements UserDetailsService {
     @Autowired
     private UsuarioRepositorio usuarioRepositorio;
     @Autowired
-    private PersonaRepositorio personaRepositorio;
+    private PersonaServicio personaServicio;
 
 
-    public void registrar(String documento,
+
+    public void registrar(Direccion direccion,
+                          String documento,
                           TipoDocumento tipoDocumento,
                           String nombre,
                           String apellido,
@@ -42,15 +45,8 @@ public class UsuarioServicio implements UserDetailsService {
                           Date fechaNacimiento) throws MiException {
 
         validar(documento, tipoDocumento, nombre, apellido, email, clave, clave2, fechaNacimiento);
-        Persona persona = new Persona();
-        persona.setNombre(nombre);
-        persona.setApellido(apellido);
-        persona.setDocumento(documento);
-        persona.setTipoDocumento(tipoDocumento);
-        persona.setFechaNacimiento(fechaNacimiento);
 
-        personaRepositorio.save(persona);
-
+        Persona persona = personaServicio.crearPersona(direccion, documento, tipoDocumento, nombre, fechaNacimiento, apellido);
         Usuario usuario = new Usuario();
         usuario.setPersona(persona);
         usuario.setNombreUsuario(email);
@@ -124,7 +120,7 @@ public class UsuarioServicio implements UserDetailsService {
     }
 
     @Transactional
-    public Usuario getById(Long id) {
+    public Usuario getById(String id) {
         return usuarioRepositorio.findById(id).orElse(null);
     }
 }
