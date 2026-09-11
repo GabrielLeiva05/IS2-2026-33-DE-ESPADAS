@@ -30,7 +30,7 @@ public class ServicioImagen {
         return null;
     }
 
-    public Imagen actualizar(MultipartFile archivo, Long idImagen) throws MiException{
+    public Imagen actualizar(MultipartFile archivo, String idImagen) throws MiException{
         if(archivo !=null){
             try{
                 Imagen imagen = new Imagen();
@@ -43,7 +43,7 @@ public class ServicioImagen {
                 }
 
                 imagen.setMime(archivo.getContentType());
-                imagen.setNombre(archivo.getName());
+                imagen.setNombre(archivo.getOriginalFilename());
                 imagen.setContenido(archivo.getBytes());
                 return imagenRepositorio.save(imagen);
             }catch(Exception e){
@@ -53,7 +53,7 @@ public class ServicioImagen {
         return null;
     }
 
-    public Imagen findById(Long id) {
+    public Imagen findById(String id) {
         return imagenRepositorio.findById(id).orElse(null);
     }
 }
