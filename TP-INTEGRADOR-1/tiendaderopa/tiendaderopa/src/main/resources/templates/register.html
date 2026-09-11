@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/headauth :: headauth}"></head>
+
+<body>
+
+<div class="auth-container register">
+    <h1>Crear cuenta</h1>
+    <p class="subtitle">Registrá un nuevo usuario</p>
+
+    <!-- Mensaje de error -->
+    <div data-th-if="${error != null}" class="alert-error">
+        <p data-th-text="${error}"></p>
+    </div>
+
+    <!-- Mensaje de éxito -->
+    <div data-th-if="${exito != null}" class="alert-success">
+        <p data-th-text="${exito}"></p>
+    </div>
+
+    <form data-th-action="@{/registro}" method="POST" enctype="multipart/form-data" class="auth-form form-grid">
+
+        <!-- Tipo de documento -->
+        <div class="form-group">
+            <label for="tipoDocumento">Tipo de documento</label>
+            <select id="tipoDocumento" name="tipoDocumento" required>
+                <option value="" disabled selected>Seleccione un tipo</option>
+                <option value="DNI">DNI</option>
+                <option value="PASAPORTE">Pasaporte</option>
+                <option value="CEDULA">Cédula de Identidad</option>
+                <option value="LC">Libreta Cívica</option>
+                <option value="LE">Libreta de Enrolamiento</option>
+            </select>
+        </div>
+
+        <!-- Documento -->
+        <div class="form-group">
+            <label for="documento">Documento</label>
+            <input
+                    type="text"
+                    id="documento"
+                    name="documento"
+                    placeholder="Ingrese su número de documento"
+                    required
+            >
+        </div>
+        <!-- Fecha de Nacimiento -->
+        <div class="form-group">
+            <label for="fechaNacimiento">Fecha de nacimiento</label>
+            <input type="date" id="fechaNacimiento" name="fechaNacimiento" required>
+        </div>
+
+        <!-- Nombre -->
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" placeholder="Ingrese su nombre" required>
+        </div>
+
+        <!-- Apellido -->
+        <div class="form-group">
+            <label for="apellido">Apellido</label>
+            <input type="text" id="apellido" name="apellido" placeholder="Ingrese su apellido" required>
+        </div>
+
+        <!-- Teléfono -->
+        <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" placeholder="Ingrese su teléfono" required>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" placeholder="Ingrese su correo electrónico" required>
+        </div>
+
+        <!-- Imagen / Foto de perfil -->
+        <div class="form-group col-full">
+            <label for="imagen">Foto de perfil</label>
+            <input type="file" id="imagen" name="archivo" accept="image/*">
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+            <label for="clave">Contraseña</label>
+            <input type="password" id="clave" name="clave" placeholder="Ingrese su contraseña" required>
+        </div>
+
+        <!-- Confirmar Contraseña -->
+        <div class="form-group">
+            <label for="clave2">Confirmar contraseña</label>
+            <input type="password" id="clave2" name="clave2" placeholder="Confirme su contraseña" required>
+        </div>
+
+        <!-- Botón de Registro -->
+        <div class="col-full">
+            <button type="submit" class="btn-submit">
+                Registrarse
+            </button>
+        </div>
+
+    </form>
+
+    <a th:href="@{/login}" class="auth-link">
+        ¿Ya tenés una cuenta? Iniciar sesión
+    </a>
+</div>
+
+</body>
+</html>

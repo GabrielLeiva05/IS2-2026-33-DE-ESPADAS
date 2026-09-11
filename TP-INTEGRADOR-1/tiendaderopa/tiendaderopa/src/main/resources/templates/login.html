@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/headauth :: headauth}"></head>
+
+<body>
+
+<div class="auth-container login">
+    <h1>Iniciar sesión</h1>
+    <p class="subtitle">Ingresá a tu cuenta para continuar</p>
+
+    <!-- Mensaje de error -->
+    <div th:if="${error != null}" class="alert-error">
+        <p data-th-text="${error}"></p>
+    </div>
+
+    <!-- Mensaje de éxito -->
+    <div th:if="${exito != null}" class="alert-success">
+        <p data-th-text="${exito}"></p>
+    </div>
+
+    <!-- Formulario de autenticación -->
+    <form th:action="@{/logincheck}" method="POST" class="auth-form">
+        <!-- Correo electrónico -->
+        <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="ejemplo@correo.com"
+                    required
+            >
+        </div>
+
+        <!-- Contraseña -->
+        <div class="form-group">
+            <label for="clave">Contraseña</label>
+            <input
+                    type="password"
+                    id="clave"
+                    name="clave"
+                    placeholder="Ingrese su contraseña"
+                    required
+            >
+        </div>
+
+        <!-- Botón de ingreso -->
+        <button type="submit" class="btn-submit">
+            Iniciar Sesión
+        </button>
+    </form>
+
+    <a th:href="@{/registrar}" class="auth-link">
+        ¿No tenés una cuenta? Registrate acá
+    </a>
+</div>
+
+</body>
+</html>
