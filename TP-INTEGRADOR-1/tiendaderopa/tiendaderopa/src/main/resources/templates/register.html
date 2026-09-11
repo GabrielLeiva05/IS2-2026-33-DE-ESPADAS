@@ -20,6 +20,8 @@
 
     <form data-th-action="@{/registro}" method="POST" enctype="multipart/form-data" class="auth-form form-grid">
 
+        <!-- ================= DATOS PERSONALES ================= -->
+
         <!-- Tipo de documento -->
         <div class="form-group">
             <label for="tipoDocumento">Tipo de documento</label>
@@ -44,6 +46,7 @@
                     required
             >
         </div>
+
         <!-- Fecha de Nacimiento -->
         <div class="form-group">
             <label for="fechaNacimiento">Fecha de nacimiento</label>
@@ -79,6 +82,91 @@
             <label for="imagen">Foto de perfil</label>
             <input type="file" id="imagen" name="archivo" accept="image/*">
         </div>
+
+        <!-- ================= DATOS DE DOMICILIO / UBICACIÓN ================= -->
+        <div class="col-full">
+            <h3 style="margin-top: 15px; margin-bottom: 5px;">Datos de Domicilio</h3>
+        </div>
+
+        <!-- País (Dinámico desde BD) -->
+        <div class="form-group">
+            <label for="pais">País</label>
+            <select id="pais" name="pais" required>
+                <option value="" disabled selected>Seleccione un país</option>
+                <option th:each="p : ${paises}"
+                        th:value="${p.id != null ? p.id : p}"
+                        th:text="${p.nombre != null ? p.nombre : p}">
+                </option>
+            </select>
+        </div>
+
+        <!-- Provincia (Dinámico desde BD) -->
+        <div class="form-group">
+            <label for="provincia">Provincia</label>
+            <select id="provincia" name="provincia" required>
+                <option value="" disabled selected>Seleccione una provincia</option>
+                <option th:each="prov : ${provincias}"
+                        th:value="${prov.id != null ? prov.id : prov}"
+                        th:text="${prov.nombre != null ? prov.nombre : prov}">
+                </option>
+            </select>
+        </div>
+
+        <!-- Departamento (Dinámico desde BD) -->
+        <div class="form-group">
+            <label for="departamento">Departamento</label>
+            <select id="departamento" name="departamento" required>
+                <option value="" disabled selected>Seleccione un departamento</option>
+                <option th:each="dep : ${departamentos}"
+                        th:value="${dep.id != null ? dep.id : dep}"
+                        th:text="${dep.nombre != null ? dep.nombre : dep}">
+                </option>
+            </select>
+        </div>
+
+        <!-- Localidad (Dinámico desde BD) -->
+        <div class="form-group">
+            <label for="localidad">Localidad</label>
+            <select id="localidad" name="localidad" required>
+                <option value="" disabled selected>Seleccione una localidad</option>
+                <option th:each="loc : ${localidades}"
+                        th:value="${loc.id != null ? loc.id : loc}"
+                        th:text="${loc.nombre != null ? loc.nombre : loc}">
+                </option>
+            </select>
+        </div>
+
+        <!-- Código Postal -->
+        <div class="form-group">
+            <label for="codigoPostal">Código postal</label>
+            <input type="text" id="codigoPostal" name="codigoPostal" placeholder="Ej: 5500" required>
+        </div>
+
+        <!-- Barrio -->
+        <div class="form-group">
+            <label for="barrio">Barrio</label>
+            <input type="text" id="barrio" name="barrio" placeholder="Ingrese el barrio" required>
+        </div>
+
+        <!-- Dirección -->
+        <div class="form-group">
+            <label for="direccion">Dirección</label>
+            <input type="text" id="direccion" name="direccion" placeholder="Calle y número" required>
+        </div>
+
+        <!-- Manzana / Piso -->
+        <div class="form-group">
+            <label for="manzanaPiso">Manzana / Piso</label>
+            <input type="text" id="manzanaPiso" name="manzanaPiso" placeholder="Ej: Mza B / Piso 3 Depto A">
+        </div>
+
+        <!-- Referencia (Opcional) -->
+        <div class="form-group col-full">
+            <label for="referencia">Referencia <span style="font-size: 0.85em; color: #777;">(Opcional)</span></label>
+            <input type="text" id="referencia" name="referencia" placeholder="Entre calles, color de rejas, portón, etc.">
+        </div>
+
+        <!-- ================= SEGURIDAD ================= -->
 
         <!-- Contraseña -->
         <div class="form-group">
