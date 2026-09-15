@@ -17,6 +17,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Table(name ="Persona")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Persona implements Serializable {
 
     @Id
