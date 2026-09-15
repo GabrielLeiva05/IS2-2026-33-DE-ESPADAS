@@ -36,6 +36,9 @@ public class Persona implements Serializable {
     @OneToOne(mappedBy = "persona", cascade = CascadeType.ALL, orphanRemoval = true)
     private Usuario usuario;
 
+    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Direccion> direcciones = new ArrayList<>();
+
     @Column(nullable = false)
     private Date fechaNacimiento;
 

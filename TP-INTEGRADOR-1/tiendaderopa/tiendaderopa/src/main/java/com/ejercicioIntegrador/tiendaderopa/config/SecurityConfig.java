@@ -27,7 +27,7 @@ public class SecurityConfig {
                         // Rutas públicas y recursos estáticos
                         .requestMatchers("/css/**", "/js/**", "/img/**", "/login", "/registrar", "/registro").permitAll()
                         // Rutas exclusivas para ADMIN
-                        .requestMatchers("/admin/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/admin/**").hasRole("ADMINISTRATIVO")
                         // El resto de rutas requieren autenticación
                         .anyRequest().authenticated()
                 )
@@ -39,7 +39,7 @@ public class SecurityConfig {
                         // Redirección dinámica según el rol
                         .successHandler((request, response, authentication) -> {
                             boolean esAdmin = authentication.getAuthorities().stream()
-                                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRADOR"));
+                                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMINISTRATIVO"));
 
                             if (esAdmin) {
                                 response.sendRedirect("/admin/dashboard"); // Ajusta esta ruta a la de tu controlador admin
