@@ -40,8 +40,20 @@ public class PaisServicio {
     }
 
     @Transactional
+    public void modificarPais(String id, String nombre) throws MiException {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new MiException("El nombre del país no puede estar vacío");
+        }
+
+        Pais pais = buscarPorId(id);
+        pais.setNombre(nombre.trim());
+        paisRepositorio.save(pais);
+    }
+
+    @Transactional
     public void eliminar(String id) throws MiException {
         Pais pais = buscarPorId(id);
-        paisRepositorio.delete(pais);
+        pais.setEliminado(true);
+        paisRepositorio.save(pais);
     }
 }

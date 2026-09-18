@@ -27,11 +27,16 @@
                 <h3>Usuarios</h3>
                 <p>25</p>
             </div>
+            <!-- Opcional: Tarjeta resumen para países -->
+            <div class="card">
+                <h3>Países</h3>
+                <p th:text="${paises != null ? #lists.size(paises) : 0}">0</p>
+            </div>
         </div>
     </section>
 
     <!-- =========================
-         ABM USUARIOS / LIBROS
+         ABM LIBROS (Existente)
     ========================== -->
     <section id="libros" class="section">
         <div class="header">
@@ -65,22 +70,89 @@
                         <button class="btn-delete">Eliminar</button>
                     </td>
                 </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- =========================
+         ABM PAÍSES (Nuevo)
+    ========================== -->
+    <section id="paises" class="section">
+        <div class="header">
+            <h1>Países</h1>
+            <p>Gestión y administración de países.</p>
+        </div>
+
+        <!-- Alertas de Éxito o Error -->
+        <div th:if="${exito} != null" class="alert alert-success" style="padding: 10px; margin-bottom: 15px; background: #d4edda; color: #155724; border-radius: 4px;">
+            <p th:text="${exito}" style="margin: 0;"></p>
+        </div>
+
+        <div th:if="${error} != null" class="alert alert-danger" style="padding: 10px; margin-bottom: 15px; background: #f8d7da; color: #721c24; border-radius: 4px;">
+            <p th:text="${error}" style="margin: 0;"></p>
+        </div>
+
+        <!-- Formulario dinámico: Cambia entre Registrar o Modificar según si 'pais' viene con datos -->
+        <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+            <h3 th:text="${pais != null} ? 'Modificar País' : 'Registrar Nuevo País'">Registrar Nuevo País</h3>
+
+            <form th:action="${pais != null} ? @{/pais/modificar/__${pais.id}__} : @{/pais/registro}" method="POST">
+
+                <div style="margin-bottom: 15px;" th:if="${pais != null}">
+                    <label>ID:</label>
+                    <input type="text" th:value="${pais.id}" disabled style="width: 100%; padding: 8px;" />
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label for="nombre">Nombre del País:</label>
+                    <input type="text" id="nombre" name="nombre" th:value="${pais != null} ? ${pais.nombre} : ''" placeholder="Ej. Argentina" required style="width: 100%; padding: 8px;" />
+                </div>
+
+                <div>
+                    <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;" th:text="${pais != null} ? 'Actualizar' : 'Guardar'">Guardar</button>
+                    <a th:if="${pais != null}" th:href="@{/pais/registrar}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabla de Listado de Países -->
+        <div class="table-container">
+            <div class="table-header">
+                <h2>Listado de países</h2>
+            </div>
+
+            <table>
+                <thead>
                 <tr>
-                    <td>2</td>
-                    <td>Libro2</td>
-                    <td>editorial1</td>
-                    <td>John Pork</td>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${paises}">
+                    <td th:text="${p.id}">ID</td>
+                    <td th:text="${p.nombre}">Nombre</td>
                     <td>
-                        <button class="btn-edit">Editar</button>
-                        <button class="btn-delete">Eliminar</button>
+                        <span th:if="${p.eliminado}" style="color: red; font-weight: bold;">Eliminado</span>
+                        <span th:unless="${p.eliminado}" style="color: green; font-weight: bold;">Activo</span>
                     </td>
+                    <td>
+                        <a th:href="@{/pais/modificar/__${p.id}__}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+                        <a th:href="@{/pais/eliminar/__${p.id}__}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este país?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(paises)}">
+                    <td colspan="4" style="text-align: center;">No hay países cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>
         </div>
     </section>
 
-</main> <!-- Etiqueta agregada -->
+</main>
 
 <!-- =========================
      JAVASCRIPT
