@@ -89,13 +89,15 @@ public class PersonaServicio {
 
     @Transactional
     public void eliminarPersona(String id) throws MiException {
-        buscarPersona(id); // valida que exista antes de borrar
-        this.repositorio.deleteById(id);
+        Persona persona = buscarPersona(id);
+        persona.setEliminado(true);
+        this.repositorio.save(persona);
     }
 
+    
     @Transactional
     public List<Persona> listarPersona() {
-        return this.repositorio.findAll();
+        return this.repositorio.findByEliminadoFalse();
     }
 
 

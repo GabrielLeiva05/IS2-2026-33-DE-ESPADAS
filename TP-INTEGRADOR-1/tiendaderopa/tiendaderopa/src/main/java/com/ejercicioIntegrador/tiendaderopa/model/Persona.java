@@ -47,6 +47,9 @@ public class Persona implements Serializable {
     @Column(nullable = false)
     private String documento;
 
+    @Column(nullable = false)
+    private boolean eliminado = false;
+
     public Persona(String nombre, String apellido, Date fechaNacimiento, String documento, TipoDocumento tipoDocumento) {
         this.nombre = nombre;
         this.apellido = apellido;
