@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,6 +34,10 @@ public class Empresa implements Serializable {
 
     @Column(nullable = false)
     private boolean eliminado = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contacto_empresa_id")
+    private Contacto contacto;
 
     public Empresa(String razonSocial, String cuit, TipoSucursal tipoSucursal) {
         this.razonSocial = razonSocial;

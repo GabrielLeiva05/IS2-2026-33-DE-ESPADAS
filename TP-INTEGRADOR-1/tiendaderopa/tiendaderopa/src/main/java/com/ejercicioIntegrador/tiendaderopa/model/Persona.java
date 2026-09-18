@@ -40,6 +40,7 @@ public class Persona implements Serializable {
     @Column(nullable = false)
     private Date fechaNacimiento;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoDocumento tipoDocumento;
 
