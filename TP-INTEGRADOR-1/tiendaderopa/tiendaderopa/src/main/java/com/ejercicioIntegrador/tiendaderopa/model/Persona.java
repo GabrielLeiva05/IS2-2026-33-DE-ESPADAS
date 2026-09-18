@@ -54,18 +54,4 @@ public class Persona implements Serializable {
         this.documento = documento;
         this.tipoDocumento = tipoDocumento;
     }
-
-    public void asignarUsuario(Usuario usuario) {
-        this.usuario = usuario;
-        if (usuario != null) {
-            usuario.setPersona(this);
-        }
-    }
-
-    public void removerUsuario() {
-        if (this.usuario != null) {
-            this.usuario.setPersona(null);
-            this.usuario = null;
-        }
-    }
 }
