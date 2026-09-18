@@ -5,10 +5,8 @@ import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoEmpleado;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Empleado;
 import com.ejercicioIntegrador.tiendaderopa.model.Empresa;
-import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioEmpleado;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioEmpresa;
-import com.ejercicioIntegrador.tiendaderopa.repository.UsuarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +15,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-/*
- * Todas las reglas de negocio de Empleado viven acá (en el service).
- * La entidad Empleado es solo persistencia (hereda de Persona), el
- * controller solo orquesta HTTP.
- */
 @Service
 public class ServicioEmpleado {
 
@@ -32,7 +25,7 @@ public class ServicioEmpleado {
     private RepositorioEmpresa empresaRepositorio;
 
     @Autowired
-    private UsuarioRepositorio usuarioRepositorio;
+    private PersonaServicio personaServicio;
 
     @Transactional
     public Empleado crearEmpleado(String nombre, String apellido, Date fechaNacimiento, TipoDocumento tipoDocumento,
@@ -55,35 +48,13 @@ public class ServicioEmpleado {
     public void validar(String nombre, String apellido, Date fechaNacimiento, TipoDocumento tipoDocumento,
                          String documento, TipoEmpleado tipoEmpleado) throws MiException {
 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new MiException("El nombre no puede estar vacío");
-        }
-        if (nombre.trim().length() < 3) {
-            throw new MiException("El nombre debe tener al menos 3 caracteres");
-        }
-        if (apellido == null || apellido.trim().isEmpty()) {
-            throw new MiException("El apellido no puede estar vacío");
-        }
-        if (apellido.trim().length() < 3) {
-            throw new MiException("El apellido debe tener al menos 3 caracteres");
-        }
-        if (fechaNacimiento == null) {
-            throw new MiException("Debe indicar la fecha de nacimiento");
-        }
-        if (fechaNacimiento.after(new Date())) {
-            throw new MiException("La fecha de nacimiento no puede ser futura");
-        }
+        // Validaciones de los campos heredados de Persona: se delegan para
+        // no duplicar la lógica que ya vive en PersonaServicio.
+        personaServicio.validar(nombre, apellido, fechaNacimiento, tipoDocumento, documento);
+
+        // De acá para abajo, reglas propias de Empleado.
         if (calcularEdad(fechaNacimiento) < 18) {
             throw new MiException("El empleado debe ser mayor de edad");
-        }
-        if (tipoDocumento == null) {
-            throw new MiException("Debe indicar el tipo de documento");
-        }
-        if (documento == null || documento.trim().isEmpty()) {
-            throw new MiException("El número de documento no puede estar vacío");
-        }
-        if (tipoDocumento == TipoDocumento.DNI && !documento.trim().matches("\\d{7,8}")) {
-            throw new MiException("El DNI debe tener 7 u 8 dígitos numéricos");
         }
         if (tipoEmpleado == null) {
             throw new MiException("Debe indicar el tipo de empleado (ADMINISTRATIVO o JEFE)");
@@ -154,14 +125,19 @@ public class ServicioEmpleado {
 
     @Transactional
     public void asociarEmpleadoUsuario(String idEmpleado, String idUsuario) throws MiException {
-        Empleado empleado = buscarEmpleado(idEmpleado);
+        // Se confirma que el id corresponde a un Empleado (da un mensaje de
+        // error más claro que el genérico de Persona si no existe).
+        buscarEmpleado(idEmpleado);
 
-        Usuario usuario = usuarioRepositorio.findById(idUsuario)
-                .orElseThrow(() -> new MiException("No existe un usuario con id: " + idUsuario));
+        // Empleado ES una Persona (misma fila, misma PK), así que asociar
+        // el Usuario es una operación de Persona: se delega en
+        // PersonaServicio en vez de reimplementarla acá.
+        personaServicio.asignarUsuario(idEmpleado, idUsuario);
+    }
 
-        // Persona.asignarUsuario ya se encarga de la relación bidireccional
-        empleado.asignarUsuario(usuario);
-
-        this.repositorio.save(empleado);
+    @Transactional
+    public void desasociarEmpleadoUsuario(String idEmpleado) throws MiException {
+        buscarEmpleado(idEmpleado);
+        personaServicio.removerUsuario(idEmpleado);
     }
 }
