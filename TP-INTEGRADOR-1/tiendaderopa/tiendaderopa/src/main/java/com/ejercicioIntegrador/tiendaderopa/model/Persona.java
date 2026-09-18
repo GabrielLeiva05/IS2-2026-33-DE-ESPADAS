@@ -17,6 +17,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Table(name ="Persona")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Persona implements Serializable {
 
     @Id
@@ -39,11 +40,15 @@ public class Persona implements Serializable {
     @Column(nullable = false)
     private Date fechaNacimiento;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoDocumento tipoDocumento;
 
     @Column(nullable = false)
     private String documento;
+
+    @Column(nullable = false)
+    private boolean eliminado = false;
 
     public Persona(String nombre, String apellido, Date fechaNacimiento, String documento, TipoDocumento tipoDocumento) {
         this.nombre = nombre;
@@ -51,19 +56,5 @@ public class Persona implements Serializable {
         this.fechaNacimiento = fechaNacimiento;
         this.documento = documento;
         this.tipoDocumento = tipoDocumento;
-    }
-
-    public void asignarUsuario(Usuario usuario) {
-        this.usuario = usuario;
-        if (usuario != null) {
-            usuario.setPersona(this);
-        }
-    }
-
-    public void removerUsuario() {
-        if (this.usuario != null) {
-            this.usuario.setPersona(null);
-            this.usuario = null;
-        }
     }
 }
