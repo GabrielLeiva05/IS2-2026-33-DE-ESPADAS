@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera((${localidad.id == null} ? 'Nueva localidad' : 'Editar localidad'))}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('localidades')}"></header>
+
+<main class="container contenido">
+    <div class="encabezado">
+        <div><h1 th:text="${localidad.id == null} ? 'Nueva localidad' : 'Editar localidad'">Localidad</h1></div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <form class="formulario" th:object="${localidad}" method="post" novalidate
+          th:action="${localidad.id == null} ? @{/localidades} : @{/localidades/{id}(id=${localidad.id})}">
+        <fieldset>
+            <legend>Datos de la localidad</legend>
+            <div class="mb-3">
+                <label class="form-label" for="denominacion">Denominación</label>
+                <input type="text" class="form-control" id="denominacion" th:field="*{denominacion}"
+                       th:classappend="${#fields.hasErrors('denominacion')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:errors="*{denominacion}">Error</div>
+            </div>
+        </fieldset>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-link" th:href="@{/localidades}">Cancelar</a>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

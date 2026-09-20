@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera('Localidades')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('localidades')}"></header>
+
+<main class="container contenido">
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <div class="encabezado">
+        <div>
+            <h1>Localidades</h1>
+            <p>Se eligen al cargar el domicilio de una persona.</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/localidades/nueva}">Nueva localidad</a>
+    </div>
+
+    <div class="panel">
+        <div class="table-responsive" th:if="${!localidades.isEmpty()}">
+            <table class="table tabla">
+                <thead>
+                <tr>
+                    <th>Denominación</th>
+                    <th><span class="visually-hidden">Acciones</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${localidades}">
+                    <td th:text="${l.denominacion}">Localidad</td>
+                    <td class="acciones">
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/localidades/{id}/editar(id=${l.id})}">Editar</a>
+                        <form th:action="@{/localidades/{id}/eliminar(id=${l.id})}" method="post"
+                              onsubmit="return confirm('¿Eliminar esta localidad?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="vacio" th:if="${localidades.isEmpty()}">No hay localidades. Agregue la primera con «Nueva localidad».</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>
