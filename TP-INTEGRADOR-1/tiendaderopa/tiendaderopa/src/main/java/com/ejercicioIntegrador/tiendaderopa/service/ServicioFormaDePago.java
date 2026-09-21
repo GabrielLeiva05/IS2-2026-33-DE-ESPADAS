@@ -67,6 +67,15 @@ public class ServicioFormaDePago {
     public Collection<FormaDePago> listarFormaDePagoActivo(){
     return formaDePagoRepository.findAll().stream().filter(f -> !f.isEliminado()).toList();
     }
+
+    public FormaDePago buscarFormaDePago(String id) throws Exception{
+        Optional<FormaDePago> formaPago = formaDePagoRepository.findById(id);
+        if (formaPago.isPresent()){
+            return formaPago.get();
+        } else {
+            throw new Exception("Forma de pago no encontrada");
+        }
+    }
     }
 
 
