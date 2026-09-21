@@ -12,16 +12,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/imagen")
-public class ImagenControlador {
+public class ControladorImagen {
 
     private final ServicioImagen imagenServicio;
 
-    public ImagenControlador(ServicioImagen imagenServicio) {
+    public ControladorImagen(ServicioImagen imagenServicio) {
         this.imagenServicio = imagenServicio;
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<byte[]> obtenerImagen(@PathVariable String id) {
+
 
         Imagen imagen = imagenServicio.findById(id);
 
