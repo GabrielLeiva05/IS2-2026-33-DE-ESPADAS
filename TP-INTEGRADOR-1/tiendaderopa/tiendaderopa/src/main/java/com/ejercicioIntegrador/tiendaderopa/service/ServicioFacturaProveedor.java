@@ -4,7 +4,6 @@ import com.ejercicioIntegrador.tiendaderopa.model.EstadoFactura;
 import com.ejercicioIntegrador.tiendaderopa.model.FacturaProveedor;
 import com.ejercicioIntegrador.tiendaderopa.model.FormaDePago;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioFacturaProveedor;
-import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioFormaDePago;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,18 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Date;
 
-/**
- * Mismo patrón que ServicioFacturaCliente: por composición, no por
- * herencia. La firma de crearFactura es temporal (sin idProveedor
- * todavía) por la misma razón: Proveedor no existe aún en el proyecto.
- */
 @Service
 public class ServicioFacturaProveedor {
 
     @Autowired
     private RepositorioFacturaProveedor repositorio;
+
     @Autowired
-    private ServicioFormaDePago svcFormaDePago;
+    private ServicioFormaDePago svcFormaDePago; // Servicio a Servicio
 
     public void validar(Long numeroFactura, Date fechaFactura, String idFormaDePago) throws Exception {
         if (numeroFactura == null || numeroFactura < 1) {
@@ -33,7 +28,6 @@ public class ServicioFacturaProveedor {
             throw new Exception("La fecha de factura es obligatoria");
         }
         svcFormaDePago.buscarFormaDePago(idFormaDePago);
-        // Pendiente: validar idProveedor cuando exista.
     }
 
     @Transactional
@@ -53,9 +47,6 @@ public class ServicioFacturaProveedor {
         repositorio.save(factura);
     }
 
-    // --- A completar cuando exista Proveedor ---
-    // public void modificarFactura(String id, ...) throws Exception { ... }
-
     public Collection<FacturaProveedor> listarActivo() {
         return repositorio.findByEliminadoFalse();
     }
@@ -63,6 +54,4 @@ public class ServicioFacturaProveedor {
     public Collection<FacturaProveedor> listarPorEstado(EstadoFactura estado) {
         return repositorio.findByEstadoFactura(estado);
     }
-
-// Pendiente: listarPorCliente(String idCliente)
 }
