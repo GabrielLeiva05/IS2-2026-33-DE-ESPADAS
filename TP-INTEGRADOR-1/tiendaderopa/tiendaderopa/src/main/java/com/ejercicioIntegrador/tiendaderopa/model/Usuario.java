@@ -29,8 +29,8 @@ public class Usuario implements Serializable{
     @Column
     private boolean eliminado = false;
 
-    @OneToOne(optional = false, fetch = FetchType.EAGER) // No puede existir sin una Persona
-    @JoinColumn(name = "persona_id", nullable = false, unique = true)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER) // No puede existir sin una Persona
+    @JoinColumn(name = "persona_id", nullable = false)
     private Persona persona;
     @Column
     @Enumerated(EnumType.STRING)

@@ -31,13 +31,13 @@ public class Persona implements Serializable {
     @Column(nullable = false)
     private String apellido;
 
-    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL)
     private List<Contacto> contactos = new ArrayList<>();
 
-    @OneToOne(mappedBy = "persona", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Usuario usuario;
+    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL)
+    private List<Usuario> usuarios = new ArrayList<>();
 
-    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL)
     private List<Direccion> direcciones = new ArrayList<>();
 
     @Column(nullable = false)
