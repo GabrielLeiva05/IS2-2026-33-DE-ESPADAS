@@ -2,7 +2,8 @@ package com.ejercicioIntegrador.tiendaderopa.model;
 
 public class FacturaCliente extends Factura {
 
-    public String getTipoFactura(){
-        return "CLIENTE";
+    @Override
+    public int getSignoMovimientoStock() {
+        return -1; // se vendió, resta
     }
 }

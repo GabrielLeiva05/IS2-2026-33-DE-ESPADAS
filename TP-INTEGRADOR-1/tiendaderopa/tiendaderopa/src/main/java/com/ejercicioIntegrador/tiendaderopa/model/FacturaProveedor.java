@@ -12,7 +12,8 @@ public class FacturaProveedor extends Factura{
     private Proveedor proveedor;
 
 
-    public String getTipoFactura(){
-        return "PROVEEDOR";
+    @Override
+    public int getSignoMovimientoStock() {
+        return 1; // llegó mercadería, suma
     }
 }
