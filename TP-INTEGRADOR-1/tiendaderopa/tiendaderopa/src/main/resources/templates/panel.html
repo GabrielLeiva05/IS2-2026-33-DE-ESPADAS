@@ -1,7 +1,46 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{fragments/head :: head}"></head>
+
 <body>
-panel
+
+<aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+<!-- =========================
+     CONTENIDO PRINCIPAL
+========================== -->
+<main class="main">
+
+    <!-- SECCIÓN: INICIO / DASHBOARD -->
+    <section id="inicio" class="section">
+        <div class="header">
+            <h1>Panel de Administrador</h1>
+            <p th:if="${session.usuariosession != null and session.usuariosession.persona != null}"
+               th:text="'Bienvenido al sistema ' + ${session.usuariosession.persona.nombre}"></p>
+        </div>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Países</h3>
+                <p th:text="${paises != null ? #lists.size(paises) : 0}">0</p>
+            </div>
+        </div>
+    </section>
+    <!-- =========================
+       ABMS
+    ========================== -->
+    <section th:replace="~{fragments/abmPais :: abmPais}"></section>
+    <section th:replace="~{fragments/abmProvincia :: abmProvincia}"></section>
+
+
+</main>
+
+<!-- =========================
+     JAVASCRIPT
+========================== -->
+<script th:src="@{/js/main.js}"></script>
+
 </body>
 </html>

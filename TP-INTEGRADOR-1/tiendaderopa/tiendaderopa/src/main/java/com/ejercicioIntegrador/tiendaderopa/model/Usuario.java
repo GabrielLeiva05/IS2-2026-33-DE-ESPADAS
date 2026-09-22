@@ -29,7 +29,7 @@ public class Usuario implements Serializable{
     @Column
     private boolean eliminado = false;
 
-    @OneToOne(optional = false) // No puede existir sin una Persona
+    @OneToOne(optional = false, fetch = FetchType.EAGER) // No puede existir sin una Persona
     @JoinColumn(name = "persona_id", nullable = false, unique = true)
     private Persona persona;
     @Column
