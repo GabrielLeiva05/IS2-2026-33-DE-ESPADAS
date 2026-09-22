@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera('Personas')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('personas')}"></header>
+
+<main class="container contenido">
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <div class="encabezado">
+        <div>
+            <h1>Personas</h1>
+            <p>Cada persona tiene un domicilio y puede tener varios libros.</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/personas/nueva}">Nueva persona</a>
+    </div>
+
+    <form class="row g-2 mb-3" th:action="@{/personas}" method="get" role="search">
+        <div class="col-sm-8 col-md-6">
+            <label class="visually-hidden" for="filtro">Buscar por nombre o apellido</label>
+            <input type="search" class="form-control" id="filtro" name="filtro"
+                   placeholder="Buscar por nombre o apellido" th:value="${filtro}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-outline-primary">Buscar</button>
+            <a class="btn btn-link" th:if="${filtro != null and !#strings.isEmpty(filtro)}" th:href="@{/personas}">Quitar filtro</a>
+        </div>
+    </form>
+
+    <div class="panel">
+        <div class="table-responsive" th:if="${!personas.isEmpty()}">
+            <table class="table tabla">
+                <thead>
+                <tr>
+                    <th>Apellido y nombre</th>
+                    <th>DNI</th>
+                    <th>Domicilio</th>
+                    <th>Libros</th>
+                    <th><span class="visually-hidden">Acciones</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="p : ${personas}">
+                    <td><a th:href="@{/personas/{id}(id=${p.id})}" th:text="${p.nombreCompleto}">Apellido, Nombre</a></td>
+                    <td th:text="${p.dni}">0</td>
+                    <td th:text="${p.domicilio != null} ? ${p.domicilio.direccion} : '-'">Calle 1, Localidad</td>
+                    <td th:text="${p.libros.size()}">0</td>
+                    <td class="acciones">
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/personas/{id}(id=${p.id})}">Ver</a>
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/personas/{id}/editar(id=${p.id})}">Editar</a>
+                        <form th:action="@{/personas/{id}/eliminar(id=${p.id})}" method="post"
+                              onsubmit="return confirm('¿Eliminar a esta persona junto con su domicilio y sus libros?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="vacio" th:if="${personas.isEmpty()}">
+            No hay personas para mostrar. Agregue la primera con «Nueva persona».
+        </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

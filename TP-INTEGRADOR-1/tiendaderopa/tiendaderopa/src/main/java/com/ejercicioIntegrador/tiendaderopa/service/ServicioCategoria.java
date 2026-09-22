@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ServicioCategoria implements ServicioBase<Categoria> {
+public class ServicioCategoria {
     @Autowired
     private RepositorioCategoria repositorio;
 
-    @Override
+    
     @Transactional
     public List<Categoria> findAll() throws Exception {
         try {
@@ -25,7 +25,7 @@ public class ServicioCategoria implements ServicioBase<Categoria> {
         }
     }
 
-    @Override
+    
     @Transactional
     public Categoria findById(String id) throws Exception {
         try {
@@ -36,7 +36,7 @@ public class ServicioCategoria implements ServicioBase<Categoria> {
         }
     }
 
-    @Override
+    
     @Transactional
     public Categoria saveOne(Categoria entity) throws Exception {
         try {
@@ -47,7 +47,7 @@ public class ServicioCategoria implements ServicioBase<Categoria> {
         }
     }
 
-    @Override
+    
     @Transactional
     public Categoria updateOne(Categoria entity, String id) throws Exception {
         try {
@@ -60,7 +60,7 @@ public class ServicioCategoria implements ServicioBase<Categoria> {
         }
     }
 
-    @Override
+    
     @Transactional
     public boolean deleteById(String id) throws Exception {
         try {

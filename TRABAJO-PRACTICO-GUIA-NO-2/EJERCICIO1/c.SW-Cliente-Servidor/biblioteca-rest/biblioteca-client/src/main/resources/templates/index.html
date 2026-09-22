@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera('Inicio')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('inicio')}"></header>
+
+<main class="container contenido">
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <div class="encabezado">
+        <div>
+            <h1>Biblioteca de personas y libros</h1>
+            <p>Cada persona tiene su domicilio y sus libros; cada libro, uno o más autores.</p>
+        </div>
+    </div>
+
+    <nav class="estante" aria-label="Secciones de la biblioteca">
+        <a class="lomo lomo-personas" th:href="@{/personas}">
+            <span class="lomo-cantidad" th:text="${cantPersonas ?: '–'}">–</span>
+            <span class="lomo-titulo">Personas</span>
+        </a>
+        <a class="lomo lomo-libros" th:href="@{/libros}">
+            <span class="lomo-cantidad" th:text="${cantLibros ?: '–'}">–</span>
+            <span class="lomo-titulo">Libros</span>
+        </a>
+        <a class="lomo lomo-autores" th:href="@{/autores}">
+            <span class="lomo-cantidad" th:text="${cantAutores ?: '–'}">–</span>
+            <span class="lomo-titulo">Autores</span>
+        </a>
+        <a class="lomo lomo-localidades" th:href="@{/localidades}">
+            <span class="lomo-cantidad" th:text="${cantLocalidades ?: '–'}">–</span>
+            <span class="lomo-titulo">Localidades</span>
+        </a>
+    </nav>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

@@ -44,7 +44,6 @@ public class ServicioImagen {
             throw new MiException("El tipo de imagen no puede ser nulo");
         }
     }
-
     public Imagen actualizar(MultipartFile archivo, String idImagen, TipoImagen tipoImagen) throws MiException{
         String nombre = archivo != null ? archivo.getOriginalFilename() : null;
         byte[] contenido = extraerContenido(archivo);

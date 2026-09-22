@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera('Libros')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('libros')}"></header>
+
+<main class="container contenido">
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <div class="encabezado">
+        <div>
+            <h1>Libros</h1>
+            <p>Todos los libros y la persona a la que pertenece cada uno. Para agregar o modificar un libro, ingrese a la persona.</p>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="table-responsive" th:if="${!filas.isEmpty()}">
+            <table class="table tabla">
+                <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Autores</th>
+                    <th>Género</th>
+                    <th>Año</th>
+                    <th>Páginas</th>
+                    <th>Pertenece a</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="f : ${filas}">
+                    <td th:text="${f.libro.titulo}">Título</td>
+                    <td>
+                        <span class="etiqueta-autor" th:each="a : ${f.libro.autores}" th:text="${a.nombreCompleto}">Autor</span>
+                        <span th:if="${f.libro.autores.isEmpty()}" th:text="${f.libro.autor ?: '-'}">-</span>
+                    </td>
+                    <td th:text="${f.libro.genero}">Género</td>
+                    <td th:text="${f.libro.fecha}">2000</td>
+                    <td th:text="${f.libro.paginas}">100</td>
+                    <td><a th:href="@{/personas/{id}(id=${f.propietario.id})}" th:text="${f.propietario.nombreCompleto}">Persona</a></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="vacio" th:if="${filas.isEmpty()}">Todavía no hay libros cargados. Agréguelos desde la ficha de una persona.</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>
