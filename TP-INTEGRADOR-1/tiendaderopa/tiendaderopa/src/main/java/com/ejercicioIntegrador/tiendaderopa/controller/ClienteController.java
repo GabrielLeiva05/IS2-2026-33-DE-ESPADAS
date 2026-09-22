@@ -49,4 +49,13 @@ public class ClienteController {
     public ResponseEntity<List<Cliente>> listarActivos() {
         return ResponseEntity.ok(service.listarClienteActivo());
     }
+
+    @PutMapping("/{clienteId}/asociar-usuario/{usuarioId}")
+    public ResponseEntity<Void> asociarUsuario(
+            @PathVariable String clienteId, 
+            @PathVariable String usuarioId) throws Exception {
+        
+        service.asociarClienteUsuario(clienteId, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
 }

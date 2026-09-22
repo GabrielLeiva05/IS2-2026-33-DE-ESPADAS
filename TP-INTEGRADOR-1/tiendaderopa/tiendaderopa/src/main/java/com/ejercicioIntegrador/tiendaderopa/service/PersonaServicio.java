@@ -6,7 +6,6 @@ import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.repository.PersonaRepositorio;
-import com.ejercicioIntegrador.tiendaderopa.repository.UsuarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,7 @@ public class PersonaServicio {
     private PersonaRepositorio repositorio;
 
     @Autowired
-    private UsuarioRepositorio usuarioRepositorio;
+    private UsuarioServicio usuarioServicio;
 
     @Transactional
     public Persona crearPersona(String nombre, String apellido, Date fechaNacimiento, TipoDocumento tipoDocumento,
@@ -119,26 +118,14 @@ public class PersonaServicio {
     @Transactional
     public void asignarUsuario(String idPersona, String idUsuario) throws MiException {
         Persona persona = buscarPersona(idPersona);
-
-        Usuario usuario = usuarioRepositorio.findById(idUsuario)
-                .orElseThrow(() -> new MiException("No existe un usuario con id: " + idUsuario));
+        Usuario usuario = usuarioServicio.buscarPorId(idUsuario);
 
         if (usuario.getPersona() != null && !usuario.getPersona().getId().equals(idPersona)) {
             throw new MiException("El usuario ya está asociado a otra persona");
         }
 
-        // Desactivar lógicamente cualquier usuario activo previo que tuviera esta persona
-        for (Usuario u : persona.getUsuarios()) {
-            if (!u.isEliminado() && !u.getId().equals(idUsuario)) {
-                u.setEliminado(true);
-                usuarioRepositorio.save(u);
-            }
-        }
-
-        // Asociar el nuevo usuario
-        usuario.setPersona(persona);
-        usuario.setEliminado(false);
-        usuarioRepositorio.save(usuario);
+        usuarioServicio.desactivarUsuarioActivoDePersona(persona.getId(), usuario.getId());
+        usuarioServicio.asociarAPersona(usuario, persona);
 
         if (!persona.getUsuarios().contains(usuario)) {
             persona.getUsuarios().add(usuario);
@@ -150,15 +137,7 @@ public class PersonaServicio {
     @Transactional
     public void removerUsuario(String idPersona) throws MiException {
         Persona persona = buscarPersona(idPersona);
-
-        // Desactivar lógicamente todos los usuarios activos asociados a la persona
-        for (Usuario u : persona.getUsuarios()) {
-            if (!u.isEliminado()) {
-                u.setEliminado(true);
-                usuarioRepositorio.save(u);
-            }
-        }
-
+        usuarioServicio.desactivarTodosLosUsuariosDePersona(persona);
         this.repositorio.save(persona);
     }
 }

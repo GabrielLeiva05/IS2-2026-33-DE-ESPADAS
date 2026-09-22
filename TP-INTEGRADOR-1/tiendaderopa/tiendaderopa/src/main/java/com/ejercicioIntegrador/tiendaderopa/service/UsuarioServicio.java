@@ -6,10 +6,9 @@ import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
-import com.ejercicioIntegrador.tiendaderopa.repository.PersonaRepositorio;
 import com.ejercicioIntegrador.tiendaderopa.repository.UsuarioRepositorio;
 import jakarta.servlet.http.HttpSession;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,6 +23,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UsuarioServicio implements UserDetailsService {
@@ -31,8 +31,6 @@ public class UsuarioServicio implements UserDetailsService {
     private UsuarioRepositorio usuarioRepositorio;
     @Autowired
     private PersonaServicio personaServicio;
-
-
 
     public void registrar(Direccion direccion,
                           String documento,
@@ -122,6 +120,46 @@ public class UsuarioServicio implements UserDetailsService {
     @Transactional
     public Usuario getById(String id) {
         return usuarioRepositorio.findById(id).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public Usuario buscarPorId(String id) throws MiException {
+        return usuarioRepositorio.findById(id)
+                .orElseThrow(() -> new MiException("No existe un usuario con id: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Usuario> buscarActivoPorPersonaId(String personaId) {
+        return usuarioRepositorio.findByPersonaIdAndEliminadoFalse(personaId);
+    }
+
+    @Transactional
+    public void desactivarUsuarioActivoDePersona(String personaId, String idUsuarioNuevo) {
+        buscarActivoPorPersonaId(personaId).ifPresent(usuarioAnterior -> {
+            if (!usuarioAnterior.getId().equals(idUsuarioNuevo)) {
+                usuarioAnterior.setEliminado(true);
+                usuarioRepositorio.save(usuarioAnterior);
+            }
+        });
+    }
+
+    @Transactional
+    public void desactivarTodosLosUsuariosDePersona(Persona persona) {
+        if (persona.getUsuarios() != null) {
+            for (Usuario u : persona.getUsuarios()) {
+                if (!u.isEliminado()) {
+                    u.setEliminado(true);
+                    usuarioRepositorio.save(u);
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public void asociarAPersona(Usuario usuario, Persona persona) {
+        usuario.setPersona(persona);
+        usuario.setEliminado(false);
+        usuarioRepositorio.save(usuario);
     }
 }
 
