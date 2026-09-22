@@ -26,11 +26,13 @@ public abstract class Factura {
     @Column(name = "numero_factura", unique = true, nullable = false)
     private Long numeroFactura;
 
+    @SuppressWarnings("deprecation")
     @NotNull(message = "La fecha de factura es obligatoria")
     @Temporal(TemporalType.DATE)
     private Date fechaFactura;
 
     private double totalPagado;
+
     @NotNull(message = "El estado de la factura es obligatorio")
     @Enumerated(EnumType.STRING)
     private EstadoFactura estadoFactura;
@@ -39,17 +41,12 @@ public abstract class Factura {
     @OneToMany
     private java.util.List<DetalleFactura> detalleFactura;
 
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name= "fk_forma_de_pago", nullable = false)
     private FormaDePago formaDePago;
 
     @NotNull(message = "El campo eliminado no puede ser nulo")
+    @Column(nullable = false)
     private boolean eliminado;
 
-    /**
-     * Cada subtipo concreto sabe si sus movimientos de Stock suman o restan.
-     * Evita el "instanceof FacturaProveedor" dentro de ServicioStock.
-     */
-    public abstract int getSignoMovimientoStock();
 }

@@ -22,8 +22,4 @@ public class FacturaCliente extends Factura {
     @OneToMany(mappedBy = "facturaCliente")
     private List<OrdenCompra> ordenesCompra = new ArrayList<>();
 
-    @Override
-    public int getSignoMovimientoStock() {
-        return -1; // se vendió, resta
-    }
 }
