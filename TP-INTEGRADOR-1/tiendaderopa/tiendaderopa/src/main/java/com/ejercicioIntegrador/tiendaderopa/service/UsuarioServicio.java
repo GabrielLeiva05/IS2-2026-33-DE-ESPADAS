@@ -10,6 +10,7 @@ import com.ejercicioIntegrador.tiendaderopa.repository.UsuarioRepositorio;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +31,7 @@ public class UsuarioServicio implements UserDetailsService {
     @Autowired
     private UsuarioRepositorio usuarioRepositorio;
     @Autowired
+    @Lazy
     private PersonaServicio personaServicio;
 
     public void registrar(Direccion direccion,
