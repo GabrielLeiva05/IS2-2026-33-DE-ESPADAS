@@ -127,8 +127,22 @@ public class PersonaServicio {
             throw new MiException("El usuario ya está asociado a otra persona");
         }
 
-        persona.setUsuario(usuario);
+        // Desactivar lógicamente cualquier usuario activo previo que tuviera esta persona
+        for (Usuario u : persona.getUsuarios()) {
+            if (!u.isEliminado() && !u.getId().equals(idUsuario)) {
+                u.setEliminado(true);
+                usuarioRepositorio.save(u);
+            }
+        }
+
+        // Asociar el nuevo usuario
         usuario.setPersona(persona);
+        usuario.setEliminado(false);
+        usuarioRepositorio.save(usuario);
+
+        if (!persona.getUsuarios().contains(usuario)) {
+            persona.getUsuarios().add(usuario);
+        }
 
         this.repositorio.save(persona);
     }
@@ -137,10 +151,14 @@ public class PersonaServicio {
     public void removerUsuario(String idPersona) throws MiException {
         Persona persona = buscarPersona(idPersona);
 
-        if (persona.getUsuario() != null) {
-            persona.getUsuario().setPersona(null);
-            persona.setUsuario(null);
-            this.repositorio.save(persona);
+        // Desactivar lógicamente todos los usuarios activos asociados a la persona
+        for (Usuario u : persona.getUsuarios()) {
+            if (!u.isEliminado()) {
+                u.setEliminado(true);
+                usuarioRepositorio.save(u);
+            }
         }
+
+        this.repositorio.save(persona);
     }
 }
