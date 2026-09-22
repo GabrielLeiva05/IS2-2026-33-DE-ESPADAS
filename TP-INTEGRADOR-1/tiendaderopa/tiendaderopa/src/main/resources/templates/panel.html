@@ -14,7 +14,7 @@
 <main class="main">
 
     <!-- SECCIÓN: INICIO / DASHBOARD -->
-    <section id="inicio" class="section active">
+    <section id="inicio" class="section">
         <div class="header">
             <h1>Panel de Administrador</h1>
             <p th:if="${session.usuariosession != null and session.usuariosession.persona != null}"
@@ -23,108 +23,17 @@
 
         <div class="cards">
             <div class="card">
-                <h3>Usuarios</h3>
-                <p>25</p>
-            </div>
-            <div class="card">
                 <h3>Países</h3>
                 <p th:text="${paises != null ? #lists.size(paises) : 0}">0</p>
             </div>
         </div>
     </section>
-
     <!-- =========================
-         SECCIÓN: GESTIÓN DE PAÍSES
+       ABMS
     ========================== -->
-    <section id="paises" class="section">
-        <div class="header">
-            <h1>Países</h1>
-            <p>Gestión y administración de países.</p>
-        </div>
+    <section th:replace="~{fragments/abmPais :: abmPais}"></section>
+    <section th:replace="~{fragments/abmProvincia :: abmProvincia}"></section>
 
-        <!-- Mensajes de Éxito o Error -->
-        <div th:if="${exito != null}" class="alert alert-success" style="padding: 10px; margin-bottom: 15px; background: #d4edda; color: #155724; border-radius: 4px;">
-            <p th:text="${exito}" style="margin: 0;"></p>
-        </div>
-
-        <div th:if="${error != null}" class="alert alert-danger" style="padding: 10px; margin-bottom: 15px; background: #f8d7da; color: #721c24; border-radius: 4px;">
-            <p th:text="${error}" style="margin: 0;"></p>
-        </div>
-
-        <!-- Formulario (Alta / Modificación) -->
-        <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
-
-            <!-- Modo: Modificar País -->
-            <form th:if="${pais != null}" th:action="@{/pais/modificar/{id}(id=${pais.id})}" method="POST">
-                <h3>Modificar País</h3>
-
-                <div style="margin-bottom: 15px;">
-                    <label>ID:</label>
-                    <input type="text" th:value="${pais.id}" disabled style="width: 100%; padding: 8px;" />
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <label for="nombre-mod">Nombre del País:</label>
-                    <input type="text" id="nombre-mod" name="nombre" th:value="${pais.nombre}" placeholder="Ej. Argentina" required style="width: 100%; padding: 8px;" />
-                </div>
-
-                <div>
-                    <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
-                    <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
-                </div>
-            </form>
-
-            <!-- Modo: Registrar Nuevo País -->
-            <form th:unless="${pais != null}" th:action="@{/pais/registro}" method="POST">
-                <h3>Registrar Nuevo País</h3>
-
-                <div style="margin-bottom: 15px;">
-                    <label for="nombre-reg">Nombre del País:</label>
-                    <input type="text" id="nombre-reg" name="nombre" placeholder="Ej. Argentina" required style="width: 100%; padding: 8px;" />
-                </div>
-
-                <div>
-                    <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
-                </div>
-            </form>
-
-        </div>
-
-        <!-- Listado de Países -->
-        <div class="table-container">
-            <div class="table-header">
-                <h2>Listado de países</h2>
-            </div>
-
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:if="${paises != null}" th:each="p : ${paises}">
-                    <td th:text="${p.id}">ID</td>
-                    <td th:text="${p.nombre}">Nombre</td>
-                    <td>
-                        <span th:if="${p.eliminado}" style="color: red; font-weight: bold;">Eliminado</span>
-                        <span th:unless="${p.eliminado}" style="color: green; font-weight: bold;">Activo</span>
-                    </td>
-                    <td>
-                        <a th:href="@{/pais/modificar/{id}(id=${p.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
-                        <a th:href="@{/pais/eliminar/{id}(id=${p.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este país?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
-                    </td>
-                </tr>
-                <tr th:if="${paises == null or #lists.isEmpty(paises)}">
-                    <td colspan="4" style="text-align: center;">No hay países cargados en el sistema.</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
 
 </main>
 

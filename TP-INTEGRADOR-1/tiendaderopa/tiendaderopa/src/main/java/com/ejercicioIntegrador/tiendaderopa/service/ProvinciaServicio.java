@@ -43,6 +43,20 @@ public class ProvinciaServicio {
         provincia.setPais(pais);
         return provinciaRepositorio.save(provincia);
     }
+    @Transactional
+    public void modificarProvincia(String id, String nombre, Pais pais) throws MiException {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new MiException("El nombre de la provincia no puede estar vacío");
+        }
+        if (pais == null) {
+            throw new MiException("Debe asociar un país a la provincia");
+        }
+
+        Provincia provincia = buscarPorId(id);
+        provincia.setNombre(nombre.trim());
+        provincia.setPais(pais);
+        provinciaRepositorio.save(provincia);
+    }
 
     @Transactional
     public void eliminar(String id) throws MiException {

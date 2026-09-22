@@ -252,3 +252,103 @@ td {
     color: white;
     margin-left: 5px;
 }
+
+/* =========================
+   FORMULARIOS ABM
+========================= */
+
+.form-container {
+    background-color: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 30px;
+}
+
+.form-container h3 {
+    color: #1f2937;
+    font-size: 18px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f3f4f6;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Inputs de texto y Select de País */
+.form-group input[type="text"],
+.form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #1f2937;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Efecto de foco al escribir o abrir select */
+.form-group input[type="text"]:focus,
+.form-group select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Estado deshabilitado (ej. campo ID) */
+.form-group input:disabled {
+    background-color: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+}
+
+/* =========================
+   ACCIONES DEL FORMULARIO
+========================= */
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.btn-submit {
+    background-color: #2563eb;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+    background-color: #1d4ed8;
+}
+
+.btn-cancel {
+    text-decoration: none;
+    font-size: 14px;
+    color: #6b7280;
+    padding: 10px 16px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-cancel:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}

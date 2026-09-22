@@ -1,0 +1,106 @@
+<section id="provincias" class="section" th:fragment = "abmProvincia">
+    <div class="header">
+        <h1>Provincias</h1>
+        <p>Gestión y administración de provincias por país.</p>
+    </div>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+
+        <!-- Modo: Modificar Provincia -->
+        <form th:if="${provincia != null}" th:action="@{/provincia/modificar/{id}(id=${provincia.id})}" method="POST">
+            <h3>Modificar Provincia</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label>ID:</label>
+                <input type="text" th:value="${provincia.id}" disabled style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="nombre-prov-mod">Nombre de la Provincia:</label>
+                <input type="text" id="nombre-prov-mod" name="nombre" th:value="${provincia.nombre}" placeholder="Ej. Mendoza" required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="pais-prov-mod">País al que pertenece:</label>
+                <select id="pais-prov-mod" name="idPais" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled>Seleccione un país</option>
+                    <option th:each="p : ${paises}"
+                            th:value="${p.id}"
+                            th:text="${p.nombre}"
+                            th:selected="${provincia.pais != null and provincia.pais.id == p.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
+                <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Provincia -->
+        <form th:unless="${provincia != null}" th:action="@{/provincia/registro}" method="POST">
+            <h3>Registrar Nueva Provincia</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label for="nombre-prov-reg">Nombre de la Provincia:</label>
+                <input type="text" id="nombre-prov-reg" name="nombre" placeholder="Ej. Mendoza" required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="pais-prov-reg">País al que pertenece:</label>
+                <select id="pais-prov-reg" name="idPais" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled selected>Seleccione un país</option>
+                    <option th:each="p : ${paises}"
+                            th:if="${!p.eliminado}"
+                            th:value="${p.id}"
+                            th:text="${p.nombre}">
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Listado de Provincias -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Listado de provincias</h2>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>País</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${provincias != null}" th:each="pr : ${provincias}">
+                <td th:text="${pr.id}">ID</td>
+                <td th:text="${pr.nombre}">Nombre</td>
+                <td th:text="${pr.pais != null ? pr.pais.nombre : 'Sin país'}">País</td>
+                <td>
+                    <span th:if="${pr.eliminado}" style="color: red; font-weight: bold;">Eliminada</span>
+                    <span th:unless="${pr.eliminado}" style="color: green; font-weight: bold;">Activa</span>
+                </td>
+                <td>
+                    <a th:href="@{/provincia/modificar/{id}(id=${pr.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+                    <a th:href="@{/provincia/eliminar/{id}(id=${pr.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta provincia?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${provincias == null or #lists.isEmpty(provincias)}">
+                <td colspan="5" style="text-align: center;">No hay provincias cargadas en el sistema.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
