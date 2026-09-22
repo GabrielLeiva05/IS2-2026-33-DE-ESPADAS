@@ -99,4 +99,9 @@ public class ServicioProducto {
 
         return producto;
     }
+
+    public Producto buscarPorId(String idProducto) {
+        return repositorio.findById(idProducto)
+                .orElseThrow(() -> new NoSuchElementException("No existe el producto con id: " + idProducto));
+    }
 }
