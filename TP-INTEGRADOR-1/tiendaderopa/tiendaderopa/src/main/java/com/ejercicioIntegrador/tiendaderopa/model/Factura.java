@@ -46,6 +46,9 @@ public abstract class Factura {
     @NotNull(message = "El campo eliminado no puede ser nulo")
     private boolean eliminado;
 
-    //Nos va a servir para lo que seria la vista de Facturas, por si queremos filtrar por FacturasCliente o FactorasProveedor.
-    public abstract String getTipoFactura();
+    /**
+     * Cada subtipo concreto sabe si sus movimientos de Stock suman o restan.
+     * Evita el "instanceof FacturaProveedor" dentro de ServicioStock.
+     */
+    public abstract int getSignoMovimientoStock();
 }
