@@ -39,6 +39,7 @@ public abstract class Factura {
     @OneToMany
     private java.util.List<DetalleFactura> detalleFactura;
 
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name= "fk_forma_de_pago", nullable = false)
     private FormaDePago formaDePago;

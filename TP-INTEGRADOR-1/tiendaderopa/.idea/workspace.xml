@@ -5,27 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b37727ea-4b43-4e00-a418-802baf6da4e2" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/../tiendaderopa.rar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/tiendaderopa.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/controller/PaisControlador.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/controller/ProvinciaControlador.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tiendaderopa/src/main/resources/static/css/style.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tiendaderopa/src/main/resources/static/js/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tiendaderopa/src/main/resources/templates/fragments/abmPais.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tiendaderopa/src/main/resources/templates/fragments/abmProvincia.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tiendaderopa/src/main/resources/templates/fragments/sidebar.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/controller/AdminControlador.java" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/controller/AdminControlador.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/model/Usuario.java" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/model/Usuario.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/PaisServicio.java" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/PaisServicio.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ProvinciaServicio.java" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ProvinciaServicio.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/resources/templates/panel.html" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/resources/templates/panel.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/model/Factura.java" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/model/Factura.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/model/Imagen.java" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/model/Imagen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/PersonaServicio.java" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/PersonaServicio.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioProducto.java" beforeDir="false" afterPath="$PROJECT_DIR$/tiendaderopa/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioProducto.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,7 +59,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "Spring Boot.TiendaderopaApplication.executor": "Run",
     "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "Merging master",
+    "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/JuanP/Documents/1FACU/tercero/segundo semestre/ingeniería de software/parte grupal/IS2-2026-33-DE-ESPADAS/TP-INTEGRADOR-1/tiendaderopa/tiendaderopa/src/main/resources/static",

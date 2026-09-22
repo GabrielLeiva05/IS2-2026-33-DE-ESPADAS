@@ -1,16 +1,8 @@
 package com.ejercicioIntegrador.tiendaderopa.service;
 
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
-<<<<<<< HEAD
-import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
-import com.ejercicioIntegrador.tiendaderopa.model.Persona;
-import com.ejercicioIntegrador.tiendaderopa.repository.PersonaRepositorio;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-=======
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
+import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.repository.PersonaRepositorio;
@@ -19,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
->>>>>>> e241259036f75006c6fcf279dd873a547bf9a60b
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,28 +19,6 @@ import java.util.List;
 public class PersonaServicio {
 
     @Autowired
-<<<<<<< HEAD
-    private PersonaRepositorio personaRepositorio;
-
-    public Persona crearPersona(Direccion direccion,
-                         String documento,
-                         TipoDocumento tipoDocumento,
-                         String nombre,
-                         Date fechaNacimiento,
-                         String apellido){
-        Persona persona = new Persona();
-        persona.setDocumento(documento);
-        persona.setNombre(nombre);
-        persona.setApellido(apellido);
-        persona.setFechaNacimiento(fechaNacimiento);
-        List<Direccion> dir = new ArrayList<>();
-        dir.add(direccion);
-        persona.setDirecciones(dir);
-        personaRepositorio.save(persona);
-        return persona;
-    }
-}
-=======
     private PersonaRepositorio repositorio;
 
     @Autowired
@@ -56,7 +26,7 @@ public class PersonaServicio {
 
     @Transactional
     public Persona crearPersona(String nombre, String apellido, Date fechaNacimiento, TipoDocumento tipoDocumento,
-                                 String documento) throws MiException {
+                                String documento) throws MiException {
 
         validar(nombre, apellido, fechaNacimiento, tipoDocumento, documento);
 
@@ -64,8 +34,23 @@ public class PersonaServicio {
         return this.repositorio.save(persona);
     }
 
+    @Transactional
+    public Persona crearPersona(Direccion direccion, String documento, TipoDocumento tipoDocumento,
+                                String nombre, Date fechaNacimiento, String apellido) throws MiException {
+
+        validar(nombre, apellido, fechaNacimiento, tipoDocumento, documento);
+
+        Persona persona = new Persona(nombre.trim(), apellido.trim(), fechaNacimiento, documento.trim(), tipoDocumento);
+        if (direccion != null) {
+            List<Direccion> dir = new ArrayList<>();
+            dir.add(direccion);
+            persona.setDirecciones(dir);
+        }
+        return this.repositorio.save(persona);
+    }
+
     public void validar(String nombre, String apellido, Date fechaNacimiento, TipoDocumento tipoDocumento,
-                         String documento) throws MiException {
+                        String documento) throws MiException {
 
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new MiException("El nombre no puede estar vacío");
@@ -96,7 +81,7 @@ public class PersonaServicio {
         }
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Persona buscarPersona(String id) throws MiException {
         return this.repositorio.findById(id)
                 .orElseThrow(() -> new MiException("No existe una persona con id: " + id));
@@ -104,7 +89,7 @@ public class PersonaServicio {
 
     @Transactional
     public Persona modificarPersona(String id, String nombre, String apellido, Date fechaNacimiento,
-                                     TipoDocumento tipoDocumento, String documento) throws MiException {
+                                    TipoDocumento tipoDocumento, String documento) throws MiException {
 
         validar(nombre, apellido, fechaNacimiento, tipoDocumento, documento);
 
@@ -126,12 +111,10 @@ public class PersonaServicio {
         this.repositorio.save(persona);
     }
 
-
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Persona> listarPersona() {
         return this.repositorio.findByEliminadoFalse();
     }
-
 
     @Transactional
     public void asignarUsuario(String idPersona, String idUsuario) throws MiException {
@@ -140,7 +123,6 @@ public class PersonaServicio {
         Usuario usuario = usuarioRepositorio.findById(idUsuario)
                 .orElseThrow(() -> new MiException("No existe un usuario con id: " + idUsuario));
 
-        // Regla de negocio: no permitir robarle un usuario a otra persona
         if (usuario.getPersona() != null && !usuario.getPersona().getId().equals(idPersona)) {
             throw new MiException("El usuario ya está asociado a otra persona");
         }
@@ -151,7 +133,6 @@ public class PersonaServicio {
         this.repositorio.save(persona);
     }
 
-    //Desvincula el Usuario de una Persona.
     @Transactional
     public void removerUsuario(String idPersona) throws MiException {
         Persona persona = buscarPersona(idPersona);
@@ -163,4 +144,3 @@ public class PersonaServicio {
         }
     }
 }
->>>>>>> e241259036f75006c6fcf279dd873a547bf9a60b

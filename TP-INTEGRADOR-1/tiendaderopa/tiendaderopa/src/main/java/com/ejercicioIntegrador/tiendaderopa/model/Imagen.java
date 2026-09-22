@@ -37,12 +37,12 @@ public class Imagen {
     private TipoImagen tipoImagen;
 
     // Como id es String, generamos un UUID para cada nueva imagen antes de persistirla en la base de datos
-    /*
+
     @PrePersist
     public void generarId() {
         if (id == null) {
             id = UUID.randomUUID().toString();
         }
-    }*/
+    }
 
 }

@@ -60,6 +60,7 @@ public class ServicioProducto {
         repositorio.save(producto);
     }
 
+
     private void asociarRelaciones(Producto producto, String idImagen, String idSubCategoria) throws Exception {
         if (idSubCategoria != null && !idSubCategoria.isBlank()) {
             producto.setSubCategoria(svcSubCategoria.findById(idSubCategoria));
