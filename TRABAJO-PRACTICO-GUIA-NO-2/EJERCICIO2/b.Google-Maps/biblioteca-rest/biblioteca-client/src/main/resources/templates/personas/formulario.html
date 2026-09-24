@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera((${persona.id == null} ? 'Nueva persona' : 'Editar persona'))}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('personas')}"></header>
+
+<main class="container contenido">
+    <div class="encabezado">
+        <div>
+            <h1 th:text="${persona.id == null} ? 'Nueva persona' : 'Editar persona'">Persona</h1>
+            <p>Los datos personales y el domicilio se guardan juntos.</p>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <form class="formulario" th:object="${persona}" method="post" novalidate
+          th:action="${persona.id == null} ? @{/personas} : @{/personas/{id}(id=${persona.id})}">
+
+        <fieldset>
+            <legend>Datos personales</legend>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="nombre">Nombre</label>
+                    <input type="text" class="form-control" id="nombre" th:field="*{nombre}"
+                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{nombre}">Error</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="apellido">Apellido</label>
+                    <input type="text" class="form-control" id="apellido" th:field="*{apellido}"
+                           th:classappend="${#fields.hasErrors('apellido')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{apellido}">Error</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="dni">DNI</label>
+                    <input type="text" inputmode="numeric" class="form-control" id="dni" th:field="*{dni}"
+                           th:classappend="${#fields.hasErrors('dni')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{dni}">Error</div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Domicilio</legend>
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label class="form-label" for="calle">Calle</label>
+                    <input type="text" class="form-control" id="calle" th:field="*{domicilio.calle}"
+                           th:classappend="${#fields.hasErrors('domicilio.calle')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{domicilio.calle}">Error</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label" for="numero">Número</label>
+                    <input type="text" inputmode="numeric" class="form-control" id="numero" th:field="*{domicilio.numero}"
+                           th:classappend="${#fields.hasErrors('domicilio.numero')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{domicilio.numero}">Error</div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="localidad">Localidad</label>
+                    <select class="form-select" id="localidad" th:field="*{domicilio.localidad.id}"
+                            th:classappend="${#fields.hasErrors('domicilio.localidad.id')} ? 'is-invalid'">
+                        <option value="">Seleccione una localidad</option>
+                        <option th:each="l : ${localidades}" th:value="${l.id}" th:text="${l.denominacion}">Localidad</option>
+                    </select>
+                    <div class="invalid-feedback" th:errors="*{domicilio.localidad.id}">Error</div>
+                    <div class="form-text" th:if="${localidades.isEmpty()}">
+                        No hay localidades cargadas. <a th:href="@{/localidades/nueva}">Cree una localidad</a> primero.
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-link" th:href="${persona.id == null} ? @{/personas} : @{/personas/{id}(id=${persona.id})}">Cancelar</a>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>
