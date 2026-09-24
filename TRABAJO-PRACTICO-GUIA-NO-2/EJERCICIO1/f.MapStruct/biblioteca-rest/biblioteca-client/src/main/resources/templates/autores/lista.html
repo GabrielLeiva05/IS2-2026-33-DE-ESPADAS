@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera('Autores')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('autores')}"></header>
+
+<main class="container contenido">
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <div class="encabezado">
+        <div>
+            <h1>Autores</h1>
+            <p>Un libro puede tener varios autores y un autor puede figurar en varios libros.</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/autores/nuevo}">Nuevo autor</a>
+    </div>
+
+    <div class="panel">
+        <div class="table-responsive" th:if="${!autores.isEmpty()}">
+            <table class="table tabla">
+                <thead>
+                <tr>
+                    <th>Apellido y nombre</th>
+                    <th>Biografía</th>
+                    <th><span class="visually-hidden">Acciones</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="a : ${autores}">
+                    <td th:text="${a.apellido + ', ' + a.nombre}">Apellido, Nombre</td>
+                    <td th:text="${a.biografia}">Biografía</td>
+                    <td class="acciones">
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/autores/{id}/editar(id=${a.id})}">Editar</a>
+                        <form th:action="@{/autores/{id}/eliminar(id=${a.id})}" method="post"
+                              onsubmit="return confirm('¿Eliminar a este autor?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="vacio" th:if="${autores.isEmpty()}">No hay autores. Agregue el primero con «Nuevo autor».</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

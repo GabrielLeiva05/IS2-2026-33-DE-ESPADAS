@@ -1,0 +1,117 @@
+### Archivo de pruebas de la API (IntelliJ HTTP Client / extensión "REST Client" de VS Code)
+### El servidor debe estar corriendo en http://localhost:8080
+
+@base = http://localhost:8080/api/v1
+
+### ---------------- LOCALIDADES ----------------
+GET {{base}}/localidades
+
+###
+GET {{base}}/localidades/1
+
+###
+POST {{base}}/localidades
+Content-Type: application/json
+
+{ "denominacion": "Tunuyán" }
+
+###
+PUT {{base}}/localidades/1
+Content-Type: application/json
+
+{ "denominacion": "Mendoza (Capital)" }
+
+###
+DELETE {{base}}/localidades/7
+
+### ---------------- AUTORES ----------------
+GET {{base}}/autores
+
+###
+POST {{base}}/autores
+Content-Type: application/json
+
+{ "nombre": "Ernesto", "apellido": "Sabato", "biografia": "Escritor argentino." }
+
+###
+PUT {{base}}/autores/1
+Content-Type: application/json
+
+{ "nombre": "Gabriel", "apellido": "García Márquez", "biografia": "Biografía actualizada." }
+
+###
+DELETE {{base}}/autores/5
+
+### ---------------- PERSONAS (con su domicilio) ----------------
+GET {{base}}/personas
+
+###
+GET {{base}}/personas?filtro=mart
+
+###
+GET {{base}}/personas/1
+
+###
+# Alta de persona + domicilio (la localidad se referencia por id)
+POST {{base}}/personas
+Content-Type: application/json
+
+{
+  "nombre": "María",
+  "apellido": "López",
+  "dni": 33444555,
+  "domicilio": {
+    "calle": "Av. Las Heras",
+    "numero": 250,
+    "localidad": { "id": 1 }
+  }
+}
+
+###
+PUT {{base}}/personas/1
+Content-Type: application/json
+
+{
+  "nombre": "Ana",
+  "apellido": "Martínez",
+  "dni": 30123456,
+  "domicilio": { "calle": "Av. San Martín", "numero": 1300, "localidad": { "id": 2 } }
+}
+
+###
+DELETE {{base}}/personas/3
+
+### ---------------- LIBROS DE UNA PERSONA (composición) ----------------
+GET {{base}}/personas/1/libros
+
+###
+GET {{base}}/personas/1/libros/1
+
+###
+# Alta de libro con dos autores (relación muchos a muchos, por id de autor)
+POST {{base}}/personas/1/libros
+Content-Type: application/json
+
+{
+  "titulo": "El túnel",
+  "fecha": 1948,
+  "genero": "Novela",
+  "paginas": 160,
+  "autores": [ { "id": 3 } ]
+}
+
+###
+PUT {{base}}/personas/1/libros/1
+Content-Type: application/json
+
+{
+  "titulo": "Cien años de soledad",
+  "fecha": 1967,
+  "genero": "Novela",
+  "paginas": 471,
+  "autor": "Gabriel García Márquez",
+  "autores": [ { "id": 1 } ]
+}
+
+###
+DELETE {{base}}/personas/1/libros/1
