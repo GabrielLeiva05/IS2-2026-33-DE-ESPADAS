@@ -3,15 +3,15 @@ package com.ejercicioIntegrador.tiendaderopa.service;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.ContactoCorreoElectronico;
+import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
-import com.ejercicioIntegrador.tiendaderopa.repository.PersonaRepositorio;
+import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioContactoCorreoElectronico;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
@@ -25,20 +25,32 @@ public class ServicioContactoCorreoElectronico {
     private RepositorioContactoCorreoElectronico repositorio;
 
     @Autowired
-    private PersonaRepositorio personaRepositorio;
+    private PersonaServicio personaServicio;
+
+    @Autowired
+    private ServicioProveedor svcProveedor;
 
     @Transactional
     public ContactoCorreoElectronico crearContactoCorreoElectronico(
-            String email, TipoContacto tipoContacto, String observacion, String personaId) throws MiException {
-
+            String email, TipoContacto tipoContacto, String observacion, String idPersona, String idProveedor) throws MiException {
         validar(email, tipoContacto, observacion);
 
-        Persona persona = personaRepositorio.findById(personaId)
-                .orElseThrow(() -> new MiException("No existe una persona con id: " + personaId));
+        boolean tienePersona = idPersona != null && !idPersona.isBlank();
+        boolean tieneProveedor = idProveedor != null && !idProveedor.isBlank();
+        if (tienePersona == tieneProveedor) { // los dos true, o los dos false
+            throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor, no ambos ni ninguno");
+        }
 
-        ContactoCorreoElectronico contacto =
-                new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, persona);
-        return this.repositorio.save(contacto);
+        ContactoCorreoElectronico contacto;
+        if (tienePersona) {
+            Persona persona = personaServicio.buscarPersona(idPersona);
+            contacto = new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, persona);
+        } else {
+            Proveedor proveedor = svcProveedor.buscarProveedor(idProveedor);
+            contacto = new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, proveedor);
+        }
+
+        return repositorio.save(contacto);
     }
 
     public void validar(String email, TipoContacto tipoContacto, String observacion) throws MiException {
@@ -81,4 +93,5 @@ public class ServicioContactoCorreoElectronico {
     public List<ContactoCorreoElectronico> listarContactoCorreoElectronicoActivo() {
         return this.repositorio.findByEliminadoFalse();
     }
+
 }

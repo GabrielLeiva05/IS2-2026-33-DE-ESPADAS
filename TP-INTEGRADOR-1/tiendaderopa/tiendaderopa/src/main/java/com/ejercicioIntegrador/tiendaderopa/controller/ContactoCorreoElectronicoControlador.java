@@ -3,7 +3,10 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.ContactoCorreoElectronico;
+import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
+import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioContactoCorreoElectronico;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioProveedor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +19,7 @@ public class ContactoCorreoElectronicoControlador {
 
     private final ServicioContactoCorreoElectronico servicio;
 
-    public ContactoCorreoElectronicoControlador(ServicioContactoCorreoElectronico servicio) {
+    public ContactoCorreoElectronicoControlador(ServicioContactoCorreoElectronico servicio, ServicioProveedor servicioProveedor) {
         this.servicio = servicio;
     }
 
@@ -35,10 +38,15 @@ public class ContactoCorreoElectronicoControlador {
             @RequestParam String email,
             @RequestParam TipoContacto tipoContacto,
             @RequestParam(required = false) String observacion,
-            @RequestParam String personaId
+            @RequestParam(required = false) String personaId,
+            @RequestParam(required = false) String proveedorId
     ) {
         try {
-            ContactoCorreoElectronico contacto = servicio.crearContactoCorreoElectronico(email, tipoContacto, observacion, personaId);
+            // El Controller ya no decide nada ni instancia nada: solo pasa
+            // los datos tal cual llegaron. Validar cuál es válido y resolver
+            // las entidades es responsabilidad exclusiva del Service.
+            ContactoCorreoElectronico contacto = servicio.crearContactoCorreoElectronico(
+                    email, tipoContacto, observacion, personaId, proveedorId);
             return ResponseEntity.status(HttpStatus.CREATED).body(contacto);
         } catch (MiException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

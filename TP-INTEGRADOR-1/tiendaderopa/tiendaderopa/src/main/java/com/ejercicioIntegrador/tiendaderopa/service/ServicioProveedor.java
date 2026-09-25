@@ -1,5 +1,6 @@
 package com.ejercicioIntegrador.tiendaderopa.service;
 
+import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioProveedor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,47 +18,43 @@ public class ServicioProveedor {
 
     @Autowired
     private RepositorioProveedor repositorio;
+    // Sin @Autowired hacia ServicioContactoCorreoElectronico ni
+    // ServicioContactoTelefonico: esto es lo que rompe el ciclo desde
+    // este lado.
 
-    public void validar(String razonSocial, String email) throws Exception {
+    public void validar(String razonSocial) throws MiException {
         if (razonSocial == null || razonSocial.isBlank()) {
-            throw new Exception("La razón social es obligatoria");
-        }
-        if (email == null || email.isBlank()) {
-            throw new Exception("El correo electrónico es obligatorio");
+            throw new MiException("La razón social es obligatoria");
         }
     }
 
     @Transactional
-    public Proveedor crearProveedor(String razonSocial, String email, String telefonoWhatsapp) throws Exception {
-        validar(razonSocial, email);
+    public Proveedor crearProveedor(String razonSocial) throws MiException {
+        validar(razonSocial);
         Proveedor proveedor = new Proveedor();
         proveedor.setRazonSocial(razonSocial);
-        //proveedor.setEmail(email);
-        //proveedor.setTelefonoWhatsapp(telefonoWhatsapp);
         proveedor.setEliminado(false);
         return repositorio.save(proveedor);
     }
 
     @Transactional
-    public Proveedor modificarProveedor(String id, String razonSocial, String email, String telefonoWhatsapp) throws Exception {
+    public Proveedor modificarProveedor(String id, String razonSocial) throws MiException {
         Proveedor proveedor = buscarProveedor(id);
-        validar(razonSocial, email);
+        validar(razonSocial);
         proveedor.setRazonSocial(razonSocial);
-        //proveedor.setEmail(email);
-        //proveedor.setTelefonoWhatsapp(telefonoWhatsapp);
         return repositorio.save(proveedor);
     }
 
     @Transactional
-    public void eliminarProveedor(String id) throws Exception {
+    public void eliminarProveedor(String id) throws MiException {
         Proveedor proveedor = buscarProveedor(id);
         proveedor.setEliminado(true);
         repositorio.save(proveedor);
     }
 
-    public Proveedor buscarProveedor(String id) throws Exception {
+    public Proveedor buscarProveedor(String id) throws MiException {
         return repositorio.findById(id)
-                .orElseThrow(() -> new Exception("No existe el proveedor con id " + id));
+                .orElseThrow(() -> new MiException("No existe el proveedor con id " + id));
     }
 
     public Proveedor buscarProveedorPorNombre(String razonSocial) {

@@ -43,12 +43,21 @@ public class Contacto implements Serializable {
     private boolean eliminado = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "persona_id", nullable = false)
+    @JoinColumn(name = "persona_id")
     private Persona persona;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fk_proveedor") // nullable a propósito
+    private Proveedor proveedor;
 
     public Contacto(TipoContacto tipoContacto, String observacion, Persona persona) {
         this.tipoContacto = tipoContacto;
         this.observacion = observacion;
         this.persona = persona;
+    }
+    public Contacto(TipoContacto tipoContacto, String observacion, Proveedor proveedor) {
+        this.tipoContacto = tipoContacto;
+        this.observacion = observacion;
+        this.proveedor = proveedor;
     }
 }

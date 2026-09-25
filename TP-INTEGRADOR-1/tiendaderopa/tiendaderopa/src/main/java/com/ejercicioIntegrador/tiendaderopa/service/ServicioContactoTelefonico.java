@@ -5,7 +5,7 @@ import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
-import com.ejercicioIntegrador.tiendaderopa.repository.PersonaRepositorio;
+import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioContactoTelefonico;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,20 +20,35 @@ public class ServicioContactoTelefonico {
     private RepositorioContactoTelefonico repositorio;
 
     @Autowired
-    private PersonaRepositorio personaRepositorio;
+    private PersonaServicio personaServicio;
+
+    @Autowired
+    private ServicioProveedor svcProveedor;
 
     @Transactional
-    public ContactoTelefonico crearContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion, String personaId) throws MiException {
-
+    public ContactoTelefonico crearContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto,
+                                                      String observacion, String idPersona, String idProveedor) throws MiException {
         validar(telefono, tipoTelefono, tipoContacto, observacion);
 
-        Persona persona = personaRepositorio.findById(personaId).orElseThrow(() -> new MiException("No existe una persona con id: " + personaId));
+        boolean tienePersona = idPersona != null && !idPersona.isBlank();
+        boolean tieneProveedor = idProveedor != null && !idProveedor.isBlank();
+        if (tienePersona == tieneProveedor) { // los dos true, o los dos false
+            throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor, no ambos ni ninguno");
+        }
 
-        ContactoTelefonico contacto =
-                new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, persona);
-        return this.repositorio.save(contacto);
+        ContactoTelefonico contacto;
+        if (tienePersona) {
+            Persona persona = personaServicio.buscarPersona(idPersona);
+            contacto = new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, persona);
+        } else {
+            Proveedor proveedor = svcProveedor.buscarProveedor(idProveedor);
+            contacto = new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, proveedor);
+        }
+
+        return repositorio.save(contacto);
     }
 
+    
     public void validar(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion)
             throws MiException {
         if (telefono == null || telefono.trim().isEmpty()) {

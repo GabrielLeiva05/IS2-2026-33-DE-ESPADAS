@@ -4,7 +4,9 @@ import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
+import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioContactoTelefonico;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioProveedor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +19,7 @@ public class ContactoTelefonicoControlador {
 
     private final ServicioContactoTelefonico servicio;
 
-    public ContactoTelefonicoControlador(ServicioContactoTelefonico servicio) {
+    public ContactoTelefonicoControlador(ServicioContactoTelefonico servicio, ServicioProveedor servicioProveedor) {
         this.servicio = servicio;
     }
 
@@ -37,10 +39,15 @@ public class ContactoTelefonicoControlador {
             @RequestParam TipoTelefono tipoTelefono,
             @RequestParam TipoContacto tipoContacto,
             @RequestParam(required = false) String observacion,
-            @RequestParam String personaId
+            @RequestParam(required = false) String personaId,
+            @RequestParam(required = false) String proveedorId
     ) {
         try {
-            ContactoTelefonico contacto = servicio.crearContactoTelefonico(telefono, tipoTelefono, tipoContacto, observacion, personaId);
+            // El Controller ya no decide nada ni instancia nada: solo pasa
+            // los datos tal cual llegaron. Validar cuál es válido y resolver
+            // las entidades es responsabilidad exclusiva del Service.
+            ContactoTelefonico contacto = servicio.crearContactoTelefonico(
+                    telefono, tipoTelefono, tipoContacto, observacion, personaId, proveedorId);
             return ResponseEntity.status(HttpStatus.CREATED).body(contacto);
         } catch (MiException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
