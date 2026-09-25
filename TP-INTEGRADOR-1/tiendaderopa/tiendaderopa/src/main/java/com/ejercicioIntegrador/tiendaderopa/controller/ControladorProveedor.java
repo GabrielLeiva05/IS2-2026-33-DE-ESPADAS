@@ -1,39 +1,59 @@
 package com.ejercicioIntegrador.tiendaderopa.controller;
 
+import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
+import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioProveedor;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioRegistroProveedor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+import java.util.Collection;
+
+@RestController
+@RequestMapping("/proveedores")
 public class ControladorProveedor {
 
-    @Autowired
-    private ServicioRegistroProveedor svcRegistroProveedor;
-    @Autowired
-    private ServicioProveedor svcProveedor; // para modificar/eliminar/listar, sin contactos
+    private final ServicioProveedor svcProveedor;
+    private final ServicioRegistroProveedor svcRegistroProveedor;
 
-    @PostMapping("/formulario/proveedor/{id}")
-    public String guardar(
-            @RequestParam String razonSocial,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String telefonoFijo,
-            @RequestParam(required = false) String telefonoCelular,
-            @PathVariable String id, Model model) {
+    public ControladorProveedor(ServicioProveedor svcProveedor, ServicioRegistroProveedor svcRegistroProveedor) {
+        this.svcProveedor = svcProveedor;
+        this.svcRegistroProveedor = svcRegistroProveedor;
+    }
+
+    @GetMapping
+    public Collection<Proveedor> listar() { return svcProveedor.listarProveedor(); }
+
+    @GetMapping("/activos")
+    public Collection<Proveedor> listarActivos() { return svcProveedor.listarProveedorActivo(); }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> buscar(@PathVariable String id) {
+        try { return ResponseEntity.ok(svcProveedor.buscarProveedor(id)); }
+        catch (MiException e) { return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); }
+    }
+
+    @PostMapping
+    public ResponseEntity<?> crear(@RequestParam String razonSocial,
+                                    @RequestParam(required = false) String email,
+                                    @RequestParam(required = false) String telefonoFijo,
+                                    @RequestParam(required = false) String telefonoCelular) {
         try {
-            if (id.isEmpty()) {
-                svcRegistroProveedor.registrarProveedor(razonSocial, email, telefonoFijo, telefonoCelular);
-            } else {
-                svcProveedor.modificarProveedor(id, razonSocial);
-            }
-            return "redirect:/proveedores";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
-        }
+            Proveedor proveedor = svcRegistroProveedor.registrarProveedor(razonSocial, email, telefonoFijo, telefonoCelular);
+            return ResponseEntity.status(HttpStatus.CREATED).body(proveedor);
+        } catch (Exception e) { return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> modificar(@PathVariable String id, @RequestParam String razonSocial) {
+        try { return ResponseEntity.ok(svcProveedor.modificarProveedor(id, razonSocial)); }
+        catch (MiException e) { return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage()); }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> eliminar(@PathVariable String id) {
+        try { svcProveedor.eliminarProveedor(id); return ResponseEntity.noContent().build(); }
+        catch (MiException e) { return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); }
     }
 }
