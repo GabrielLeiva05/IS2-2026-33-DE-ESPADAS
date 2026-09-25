@@ -143,4 +143,9 @@ public class ServicioStock {
         }
         throw new IllegalArgumentException("Tipo de factura no soportado para movimiento de stock");
     }
+
+//    public boolean puedeGenerarStock( String idFactura) throws Exception{
+//        Factura factura = svcFactura.buscarFactura(idFactura);
+//        return factura.getEstadoFactura() == EstadoFactura.PAGADA;
+//    }
 }
