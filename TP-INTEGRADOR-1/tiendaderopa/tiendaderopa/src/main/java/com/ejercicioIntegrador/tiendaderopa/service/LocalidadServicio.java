@@ -3,6 +3,8 @@ package com.ejercicioIntegrador.tiendaderopa.service;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Departamento;
 import com.ejercicioIntegrador.tiendaderopa.model.Localidad;
+import com.ejercicioIntegrador.tiendaderopa.model.Pais;
+import com.ejercicioIntegrador.tiendaderopa.model.Provincia;
 import com.ejercicioIntegrador.tiendaderopa.repository.LocalidadRepositorio;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +32,7 @@ public class LocalidadServicio {
     }
 
     @Transactional
-    public Localidad crearLocalidad(String nombre, Departamento departamento) throws MiException {
+    public Localidad crearLocalidad(String nombre, String codigoPostal, Departamento departamento) throws MiException {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new MiException("El nombre de la localidad no puede estar vacío");
         }
@@ -39,10 +41,28 @@ public class LocalidadServicio {
         }
 
         Localidad localidad = new Localidad();
+        localidad.setCodigoPostal(codigoPostal);
         localidad.setNombre(nombre.trim());
         localidad.setDepartamento(departamento);
         return localidadRepositorio.save(localidad);
     }
+
+    @Transactional
+    public void modificarLocalidad(String id, String nombre, String codigoPostal, Departamento departamento) throws MiException {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new MiException("El nombre de la localidad no puede estar vacío");
+        }
+        if (departamento == null) {
+            throw new MiException("Debe asociar un país a la provincia");
+        }
+
+        Localidad localidad = buscarPorId(id);
+        localidad.setNombre(nombre.trim());
+        localidad.setDepartamento(departamento);
+        localidad.setCodigoPostal(codigoPostal);
+        localidadRepositorio.save(localidad);
+    }
+
 
     @Transactional
     public void eliminar(String id) throws MiException {

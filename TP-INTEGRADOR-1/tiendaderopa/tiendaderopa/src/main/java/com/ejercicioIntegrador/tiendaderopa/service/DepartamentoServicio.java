@@ -2,6 +2,7 @@ package com.ejercicioIntegrador.tiendaderopa.service;
 
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Departamento;
+import com.ejercicioIntegrador.tiendaderopa.model.Pais;
 import com.ejercicioIntegrador.tiendaderopa.model.Provincia;
 import com.ejercicioIntegrador.tiendaderopa.repository.DepartamentoRepositorio;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,20 @@ public class DepartamentoServicio {
         return departamentoRepositorio.save(departamento);
     }
 
+    @Transactional
+    public void modificarDepartamento(String id, String nombre, Provincia provincia) throws MiException {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new MiException("El nombre de la provincia no puede estar vacío");
+        }
+        if (provincia == null) {
+            throw new MiException("Debe asociar un país a la provincia");
+        }
+
+        Departamento departamento = buscarPorId(id);
+        departamento.setNombre(nombre.trim());
+        departamento.setProvincia(provincia);
+        departamentoRepositorio.save(departamento);
+    }
     @Transactional
     public void eliminar(String id) throws MiException {
         Departamento departamento = buscarPorId(id);

@@ -1,0 +1,120 @@
+<section id="localidades" class="section" th:fragment="abmLocalidad">
+    <div class="header">
+        <h1>Localidades</h1>
+        <p>Gestión y administración de localidades por departamento.</p>
+    </div>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+
+        <!-- Modo: Modificar Localidad -->
+        <form th:if="${localidad != null}" th:action="@{/localidad/modificar/{id}(id=${localidad.id})}" method="POST">
+            <h3>Modificar Localidad</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label>ID:</label>
+                <input type="text" th:value="${localidad.id}" disabled style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="nombre-loc-mod">Nombre de la Localidad:</label>
+                <input type="text" id="nombre-loc-mod" name="nombre" th:value="${localidad.nombre}" placeholder="Ej. El Challao" required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <!-- CAMPO CÓDIGO POSTAL AGREGADO -->
+            <div style="margin-bottom: 15px;">
+                <label for="cp-loc-mod">Código Postal:</label>
+                <input type="text" id="cp-loc-mod" name="codigoPostal" th:value="${localidad.codigoPostal}" placeholder="Ej. 5539" required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="depto-loc-mod">Departamento al que pertenece:</label>
+                <select id="depto-loc-mod" name="idDepartamento" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled>Seleccione un departamento</option>
+                    <option th:each="d : ${departamentos}"
+                            th:value="${d.id}"
+                            th:text="${d.nombre}"
+                            th:selected="${localidad.departamento != null and localidad.departamento.id == d.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
+                <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Localidad -->
+        <form th:unless="${localidad != null}" th:action="@{/localidad/registro}" method="POST">
+            <h3>Registrar Nueva Localidad</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label for="nombre-loc-reg">Nombre de la Localidad:</label>
+                <input type="text" id="nombre-loc-reg" name="nombre" placeholder="Ej. El Challao" required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <!-- CAMPO CÓDIGO POSTAL AGREGADO -->
+            <div style="margin-bottom: 15px;">
+                <label for="cp-loc-reg">Código Postal:</label>
+                <input type="text" id="cp-loc-reg" name="codigoPostal" placeholder="Ej. 5539" required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="depto-loc-reg">Departamento al que pertenece:</label>
+                <select id="depto-loc-reg" name="idDepartamento" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled selected>Seleccione un departamento</option>
+                    <option th:each="d : ${departamentos}"
+                            th:if="${!d.eliminado}"
+                            th:value="${d.id}"
+                            th:text="${d.nombre}">
+                    </option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Listado de Localidades -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Listado de localidades</h2>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Código Postal</th>
+                <th>Departamento</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${localidades != null}" th:each="loc : ${localidades}">
+                <td th:text="${loc.id}">ID</td>
+                <td th:text="${loc.nombre}">Nombre</td>
+                <td th:text="${loc.codigoPostal}">CP</td>
+                <td th:text="${loc.departamento != null ? loc.departamento.nombre : 'Sin departamento'}">Departamento</td>
+                <td>
+                    <span th:if="${loc.eliminado}" style="color: red; font-weight: bold;">Eliminada</span>
+                    <span th:unless="${loc.eliminado}" style="color: green; font-weight: bold;">Activa</span>
+                </td>
+                <td>
+                    <a th:href="@{/localidad/modificar/{id}(id=${loc.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+                    <a th:href="@{/localidad/eliminar/{id}(id=${loc.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta localidad?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${localidades == null or #lists.isEmpty(localidades)}">
+                <td colspan="6" style="text-align: center;">No hay localidades cargadas en el sistema.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

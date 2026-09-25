@@ -66,7 +66,7 @@ public class ServicioProducto {
             producto.setSubCategoria(svcSubCategoria.findById(idSubCategoria));
         }
         if (idImagen != null && !idImagen.isBlank()) {
-            producto.setImagen(svcImagen.findById(Long.valueOf(idImagen)));
+            producto.setImagen(svcImagen.findById(idImagen));
         }
     }
 

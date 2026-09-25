@@ -35,10 +35,11 @@ public abstract class Factura {
     @Enumerated(EnumType.STRING)
     private EstadoFactura estadoFactura;
 
+    /*
     @NotNull(message = "El campo detalle es requerido")
     @OneToMany
     private java.util.List<DetalleFactura> detalleFactura;
-
+    */
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name= "fk_forma_de_pago", nullable = false)

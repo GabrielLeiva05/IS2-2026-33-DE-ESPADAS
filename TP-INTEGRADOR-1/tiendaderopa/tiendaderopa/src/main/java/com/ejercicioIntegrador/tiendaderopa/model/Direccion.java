@@ -17,7 +17,7 @@ import org.hibernate.annotations.UuidGenerator;
 @Entity
 @Getter
 @Setter
-@Table(name = "Localidad")
+@Table(name = "Direccion")
 @NoArgsConstructor
 public class Direccion implements Serializable {
     @Id

@@ -1,0 +1,106 @@
+<section id="departamentos" class="section" th:fragment="abmDepartamento">
+  <div class="header">
+    <h1>Departamentos</h1>
+    <p>Gestión y administración de departamentos por provincia.</p>
+  </div>
+
+  <!-- Formulario (Alta / Modificación) -->
+  <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+
+    <!-- Modo: Modificar Departamento -->
+    <form th:if="${departamento != null}" th:action="@{/departamento/modificar/{id}(id=${departamento.id})}" method="POST">
+      <h3>Modificar Departamento</h3>
+
+      <div style="margin-bottom: 15px;">
+        <label>ID:</label>
+        <input type="text" th:value="${departamento.id}" disabled style="width: 100%; padding: 8px;" />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label for="nombre-dept-mod">Nombre del Departamento:</label>
+        <input type="text" id="nombre-dept-mod" name="nombre" th:value="${departamento.nombre}" placeholder="Ej. Guaymallén" required style="width: 100%; padding: 8px;" />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label for="provincia-dept-mod">Provincia a la que pertenece:</label>
+        <select id="provincia-dept-mod" name="idProvincia" required style="width: 100%; padding: 8px;">
+          <option value="" disabled>Seleccione una provincia</option>
+          <option th:each="pr : ${provincias}"
+                  th:value="${pr.id}"
+                  th:text="${pr.nombre}"
+                  th:selected="${departamento.provincia != null and departamento.provincia.id == pr.id}">
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
+        <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+      </div>
+    </form>
+
+    <!-- Modo: Registrar Nuevo Departamento -->
+    <form th:unless="${departamento != null}" th:action="@{/departamento/registro}" method="POST">
+      <h3>Registrar Nuevo Departamento</h3>
+
+      <div style="margin-bottom: 15px;">
+        <label for="nombre-dept-reg">Nombre del Departamento:</label>
+        <input type="text" id="nombre-dept-reg" name="nombre" placeholder="Ej. Guaymallén" required style="width: 100%; padding: 8px;" />
+      </div>
+
+      <div style="margin-bottom: 15px;">
+        <label for="provincia-dept-reg">Provincia a la que pertenece:</label>
+        <select id="provincia-dept-reg" name="idProvincia" required style="width: 100%; padding: 8px;">
+          <option value="" disabled selected>Seleccione una provincia</option>
+          <option th:each="pr : ${provincias}"
+                  th:if="${!pr.eliminado}"
+                  th:value="${pr.id}"
+                  th:text="${pr.nombre}">
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
+      </div>
+    </form>
+
+  </div>
+
+  <!-- Listado de Departamentos -->
+  <div class="table-container">
+    <div class="table-header">
+      <h2>Listado de departamentos</h2>
+    </div>
+
+    <table>
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Provincia</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:if="${departamentos != null}" th:each="d : ${departamentos}">
+        <td th:text="${d.id}">ID</td>
+        <td th:text="${d.nombre}">Nombre</td>
+        <td th:text="${d.provincia != null ? d.provincia.nombre : 'Sin provincia'}">Provincia</td>
+        <td>
+          <span th:if="${d.eliminado}" style="color: red; font-weight: bold;">Eliminado</span>
+          <span th:unless="${d.eliminado}" style="color: green; font-weight: bold;">Activo</span>
+        </td>
+        <td>
+          <a th:href="@{/departamento/modificar/{id}(id=${d.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+          <a th:href="@{/departamento/eliminar/{id}(id=${d.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este departamento?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+        </td>
+      </tr>
+      <tr th:if="${departamentos == null or #lists.isEmpty(departamentos)}">
+        <td colspan="5" style="text-align: center;">No hay departamentos cargados en el sistema.</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

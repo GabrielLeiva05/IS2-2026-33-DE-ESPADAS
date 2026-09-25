@@ -27,13 +27,39 @@
                 <p th:text="${paises != null ? #lists.size(paises) : 0}">0</p>
             </div>
         </div>
+        <div class="cards">
+            <div class="card">
+                <h3>Provincias</h3>
+                <p th:text="${provincias != null ? #lists.size(provincias) : 0}">0</p>
+            </div>
+        </div>
+        <div class="cards">
+            <div class="card">
+                <h3>Departamentos</h3>
+                <p th:text="${departamentos != null ? #lists.size(departamentos) : 0}">0</p>
+            </div>
+        </div>
+        <div class="cards">
+            <div class="card">
+                <h3>Localidad</h3>
+                <p th:text="${localidades != null ? #lists.size(localidades) : 0}">0</p>
+            </div>
+        </div>
+        <div class="cards">
+            <div class="card">
+                <h3>Direccion</h3>
+                <p th:text="${direcciones != null ? #lists.size(direcciones) : 0}">0</p>
+            </div>
+        </div>
     </section>
     <!-- =========================
        ABMS
     ========================== -->
     <section th:replace="~{fragments/abmPais :: abmPais}"></section>
     <section th:replace="~{fragments/abmProvincia :: abmProvincia}"></section>
-
+    <section th:replace="~{fragments/abmDepartamento :: abmDepartamento}"></section>
+    <section th:replace="~{fragments/abmLocalidad :: abmLocalidad}"></section>
+    <section th:replace="~{fragments/abmDireccion :: abmDireccion}"></section>
 
 </main>
 

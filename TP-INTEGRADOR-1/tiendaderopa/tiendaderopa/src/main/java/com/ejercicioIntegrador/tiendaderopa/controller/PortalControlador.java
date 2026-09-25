@@ -2,15 +2,14 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
-import com.ejercicioIntegrador.tiendaderopa.model.Departamento;
 import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
 import com.ejercicioIntegrador.tiendaderopa.model.Localidad;
-import com.ejercicioIntegrador.tiendaderopa.model.Pais;
-import com.ejercicioIntegrador.tiendaderopa.model.Provincia;
+import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.service.DepartamentoServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.DireccionServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.LocalidadServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.PaisServicio;
+import com.ejercicioIntegrador.tiendaderopa.service.PersonaServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.ProvinciaServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.UsuarioServicio;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,6 +27,7 @@ import java.util.Date;
 public class PortalControlador {
 
     private final UsuarioServicio usuarioServicio;
+    private final PersonaServicio personaServicio;
     private final DireccionServicio direccionServicio;
     private final PaisServicio paisServicio;
     private final ProvinciaServicio provinciaServicio;
@@ -35,12 +35,14 @@ public class PortalControlador {
     private final LocalidadServicio localidadServicio;
 
     public PortalControlador(UsuarioServicio usuarioServicio,
+                             PersonaServicio personaServicio,
                              DireccionServicio direccionServicio,
                              PaisServicio paisServicio,
                              ProvinciaServicio provinciaServicio,
                              DepartamentoServicio departamentoServicio,
                              LocalidadServicio localidadServicio) {
         this.usuarioServicio = usuarioServicio;
+        this.personaServicio = personaServicio;
         this.direccionServicio = direccionServicio;
         this.paisServicio = paisServicio;
         this.provinciaServicio = provinciaServicio;
@@ -63,14 +65,12 @@ public class PortalControlador {
     @PostMapping("/registro")
     public String registro(
             @RequestParam(required = false) MultipartFile archivo,
-            @RequestParam Pais pais,
-            @RequestParam Provincia provincia,
-            @RequestParam Departamento departamento,
-            @RequestParam Localidad localidad,
-            @RequestParam String codigoPostal,
-            @RequestParam String barrio,
-            @RequestParam String direccion,
+            @RequestParam String idLocalidad,
+            @RequestParam String calle,
+            @RequestParam String numeracion,
+            @RequestParam(required = false) String barrio,
             @RequestParam(required = false) String manzanaPiso,
+            @RequestParam(required = false) String casaDepartamento,
             @RequestParam(required = false) String referencia,
             @RequestParam String documento,
             @RequestParam TipoDocumento tipoDocumento,
@@ -83,11 +83,18 @@ public class PortalControlador {
             ModelMap modelo) {
 
         try {
+            // 1. Obtener la localidad seleccionada
+            Localidad localidad = localidadServicio.buscarPorId(idLocalidad);
+
+            // 2. Crear persona preliminar (o null si el constructor lo admite)
+            Persona persona = personaServicio.crearPersona(null, documento, tipoDocumento, nombre, fechaNacimiento, apellido);
+
+            // 3. Crear y guardar la dirección con la nueva firma de DireccionServicio
             Direccion direccionGuardada = direccionServicio.crearDireccion(
-                    pais, provincia, departamento, localidad,
-                    codigoPostal, barrio, direccion, manzanaPiso, referencia
+                    calle, numeracion, barrio, manzanaPiso, casaDepartamento, referencia, localidad, persona
             );
 
+            // 4. Registrar Usuario
             usuarioServicio.registrar(
                     direccionGuardada, documento, tipoDocumento, nombre, apellido,
                     email, clave, clave2, fechaNacimiento
@@ -105,10 +112,11 @@ public class PortalControlador {
             modelo.put("apellido", apellido);
             modelo.put("email", email);
             modelo.put("fechaNacimiento", fechaNacimiento);
-            modelo.put("codigoPostal", codigoPostal);
+            modelo.put("calle", calle);
+            modelo.put("numeracion", numeracion);
             modelo.put("barrio", barrio);
-            modelo.put("direccion", direccion);
             modelo.put("manzanaPiso", manzanaPiso);
+            modelo.put("casaDepartamento", casaDepartamento);
             modelo.put("referencia", referencia);
             return "register.html";
 
@@ -127,7 +135,7 @@ public class PortalControlador {
         return "login.html";
     }
 
-        private void cargarListasUbicacion(ModelMap modelo) {
+    private void cargarListasUbicacion(ModelMap modelo) {
         modelo.addAttribute("paises", paisServicio.listarTodos());
         modelo.addAttribute("provincias", provinciaServicio.listarTodas());
         modelo.addAttribute("departamentos", departamentoServicio.listarTodos());

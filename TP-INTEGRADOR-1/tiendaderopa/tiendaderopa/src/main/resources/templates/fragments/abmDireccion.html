@@ -1,0 +1,192 @@
+<section id="direcciones" class="section" th:fragment="abmDireccion">
+    <div class="header">
+        <h1>Direcciones</h1>
+        <p>Gestión y administración de domicilios por persona y localidad.</p>
+    </div>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+
+        <!-- Modo: Modificar Dirección -->
+        <form th:if="${direccion != null}" th:action="@{/direccion/modificar/{id}(id=${direccion.id})}" method="POST">
+            <h3>Modificar Dirección</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label>ID:</label>
+                <input type="text" th:value="${direccion.id}" disabled style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label for="persona-dir-mod">Persona / Titular:</label>
+                    <select id="persona-dir-mod" name="idPersona" required style="width: 100%; padding: 8px;">
+                        <option value="" disabled>Seleccione una persona</option>
+                        <option th:each="per : ${personas}"
+                                th:value="${per.id}"
+                                th:text="${per.apellido + ', ' + per.nombre + ' (DNI: ' + per.documento + ')'}"
+                                th:selected="${direccion.persona != null and direccion.persona.id == per.id}">
+                        </option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label for="localidad-dir-mod">Localidad:</label>
+                    <select id="localidad-dir-mod" name="idLocalidad" required style="width: 100%; padding: 8px;">
+                        <option value="" disabled>Seleccione una localidad</option>
+                        <option th:each="loc : ${localidades}"
+                                th:value="${loc.id}"
+                                th:text="${loc.nombre + ' (CP: ' + loc.codigoPostal + ')'}"
+                                th:selected="${direccion.localidad != null and direccion.localidad.id == loc.id}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 2;">
+                    <label for="calle-dir-mod">Calle:</label>
+                    <input type="text" id="calle-dir-mod" name="calle" th:value="${direccion.calle}" placeholder="Ej. San Martín" required style="width: 100%; padding: 8px;" />
+                </div>
+                <div style="flex: 1;">
+                    <label for="num-dir-mod">Numeración:</label>
+                    <input type="text" id="num-dir-mod" name="numeracion" th:value="${direccion.numeracion}" placeholder="Ej. 1234" required style="width: 100%; padding: 8px;" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label for="barrio-dir-mod">Barrio:</label>
+                    <input type="text" id="barrio-dir-mod" name="barrio" th:value="${direccion.barrio}" placeholder="Ej. Barrio Unimev" style="width: 100%; padding: 8px;" />
+                </div>
+                <div style="flex: 1;">
+                    <label for="manzana-dir-mod">Manzana / Piso:</label>
+                    <input type="text" id="manzana-dir-mod" name="manzanaPiso" th:value="${direccion.manzanaPiso}" placeholder="Ej. Mza 4 / Piso 2" style="width: 100%; padding: 8px;" />
+                </div>
+                <div style="flex: 1;">
+                    <label for="casa-dir-mod">Casa / Dpto:</label>
+                    <input type="text" id="casa-dir-mod" name="casaDepartamento" th:value="${direccion.casaDepartamento}" placeholder="Ej. Casa 12 / Dpto B" style="width: 100%; padding: 8px;" />
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="ref-dir-mod">Referencia:</label>
+                <input type="text" id="ref-dir-mod" name="referencia" th:value="${direccion.referencia}" placeholder="Ej. Frente a la plaza" style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
+                <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Dirección -->
+        <form th:unless="${direccion != null}" th:action="@{/direccion/registro}" method="POST">
+            <h3>Registrar Nueva Dirección</h3>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label for="persona-dir-reg">Persona / Titular:</label>
+                    <select id="persona-dir-reg" name="idPersona" required style="width: 100%; padding: 8px;">
+                        <option value="" disabled selected>Seleccione una persona</option>
+                        <option th:each="per : ${personas}"
+                                th:if="${!per.eliminado}"
+                                th:value="${per.id}"
+                                th:text="${per.apellido + ', ' + per.nombre + ' (DNI: ' + per.documento + ')'}">
+                        </option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label for="localidad-dir-reg">Localidad:</label>
+                    <select id="localidad-dir-reg" name="idLocalidad" required style="width: 100%; padding: 8px;">
+                        <option value="" disabled selected>Seleccione una localidad</option>
+                        <option th:each="loc : ${localidades}"
+                                th:if="${!loc.eliminado}"
+                                th:value="${loc.id}"
+                                th:text="${loc.nombre + ' (CP: ' + loc.codigoPostal + ')'}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 2;">
+                    <label for="calle-dir-reg">Calle:</label>
+                    <input type="text" id="calle-dir-reg" name="calle" placeholder="Ej. San Martín" required style="width: 100%; padding: 8px;" />
+                </div>
+                <div style="flex: 1;">
+                    <label for="num-dir-reg">Numeración:</label>
+                    <input type="text" id="num-dir-reg" name="numeracion" placeholder="Ej. 1234" required style="width: 100%; padding: 8px;" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;">
+                    <label for="barrio-dir-reg">Barrio:</label>
+                    <input type="text" id="barrio-dir-reg" name="barrio" placeholder="Ej. Barrio Unimev" style="width: 100%; padding: 8px;" />
+                </div>
+                <div style="flex: 1;">
+                    <label for="manzana-dir-reg">Manzana / Piso:</label>
+                    <input type="text" id="manzana-dir-reg" name="manzanaPiso" placeholder="Ej. Mza 4 / Piso 2" style="width: 100%; padding: 8px;" />
+                </div>
+                <div style="flex: 1;">
+                    <label for="casa-dir-reg">Casa / Dpto:</label>
+                    <input type="text" id="casa-dir-reg" name="casaDepartamento" placeholder="Ej. Casa 12 / Dpto B" style="width: 100%; padding: 8px;" />
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="ref-dir-reg">Referencia:</label>
+                <input type="text" id="ref-dir-reg" name="referencia" placeholder="Ej. Frente a la plaza" style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Listado de Direcciones -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Listado de direcciones</h2>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Titular</th>
+                <th>Calle y Número</th>
+                <th>Detalles (Barrio/Mza/Dpto)</th>
+                <th>Localidad</th>
+                <th>Referencia</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${direcciones != null}" th:each="dir : ${direcciones}">
+                <td th:text="${dir.persona != null ? dir.persona.apellido + ', ' + dir.persona.nombre : 'Sin asignar'}">Titular</td>
+                <td th:text="${dir.calle + ' ' + dir.numeracion}">Calle 1234</td>
+                <td>
+                    <span th:text="${dir.barrio != null && !dir.barrio.isEmpty() ? 'B° ' + dir.barrio + ' ' : ''}"></span>
+                    <span th:text="${dir.manzanaPiso != null && !dir.manzanaPiso.isEmpty() ? 'Mza/Piso: ' + dir.manzanaPiso + ' ' : ''}"></span>
+                    <span th:text="${dir.casaDepartamento != null && !dir.casaDepartamento.isEmpty() ? 'Casa/Dpto: ' + dir.casaDepartamento : ''}"></span>
+                </td>
+                <td th:text="${dir.localidad != null ? dir.localidad.nombre : 'Sin localidad'}">Localidad</td>
+                <td th:text="${dir.referencia}">Referencia</td>
+                <td>
+                    <span th:if="${dir.eliminado}" style="color: red; font-weight: bold;">Eliminada</span>
+                    <span th:unless="${dir.eliminado}" style="color: green; font-weight: bold;">Activa</span>
+                </td>
+                <td>
+                    <a th:href="@{/direccion/modificar/{id}(id=${dir.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+                    <a th:href="@{/direccion/eliminar/{id}(id=${dir.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta dirección?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${direcciones == null or #lists.isEmpty(direcciones)}">
+                <td colspan="7" style="text-align: center;">No hay direcciones registradas en el sistema.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
