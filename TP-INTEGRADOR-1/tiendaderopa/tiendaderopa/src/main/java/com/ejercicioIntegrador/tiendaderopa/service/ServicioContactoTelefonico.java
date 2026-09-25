@@ -22,37 +22,32 @@ public class ServicioContactoTelefonico {
     @Autowired
     private PersonaServicio personaServicio;
 
-    @Transactional
-    public ContactoTelefonico crearContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion, String personaId) throws MiException {
-
-        validar(telefono, tipoTelefono, tipoContacto, observacion);
-        if (personaId == null || personaId.isBlank()) {
-            throw new MiException("Debe indicar una persona para el contacto");
-        }
-
-        Persona persona = personaServicio.buscarPersona(personaId);
-        validarEntidad(persona, null);
-
-        ContactoTelefonico contacto =
-                new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, persona);
-        return this.repositorio.save(contacto);
-    }
+    @Autowired
+    private ServicioProveedor svcProveedor;
 
     @Transactional
-    public ContactoTelefonico crearContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion, Proveedor proveedor) throws MiException {
+    public ContactoTelefonico crearContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto,
+                                                      String observacion, String idPersona, String idProveedor) throws MiException {
         validar(telefono, tipoTelefono, tipoContacto, observacion);
-        validarEntidad(null, proveedor);
 
-        ContactoTelefonico contacto =
-                new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, proveedor);
-        return this.repositorio.save(contacto);
-    }
-
-    private void validarEntidad(Persona persona, Proveedor proveedor) throws MiException {
-        if ((persona == null) == (proveedor == null)) {
-            throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor");
+        boolean tienePersona = idPersona != null && !idPersona.isBlank();
+        boolean tieneProveedor = idProveedor != null && !idProveedor.isBlank();
+        if (tienePersona == tieneProveedor) { // los dos true, o los dos false
+            throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor, no ambos ni ninguno");
         }
+
+        ContactoTelefonico contacto;
+        if (tienePersona) {
+            Persona persona = personaServicio.buscarPersona(idPersona);
+            contacto = new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, persona);
+        } else {
+            Proveedor proveedor = svcProveedor.buscarProveedor(idProveedor);
+            contacto = new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, proveedor);
+        }
+
+        return repositorio.save(contacto);
     }
+
     
     public void validar(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion)
             throws MiException {

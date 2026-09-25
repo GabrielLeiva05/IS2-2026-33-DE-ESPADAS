@@ -41,13 +41,13 @@ public class ServicioProveedor {
         proveedor = repositorio.save(proveedor);
 
         if (email != null && !email.isBlank()) {
-            svcContactoCorreoElectronico.crearContactoCorreoElectronico(email, TipoContacto.EMPRESA, null, proveedor);
+            svcContactoCorreoElectronico.crearContactoCorreoElectronico(email, TipoContacto.EMPRESA, null, null, proveedor.getId());
         }
         if (telefonoFijo != null && !telefonoFijo.isBlank()) {
-            svcContactoTelefonico.crearContactoTelefonico(telefonoFijo, TipoTelefono.FIJO, TipoContacto.EMPRESA, null, proveedor);
+            svcContactoTelefonico.crearContactoTelefonico(telefonoFijo, TipoTelefono.FIJO, TipoContacto.EMPRESA, null, null, proveedor.getId());
         }
         if (telefonoCelular != null && !telefonoCelular.isBlank()) {
-            svcContactoTelefonico.crearContactoTelefonico(telefonoCelular, TipoTelefono.CELULAR, TipoContacto.EMPRESA, null, proveedor);
+            svcContactoTelefonico.crearContactoTelefonico(telefonoCelular, TipoTelefono.CELULAR, TipoContacto.EMPRESA, null, null, proveedor.getId());
         }
         return proveedor;
     }

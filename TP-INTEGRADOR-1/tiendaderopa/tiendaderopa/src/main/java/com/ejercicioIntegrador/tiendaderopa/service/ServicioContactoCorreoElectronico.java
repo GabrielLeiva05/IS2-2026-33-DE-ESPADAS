@@ -3,6 +3,7 @@ package com.ejercicioIntegrador.tiendaderopa.service;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.ContactoCorreoElectronico;
+import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioContactoCorreoElectronico;
@@ -26,33 +27,30 @@ public class ServicioContactoCorreoElectronico {
     @Autowired
     private PersonaServicio personaServicio;
 
+    @Autowired
+    private ServicioProveedor svcProveedor;
+
     @Transactional
     public ContactoCorreoElectronico crearContactoCorreoElectronico(
-            String email, TipoContacto tipoContacto, String observacion, String personaId) throws MiException {
-
+            String email, TipoContacto tipoContacto, String observacion, String idPersona, String idProveedor) throws MiException {
         validar(email, tipoContacto, observacion);
-        if (personaId == null || personaId.isBlank()) {
-            throw new MiException("Debe indicar una persona para el contacto");
+
+        boolean tienePersona = idPersona != null && !idPersona.isBlank();
+        boolean tieneProveedor = idProveedor != null && !idProveedor.isBlank();
+        if (tienePersona == tieneProveedor) { // los dos true, o los dos false
+            throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor, no ambos ni ninguno");
         }
 
-        Persona persona = personaServicio.buscarPersona(personaId);
-        validarEntidad(persona, null);
+        ContactoCorreoElectronico contacto;
+        if (tienePersona) {
+            Persona persona = personaServicio.buscarPersona(idPersona);
+            contacto = new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, persona);
+        } else {
+            Proveedor proveedor = svcProveedor.buscarProveedor(idProveedor);
+            contacto = new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, proveedor);
+        }
 
-        ContactoCorreoElectronico contacto =
-                new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, persona);
-        return this.repositorio.save(contacto);
-    }
-
-    @Transactional
-    public ContactoCorreoElectronico crearContactoCorreoElectronico(
-            String email, TipoContacto tipoContacto, String observacion, Proveedor proveedor) throws MiException {
-
-        validar(email, tipoContacto, observacion);
-        validarEntidad(null, proveedor);
-
-        ContactoCorreoElectronico contacto =
-                new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, proveedor);
-        return this.repositorio.save(contacto);
+        return repositorio.save(contacto);
     }
 
     public void validar(String email, TipoContacto tipoContacto, String observacion) throws MiException {
@@ -67,12 +65,6 @@ public class ServicioContactoCorreoElectronico {
         }
         if (observacion != null && observacion.length() > 255) {
             throw new MiException("La observación no puede superar los 255 caracteres");
-        }
-    }
-
-    private void validarEntidad(Persona persona, Proveedor proveedor) throws MiException {
-        if ((persona == null) == (proveedor == null)) {
-            throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor");
         }
     }
 

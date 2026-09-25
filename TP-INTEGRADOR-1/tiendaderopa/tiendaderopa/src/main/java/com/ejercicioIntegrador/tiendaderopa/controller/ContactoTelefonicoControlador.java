@@ -18,11 +18,9 @@ import java.util.List;
 public class ContactoTelefonicoControlador {
 
     private final ServicioContactoTelefonico servicio;
-    private final ServicioProveedor servicioProveedor;
 
     public ContactoTelefonicoControlador(ServicioContactoTelefonico servicio, ServicioProveedor servicioProveedor) {
         this.servicio = servicio;
-        this.servicioProveedor = servicioProveedor;
     }
 
     @GetMapping
@@ -45,19 +43,11 @@ public class ContactoTelefonicoControlador {
             @RequestParam(required = false) String proveedorId
     ) {
         try {
-            boolean tienePersona = personaId != null && !personaId.isBlank();
-            boolean tieneProveedor = proveedorId != null && !proveedorId.isBlank();
-            if (tienePersona == tieneProveedor) {
-                throw new MiException("Debe indicar exactamente una persona o un proveedor");
-            }
-
-            ContactoTelefonico contacto;
-            if (tienePersona) {
-                contacto = servicio.crearContactoTelefonico(telefono, tipoTelefono, tipoContacto, observacion, personaId);
-            } else {
-                Proveedor proveedor = servicioProveedor.buscarProveedor(proveedorId);
-                contacto = servicio.crearContactoTelefonico(telefono, tipoTelefono, tipoContacto, observacion, proveedor);
-            }
+            // El Controller ya no decide nada ni instancia nada: solo pasa
+            // los datos tal cual llegaron. Validar cuál es válido y resolver
+            // las entidades es responsabilidad exclusiva del Service.
+            ContactoTelefonico contacto = servicio.crearContactoTelefonico(
+                    telefono, tipoTelefono, tipoContacto, observacion, personaId, proveedorId);
             return ResponseEntity.status(HttpStatus.CREATED).body(contacto);
         } catch (MiException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

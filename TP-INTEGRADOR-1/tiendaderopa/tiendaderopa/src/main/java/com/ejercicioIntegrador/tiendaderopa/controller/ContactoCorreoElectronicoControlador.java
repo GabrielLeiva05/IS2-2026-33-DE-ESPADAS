@@ -3,6 +3,7 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.ContactoCorreoElectronico;
+import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
 import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioContactoCorreoElectronico;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioProveedor;
@@ -17,11 +18,9 @@ import java.util.List;
 public class ContactoCorreoElectronicoControlador {
 
     private final ServicioContactoCorreoElectronico servicio;
-    private final ServicioProveedor servicioProveedor;
 
     public ContactoCorreoElectronicoControlador(ServicioContactoCorreoElectronico servicio, ServicioProveedor servicioProveedor) {
         this.servicio = servicio;
-        this.servicioProveedor = servicioProveedor;
     }
 
     @GetMapping
@@ -43,19 +42,11 @@ public class ContactoCorreoElectronicoControlador {
             @RequestParam(required = false) String proveedorId
     ) {
         try {
-            boolean tienePersona = personaId != null && !personaId.isBlank();
-            boolean tieneProveedor = proveedorId != null && !proveedorId.isBlank();
-            if (tienePersona == tieneProveedor) {
-                throw new MiException("Debe indicar exactamente una persona o un proveedor");
-            }
-
-            ContactoCorreoElectronico contacto;
-            if (tienePersona) {
-                contacto = servicio.crearContactoCorreoElectronico(email, tipoContacto, observacion, personaId);
-            } else {
-                Proveedor proveedor = servicioProveedor.buscarProveedor(proveedorId);
-                contacto = servicio.crearContactoCorreoElectronico(email, tipoContacto, observacion, proveedor);
-            }
+            // El Controller ya no decide nada ni instancia nada: solo pasa
+            // los datos tal cual llegaron. Validar cuál es válido y resolver
+            // las entidades es responsabilidad exclusiva del Service.
+            ContactoCorreoElectronico contacto = servicio.crearContactoCorreoElectronico(
+                    email, tipoContacto, observacion, personaId, proveedorId);
             return ResponseEntity.status(HttpStatus.CREATED).body(contacto);
         } catch (MiException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
