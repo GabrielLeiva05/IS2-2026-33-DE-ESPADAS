@@ -28,18 +28,30 @@ public class ServicioContactoCorreoElectronico {
 
     @Transactional
     public ContactoCorreoElectronico crearContactoCorreoElectronico(
-            String email, TipoContacto tipoContacto, String observacion, String personaId, Proveedor proveedor) throws MiException {
+            String email, TipoContacto tipoContacto, String observacion, String personaId) throws MiException {
 
         validar(email, tipoContacto, observacion);
-        validarEntidad(personaId, proveedor);
-
-        ContactoCorreoElectronico contacto;
-        if (personaId != null && !personaId.isBlank()) {
-            Persona persona = personaServicio.buscarPersona(personaId);
-            contacto = new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, persona);
-        } else {
-            contacto = new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, proveedor);
+        if (personaId == null || personaId.isBlank()) {
+            throw new MiException("Debe indicar una persona para el contacto");
         }
+
+        Persona persona = personaServicio.buscarPersona(personaId);
+        validarEntidad(persona, null);
+
+        ContactoCorreoElectronico contacto =
+                new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, persona);
+        return this.repositorio.save(contacto);
+    }
+
+    @Transactional
+    public ContactoCorreoElectronico crearContactoCorreoElectronico(
+            String email, TipoContacto tipoContacto, String observacion, Proveedor proveedor) throws MiException {
+
+        validar(email, tipoContacto, observacion);
+        validarEntidad(null, proveedor);
+
+        ContactoCorreoElectronico contacto =
+                new ContactoCorreoElectronico(email.trim(), tipoContacto, observacion, proveedor);
         return this.repositorio.save(contacto);
     }
 
@@ -58,10 +70,8 @@ public class ServicioContactoCorreoElectronico {
         }
     }
 
-    private void validarEntidad(String personaId, Proveedor proveedor) throws MiException {
-        boolean tienePersona = personaId != null && !personaId.isBlank();
-        boolean tieneProveedor = proveedor != null;
-        if (tienePersona == tieneProveedor) {
+    private void validarEntidad(Persona persona, Proveedor proveedor) throws MiException {
+        if ((persona == null) == (proveedor == null)) {
             throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor");
         }
     }
