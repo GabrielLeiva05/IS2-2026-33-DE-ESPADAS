@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: sprint.tinder.MascotaApiClientTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.590 s -- in sprint.tinder.MascotaApiClientTest

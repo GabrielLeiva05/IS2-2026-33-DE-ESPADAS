@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-TinderApplication<tinder>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "sprint.tinder.TinderApplication",
+            "projectName": "tinder",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

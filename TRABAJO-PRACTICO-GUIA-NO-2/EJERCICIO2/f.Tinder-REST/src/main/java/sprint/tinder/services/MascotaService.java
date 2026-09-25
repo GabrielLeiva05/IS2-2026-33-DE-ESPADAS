@@ -31,6 +31,50 @@ public class MascotaService {
     @Autowired
     private UsuarioService usuarioService;
 
+    @Transactional
+    public Mascota crearApi(String idUsuario, String nombre, Sexo sexo, Tipo tipo) throws ErrorServicio {
+        validarApi(nombre, sexo, tipo);
+        Usuario usuario = usuarioRepository.findById(idUsuario)
+                .orElseThrow(() -> new ErrorServicio("No existe el usuario indicado"));
+        Mascota mascotaExistente = mascotaRepository.buscarMascota(idUsuario, nombre);
+        if (mascotaExistente != null && !mascotaExistente.isEliminado()) {
+            throw new ErrorServicio("Ya cargó esa mascota en el sistema");
+        }
+
+        Mascota mascota = new Mascota();
+        mascota.setNombre(nombre);
+        mascota.setSexo(sexo);
+        mascota.setTipo(tipo);
+        mascota.setAlta(new Date());
+        mascota.setUsuario(usuario);
+        return mascotaRepository.save(mascota);
+    }
+
+    @Transactional
+    public Mascota modificarApi(String idUsuario, String idMascota, String nombre, Sexo sexo, Tipo tipo) throws ErrorServicio {
+        validarApi(nombre, sexo, tipo);
+        Mascota mascota = mascotaRepository.findById(idMascota)
+                .orElseThrow(() -> new ErrorServicio("No existe una mascota con ese identificador"));
+        if (mascota.isEliminado()) {
+            throw new ErrorServicio("No se encuentra la mascota indicada");
+        }
+        if (!mascota.getUsuario().getId().equals(idUsuario)) {
+            throw new ErrorServicio("Usted no es dueño de esa mascota");
+        }
+
+        mascota.setNombre(nombre);
+        mascota.setSexo(sexo);
+        mascota.setTipo(tipo);
+        return mascotaRepository.save(mascota);
+    }
+
+    private void validarApi(String nombre, Sexo sexo, Tipo tipo) throws ErrorServicio {
+        validar(nombre, sexo);
+        if (tipo == null) {
+            throw new ErrorServicio("Debe especificar el tipo de mascota");
+        }
+    }
+
     @Transactional //Si el metodo se ejecuta sin largar excepciones, entonces se hace un commit a la base de datos y se aplican todos los cambios. Si hay una excepcion, se hace un rollback y no se aplica nada a la BD
     public void agregarMascota(String idUsuario, String nombre, Sexo sexo, MultipartFile archivo, Tipo tipo) throws ErrorServicio {
         try {
