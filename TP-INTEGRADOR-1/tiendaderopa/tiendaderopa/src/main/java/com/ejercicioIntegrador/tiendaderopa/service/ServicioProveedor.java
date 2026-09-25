@@ -1,5 +1,7 @@
 package com.ejercicioIntegrador.tiendaderopa.service;
 
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
 import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioProveedor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,25 +19,36 @@ public class ServicioProveedor {
 
     @Autowired
     private RepositorioProveedor repositorio;
+    @Autowired
+    private ServicioContactoCorreoElectronico svcContactoCorreoElectronico;
+    @Autowired
+    private ServicioContactoTelefonico svcContactoTelefonico;
 
-    public void validar(String razonSocial, String email) throws Exception {
+    public void validar(String razonSocial) throws Exception {
         if (razonSocial == null || razonSocial.isBlank()) {
             throw new Exception("La razón social es obligatoria");
-        }
-        if (email == null || email.isBlank()) {
-            throw new Exception("El correo electrónico es obligatorio");
         }
     }
 
     @Transactional
-    public Proveedor crearProveedor(String razonSocial, String email, String telefonoWhatsapp) throws Exception {
-        validar(razonSocial, email);
+    public Proveedor crearProveedor(String razonSocial, String email, String telefonoFijo, String telefonoCelular) throws Exception {
+        validar(razonSocial);
+
         Proveedor proveedor = new Proveedor();
         proveedor.setRazonSocial(razonSocial);
-        //proveedor.setEmail(email);
-        //proveedor.setTelefonoWhatsapp(telefonoWhatsapp);
         proveedor.setEliminado(false);
-        return repositorio.save(proveedor);
+        proveedor = repositorio.save(proveedor);
+
+        if (email != null && !email.isBlank()) {
+            svcContactoCorreoElectronico.crearContactoCorreoElectronico(email, TipoContacto.EMPRESA, null, null, proveedor.getId());
+        }
+        if (telefonoFijo != null && !telefonoFijo.isBlank()) {
+            svcContactoTelefonico.crearContactoTelefonico(telefonoFijo, TipoTelefono.FIJO, TipoContacto.EMPRESA, null, null, proveedor.getId());
+        }
+        if (telefonoCelular != null && !telefonoCelular.isBlank()) {
+            svcContactoTelefonico.crearContactoTelefonico(telefonoCelular, TipoTelefono.CELULAR, TipoContacto.EMPRESA, null, null, proveedor.getId());
+        }
+
     }
 
     @Transactional
@@ -43,8 +56,7 @@ public class ServicioProveedor {
         Proveedor proveedor = buscarProveedor(id);
         validar(razonSocial, email);
         proveedor.setRazonSocial(razonSocial);
-        //proveedor.setEmail(email);
-        //proveedor.setTelefonoWhatsapp(telefonoWhatsapp);
+
         return repositorio.save(proveedor);
     }
 

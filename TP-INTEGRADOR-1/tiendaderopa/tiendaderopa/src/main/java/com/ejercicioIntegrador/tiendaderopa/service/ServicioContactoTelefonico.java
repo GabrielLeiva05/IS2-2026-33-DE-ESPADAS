@@ -23,9 +23,10 @@ public class ServicioContactoTelefonico {
     private PersonaRepositorio personaRepositorio;
 
     @Transactional
-    public ContactoTelefonico crearContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion, String personaId) throws MiException {
+    public ContactoTelefonico crearContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion, String personaId, String proveedorId) throws MiException {
 
         validar(telefono, tipoTelefono, tipoContacto, observacion);
+        validarEntidad(telefono, personaId, proveedorId);
 
         Persona persona = personaRepositorio.findById(personaId).orElseThrow(() -> new MiException("No existe una persona con id: " + personaId));
 
@@ -34,6 +35,17 @@ public class ServicioContactoTelefonico {
         return this.repositorio.save(contacto);
     }
 
+    public void validarEntidad(String telefono, String idPersona, String idProveedor) throws MiException{
+        if (telefono == null || telefono.isBlank()) {
+            throw new MiException("El teléfono es obligatorio");
+        }
+        boolean tienePersona = idPersona != null && !idPersona.isBlank();
+        boolean tieneProveedor = idProveedor != null && !idProveedor.isBlank();
+
+        if (tienePersona == tieneProveedor) { // los dos true, o los dos false
+            throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor, no ambos ni ninguno");
+        }
+    }
     public void validar(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion)
             throws MiException {
         if (telefono == null || telefono.trim().isEmpty()) {

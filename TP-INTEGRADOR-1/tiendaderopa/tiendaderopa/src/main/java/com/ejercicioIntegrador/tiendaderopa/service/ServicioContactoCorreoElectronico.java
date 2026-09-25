@@ -27,6 +27,19 @@ public class ServicioContactoCorreoElectronico {
     @Autowired
     private PersonaRepositorio personaRepositorio;
 
+    public void validar(String correo, TipoContacto tipoContacto,
+                        String observacion, String idPersona, String idProveedor) throws Exception {
+        if (correo == null || correo.isBlank()) {
+            throw new Exception("El correo es obligatorio");
+        }
+        boolean tienePersona = idPersona != null && !idPersona.isBlank();
+        boolean tieneProveedor = idProveedor != null && !idProveedor.isBlank();
+
+        if (tienePersona == tieneProveedor) { // los dos true, o los dos false
+            throw new Exception("El contacto debe pertenecer a exactamente una Persona o un Proveedor, no ambos ni ninguno");
+        }
+    }
+
     @Transactional
     public ContactoCorreoElectronico crearContactoCorreoElectronico(
             String email, TipoContacto tipoContacto, String observacion, String personaId) throws MiException {
@@ -81,4 +94,5 @@ public class ServicioContactoCorreoElectronico {
     public List<ContactoCorreoElectronico> listarContactoCorreoElectronicoActivo() {
         return this.repositorio.findByEliminadoFalse();
     }
+
 }

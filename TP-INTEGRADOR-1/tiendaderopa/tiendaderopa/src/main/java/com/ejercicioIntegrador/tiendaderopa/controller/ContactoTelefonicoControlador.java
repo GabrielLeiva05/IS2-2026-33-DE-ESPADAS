@@ -37,10 +37,11 @@ public class ContactoTelefonicoControlador {
             @RequestParam TipoTelefono tipoTelefono,
             @RequestParam TipoContacto tipoContacto,
             @RequestParam(required = false) String observacion,
-            @RequestParam String personaId
+            @RequestParam String personaId,
+            @RequestParam String proveedorId
     ) {
         try {
-            ContactoTelefonico contacto = servicio.crearContactoTelefonico(telefono, tipoTelefono, tipoContacto, observacion, personaId);
+            ContactoTelefonico contacto = servicio.crearContactoTelefonico(telefono, tipoTelefono, tipoContacto, observacion, personaId, proveedorId);
             return ResponseEntity.status(HttpStatus.CREATED).body(contacto);
         } catch (MiException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

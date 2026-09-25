@@ -22,7 +22,4 @@ public class Proveedor {
     private String razonSocial;
 
     private boolean eliminado = false;
-
-    @Column(name = "contacto")
-    private Contacto contacto;
 }

@@ -10,4 +10,6 @@ import java.util.List;
 public interface RepositorioContactoTelefonico extends JpaRepository<ContactoTelefonico, String> {
     List<ContactoTelefonico> findByEliminadoFalse();
     List<ContactoTelefonico> findByPersonaId(String personaId);
+    List<ContactoTelefonico> findByProveedor_IdAndEliminadoFalse(String idProveedor);
+    List<ContactoTelefonico> findByPersona_IdAndEliminadoFalse(String idPersona);
 }
