@@ -4,7 +4,9 @@ import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
+import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioContactoTelefonico;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioProveedor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,9 +18,11 @@ import java.util.List;
 public class ContactoTelefonicoControlador {
 
     private final ServicioContactoTelefonico servicio;
+    private final ServicioProveedor servicioProveedor;
 
-    public ContactoTelefonicoControlador(ServicioContactoTelefonico servicio) {
+    public ContactoTelefonicoControlador(ServicioContactoTelefonico servicio, ServicioProveedor servicioProveedor) {
         this.servicio = servicio;
+        this.servicioProveedor = servicioProveedor;
     }
 
     @GetMapping
@@ -37,11 +41,23 @@ public class ContactoTelefonicoControlador {
             @RequestParam TipoTelefono tipoTelefono,
             @RequestParam TipoContacto tipoContacto,
             @RequestParam(required = false) String observacion,
-            @RequestParam String personaId,
-            @RequestParam String proveedorId
+            @RequestParam(required = false) String personaId,
+            @RequestParam(required = false) String proveedorId
     ) {
         try {
-            ContactoTelefonico contacto = servicio.crearContactoTelefonico(telefono, tipoTelefono, tipoContacto, observacion, personaId, proveedorId);
+            boolean tienePersona = personaId != null && !personaId.isBlank();
+            boolean tieneProveedor = proveedorId != null && !proveedorId.isBlank();
+            if (tienePersona == tieneProveedor) {
+                throw new MiException("Debe indicar exactamente una persona o un proveedor");
+            }
+
+            ContactoTelefonico contacto;
+            if (tienePersona) {
+                contacto = servicio.crearContactoTelefonico(telefono, tipoTelefono, tipoContacto, observacion, personaId);
+            } else {
+                Proveedor proveedor = servicioProveedor.buscarProveedor(proveedorId);
+                contacto = servicio.crearContactoTelefonico(telefono, tipoTelefono, tipoContacto, observacion, proveedor);
+            }
             return ResponseEntity.status(HttpStatus.CREATED).body(contacto);
         } catch (MiException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

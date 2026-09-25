@@ -22,4 +22,9 @@ public class ContactoCorreoElectronico extends Contacto {
         super(tipoContacto, observacion, persona);
         this.email = email;
     }
+
+    public ContactoCorreoElectronico(String email, TipoContacto tipoContacto, String observacion, Proveedor proveedor) {
+        super(tipoContacto, observacion, proveedor);
+        this.email = email;
+    }
 }

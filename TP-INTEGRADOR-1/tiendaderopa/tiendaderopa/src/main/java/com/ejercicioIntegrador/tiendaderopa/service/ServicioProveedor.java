@@ -2,6 +2,7 @@ package com.ejercicioIntegrador.tiendaderopa.service;
 
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
+import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioProveedor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +25,13 @@ public class ServicioProveedor {
     @Autowired
     private ServicioContactoTelefonico svcContactoTelefonico;
 
-    public void validar(String razonSocial) throws Exception {
+    public void validar(String razonSocial) throws MiException {
         if (razonSocial == null || razonSocial.isBlank()) {
-            throw new Exception("La razón social es obligatoria");
+            throw new MiException("La razón social es obligatoria");
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = MiException.class)
     public Proveedor crearProveedor(String razonSocial, String email, String telefonoFijo, String telefonoCelular) throws Exception {
         validar(razonSocial);
 
@@ -40,21 +41,21 @@ public class ServicioProveedor {
         proveedor = repositorio.save(proveedor);
 
         if (email != null && !email.isBlank()) {
-            svcContactoCorreoElectronico.crearContactoCorreoElectronico(email, TipoContacto.EMPRESA, null, null, proveedor.getId());
+            svcContactoCorreoElectronico.crearContactoCorreoElectronico(email, TipoContacto.EMPRESA, null, proveedor);
         }
         if (telefonoFijo != null && !telefonoFijo.isBlank()) {
-            svcContactoTelefonico.crearContactoTelefonico(telefonoFijo, TipoTelefono.FIJO, TipoContacto.EMPRESA, null, null, proveedor.getId());
+            svcContactoTelefonico.crearContactoTelefonico(telefonoFijo, TipoTelefono.FIJO, TipoContacto.EMPRESA, null, proveedor);
         }
         if (telefonoCelular != null && !telefonoCelular.isBlank()) {
-            svcContactoTelefonico.crearContactoTelefonico(telefonoCelular, TipoTelefono.CELULAR, TipoContacto.EMPRESA, null, null, proveedor.getId());
+            svcContactoTelefonico.crearContactoTelefonico(telefonoCelular, TipoTelefono.CELULAR, TipoContacto.EMPRESA, null, proveedor);
         }
-
+        return proveedor;
     }
 
     @Transactional
     public Proveedor modificarProveedor(String id, String razonSocial, String email, String telefonoWhatsapp) throws Exception {
         Proveedor proveedor = buscarProveedor(id);
-        validar(razonSocial, email);
+        validar(razonSocial);
         proveedor.setRazonSocial(razonSocial);
 
         return repositorio.save(proveedor);
@@ -67,9 +68,9 @@ public class ServicioProveedor {
         repositorio.save(proveedor);
     }
 
-    public Proveedor buscarProveedor(String id) throws Exception {
+    public Proveedor buscarProveedor(String id) throws MiException {
         return repositorio.findById(id)
-                .orElseThrow(() -> new Exception("No existe el proveedor con id " + id));
+                .orElseThrow(() -> new MiException("No existe el proveedor con id " + id));
     }
 
     public Proveedor buscarProveedorPorNombre(String razonSocial) {

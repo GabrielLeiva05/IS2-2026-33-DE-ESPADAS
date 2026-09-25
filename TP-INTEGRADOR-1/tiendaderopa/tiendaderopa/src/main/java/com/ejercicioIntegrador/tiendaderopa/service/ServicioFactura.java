@@ -25,23 +25,23 @@ public class ServicioFactura {
         factura.setEliminado(true); // Baja lógica
         repositorio.save(factura);
     }
-//
-//    /**
-//     * NUEVO. Anulación de NEGOCIO (estadoFactura = ANULADA), distinta de
-//     * la baja lógica administrativa de eliminarFactura (eliminado = true).
-//     * Bloquea la anulación si ya se pagó, porque en ese caso ya pudo
-//     * haberse generado un movimiento de Stock que necesita revertirse
-//     * aparte, no simplemente "deshacerse".
-//     */
-//    @Transactional
-//    public void anularFactura(String id) throws Exception {
-//        Factura factura = buscarFactura(id);
-//        if (factura.getEstadoFactura() == EstadoFactura.PAGADA) {
-//            throw new Exception("No se puede anular una factura ya pagada; revertir el movimiento de Stock en su lugar");
-//        }
-//        factura.setEstadoFactura(EstadoFactura.ANULADA);
-//        repositorio.save(factura);
-//    }
+
+    /**
+     * NUEVO. Anulación de NEGOCIO (estadoFactura = ANULADA), distinta de
+     * la baja lógica administrativa de eliminarFactura (eliminado = true).
+     * Bloquea la anulación si ya se pagó, porque en ese caso ya pudo
+     * haberse generado un movimiento de Stock que necesita revertirse
+     * aparte, no simplemente "deshacerse".
+     */
+    @Transactional
+    public void anularFactura(String id) throws Exception {
+        Factura factura = buscarFactura(id);
+        if (factura.getEstadoFactura() == EstadoFactura.PAGADA) {
+            throw new Exception("No se puede anular una factura ya pagada; revertir el movimiento de Stock en su lugar");
+        }
+        factura.setEstadoFactura(EstadoFactura.ANULADA);
+        repositorio.save(factura);
+    }
 
     public Collection<Factura> listarFactura() {
         return repositorio.findAll();

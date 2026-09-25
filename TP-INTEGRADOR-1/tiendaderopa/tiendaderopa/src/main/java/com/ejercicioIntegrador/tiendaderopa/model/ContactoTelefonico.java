@@ -30,4 +30,10 @@ public class ContactoTelefonico extends Contacto {
         this.telefono = telefono;
         this.tipoTelefono = tipoTelefono;
     }
+
+    public ContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion, Proveedor proveedor) {
+        super(tipoContacto, observacion, proveedor);
+        this.telefono = telefono;
+        this.tipoTelefono = tipoTelefono;
+    }
 }
