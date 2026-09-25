@@ -1,7 +1,5 @@
 package com.ejercicioIntegrador.tiendaderopa.service;
 
-import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
-import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioProveedor;
@@ -20,10 +18,9 @@ public class ServicioProveedor {
 
     @Autowired
     private RepositorioProveedor repositorio;
-    @Autowired
-    private ServicioContactoCorreoElectronico svcContactoCorreoElectronico;
-    @Autowired
-    private ServicioContactoTelefonico svcContactoTelefonico;
+    // Sin @Autowired hacia ServicioContactoCorreoElectronico ni
+    // ServicioContactoTelefonico: esto es lo que rompe el ciclo desde
+    // este lado.
 
     public void validar(String razonSocial) throws MiException {
         if (razonSocial == null || razonSocial.isBlank()) {
@@ -31,38 +28,25 @@ public class ServicioProveedor {
         }
     }
 
-    @Transactional(rollbackFor = MiException.class)
-    public Proveedor crearProveedor(String razonSocial, String email, String telefonoFijo, String telefonoCelular) throws Exception {
+    @Transactional
+    public Proveedor crearProveedor(String razonSocial) throws MiException {
         validar(razonSocial);
-
         Proveedor proveedor = new Proveedor();
         proveedor.setRazonSocial(razonSocial);
         proveedor.setEliminado(false);
-        proveedor = repositorio.save(proveedor);
-
-        if (email != null && !email.isBlank()) {
-            svcContactoCorreoElectronico.crearContactoCorreoElectronico(email, TipoContacto.EMPRESA, null, null, proveedor.getId());
-        }
-        if (telefonoFijo != null && !telefonoFijo.isBlank()) {
-            svcContactoTelefonico.crearContactoTelefonico(telefonoFijo, TipoTelefono.FIJO, TipoContacto.EMPRESA, null, null, proveedor.getId());
-        }
-        if (telefonoCelular != null && !telefonoCelular.isBlank()) {
-            svcContactoTelefonico.crearContactoTelefonico(telefonoCelular, TipoTelefono.CELULAR, TipoContacto.EMPRESA, null, null, proveedor.getId());
-        }
-        return proveedor;
-    }
-
-    @Transactional
-    public Proveedor modificarProveedor(String id, String razonSocial, String email, String telefonoWhatsapp) throws Exception {
-        Proveedor proveedor = buscarProveedor(id);
-        validar(razonSocial);
-        proveedor.setRazonSocial(razonSocial);
-
         return repositorio.save(proveedor);
     }
 
     @Transactional
-    public void eliminarProveedor(String id) throws Exception {
+    public Proveedor modificarProveedor(String id, String razonSocial) throws MiException {
+        Proveedor proveedor = buscarProveedor(id);
+        validar(razonSocial);
+        proveedor.setRazonSocial(razonSocial);
+        return repositorio.save(proveedor);
+    }
+
+    @Transactional
+    public void eliminarProveedor(String id) throws MiException {
         Proveedor proveedor = buscarProveedor(id);
         proveedor.setEliminado(true);
         repositorio.save(proveedor);
