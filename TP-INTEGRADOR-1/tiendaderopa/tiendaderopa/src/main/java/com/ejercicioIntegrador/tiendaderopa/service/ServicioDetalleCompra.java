@@ -6,6 +6,7 @@ import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioDetalleCompra;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -47,5 +48,9 @@ public class ServicioDetalleCompra {
         DetalleCompra detalle = buscarPorId(id);
         detalle.setEliminado(true);
         repositorioDetalleCompra.save(detalle);
+    }
+
+    public List<DetalleCompra> buscarParaReporteVentas(Date desde, Date hasta) {
+        return repositorioDetalleCompra.buscarParaReporteVentas(desde, hasta);
     }
 }
