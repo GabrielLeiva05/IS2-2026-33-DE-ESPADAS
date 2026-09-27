@@ -31,11 +31,9 @@ public class ServicioOrdenCompraProveedor {
     @Autowired
     private RepositorioOrdenCompraProveedor repositorio;
     @Autowired
-    private RepositorioDetalleOrdenCompraProveedor repositorioDetalle;
-    @Autowired
     private ServicioProveedor svcProveedor;
     @Autowired
-    private ServicioProducto svcProducto;
+    private ServicioDetalleOrdenCompraProveedor svcDetalleOrdenCompraProveedor;
 
     public void validar(String idProveedor, List<ItemCompraDTO> items) throws Exception {
         if (items == null || items.isEmpty()) {
@@ -67,16 +65,7 @@ public class ServicioOrdenCompraProveedor {
 
         double total = 0;
         for (ItemCompraDTO item : items) {
-            Producto producto = svcProducto.buscarPorId(item.getIdProducto());
-
-            DetalleOrdenCompraProveedor detalle = new DetalleOrdenCompraProveedor();
-            detalle.setOrdenCompraProveedor(orden);
-            detalle.setProducto(producto);
-            detalle.setCantidad(item.getCantidad());
-            detalle.setPrecioCompra(item.getPrecioCompra());
-            detalle.setEliminado(false);
-            repositorioDetalle.save(detalle);
-
+            svcDetalleOrdenCompraProveedor.crear(orden, item.getIdProducto(), item.getCantidad(), item.getPrecioCompra());
             total += item.getCantidad() * item.getPrecioCompra();
         }
 
@@ -116,10 +105,19 @@ public class ServicioOrdenCompraProveedor {
     }
 
     public List<DetalleOrdenCompraProveedor> listarDetallePorOrden(String idOrden) {
-        return repositorioDetalle.findByOrdenCompraProveedor_Id(idOrden);
+        return svcDetalleOrdenCompraProveedor.listarPorOrden(idOrden);
     }
 
     public Collection<OrdenCompraProveedor> listarOrdenCompraProveedor() {
         return repositorio.findByEliminadoFalse();
+    }
+
+    /**
+     * Usado por ServicioReporteProveedores. Delega en
+     * ServicioDetalleOrdenCompraProveedor en vez de tocar su repositorio
+     * — regla de capas del proyecto.
+     */
+    public List<DetalleOrdenCompraProveedor> buscarDetallePorProductoOrdenadoPorPrecio(String idProducto) {
+        return svcDetalleOrdenCompraProveedor.buscarPorProductoOrdenadoPorPrecio(idProducto);
     }
 }

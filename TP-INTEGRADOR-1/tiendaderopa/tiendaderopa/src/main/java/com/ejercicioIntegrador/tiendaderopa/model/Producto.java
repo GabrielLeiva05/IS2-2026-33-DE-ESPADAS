@@ -38,6 +38,9 @@ public class Producto {
     @Column(nullable = false)
     private boolean eliminado = false;
 
+    @Column(nullable = false)
+    private int stockMaximo = 0;
+
     @ManyToOne
     private SubCategoria subCategoria;
 

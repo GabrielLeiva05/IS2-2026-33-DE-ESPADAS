@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ServicioContactoTelefonico {
@@ -92,5 +93,13 @@ public class ServicioContactoTelefonico {
     @Transactional
     public List<ContactoTelefonico> listarContactoTelefonicoActivo() {
         return this.repositorio.findByEliminadoFalse();
+    }
+
+    public Optional<String> buscarCelularDeProveedor(String idProveedor) {
+        return repositorio.findByProveedor_IdAndEliminadoFalse(idProveedor)
+                .stream()
+                .filter(contacto -> contacto.getTipoTelefono() == TipoTelefono.CELULAR)
+                .map(ContactoTelefonico::getTelefono)
+                .findFirst();
     }
 }
