@@ -36,9 +36,9 @@ public class ControladorProveedor {
 
     @PostMapping
     public ResponseEntity<?> crear(@RequestParam String razonSocial,
-                                    @RequestParam(required = false) String email,
-                                    @RequestParam(required = false) String telefonoFijo,
-                                    @RequestParam(required = false) String telefonoCelular) {
+                                   @RequestParam(required = false) String email,
+                                   @RequestParam(required = false) String telefonoFijo,
+                                   @RequestParam(required = false) String telefonoCelular) {
         try {
             Proveedor proveedor = svcRegistroProveedor.registrarProveedor(razonSocial, email, telefonoFijo, telefonoCelular);
             return ResponseEntity.status(HttpStatus.CREATED).body(proveedor);

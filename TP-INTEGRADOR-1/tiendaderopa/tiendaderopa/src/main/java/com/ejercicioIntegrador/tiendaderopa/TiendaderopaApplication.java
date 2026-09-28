@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+//Descomentar para el envio del mail.
 //@EnableScheduling
 public class TiendaderopaApplication {
 

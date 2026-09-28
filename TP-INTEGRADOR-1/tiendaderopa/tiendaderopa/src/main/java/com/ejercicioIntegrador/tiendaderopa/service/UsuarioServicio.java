@@ -163,6 +163,14 @@ public class UsuarioServicio implements UserDetailsService {
         usuario.setEliminado(false);
         usuarioRepositorio.save(usuario);
     }
+
+    public List<String> listarCorreosClientesActivos() {
+        return usuarioRepositorio.findByRolUsuarioAndEliminadoFalse(RolUsuario.CLIENTE).stream()
+                .map(Usuario::getNombreUsuario)
+                .filter(c -> c != null && !c.isBlank())
+                .distinct()
+                .toList();
+    }
 }
 
 

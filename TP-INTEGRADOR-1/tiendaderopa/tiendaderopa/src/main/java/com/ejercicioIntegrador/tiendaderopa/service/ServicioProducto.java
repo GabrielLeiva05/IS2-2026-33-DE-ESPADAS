@@ -104,4 +104,8 @@ public class ServicioProducto {
         return repositorio.findById(idProducto)
                 .orElseThrow(() -> new NoSuchElementException("No existe el producto con id: " + idProducto));
     }
+
+    public Collection<Producto> listarProductoEnOferta() {
+        return repositorio.findByEnOfertaTrueAndEliminadoFalse();
+    }
 }

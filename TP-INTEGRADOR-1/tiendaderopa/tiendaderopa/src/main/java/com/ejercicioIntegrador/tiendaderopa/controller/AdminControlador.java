@@ -1,6 +1,7 @@
 package com.ejercicioIntegrador.tiendaderopa.controller;
 
 import com.ejercicioIntegrador.tiendaderopa.service.PaisServicio;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioNewsletter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -15,9 +16,11 @@ public class AdminControlador {
 
     private final PaisServicio paisServicio;
     private final ProvinciaServicio provinciaServicio;
-    public AdminControlador(PaisServicio paisServicio, ProvinciaServicio provinciaServicio) {
+    private final ServicioNewsletter servicioNewsletter;
+    public AdminControlador(PaisServicio paisServicio, ProvinciaServicio provinciaServicio, ServicioNewsletter servicioNewsletter) {
         this.paisServicio = paisServicio;
         this.provinciaServicio = provinciaServicio;
+        this.servicioNewsletter = servicioNewsletter;
     }
     @GetMapping("/dashboard")
     public String dashboard(ModelMap modelo) {
@@ -25,6 +28,7 @@ public class AdminControlador {
         modelo.addAttribute("pais", null);
         modelo.addAttribute("provincias", provinciaServicio.listarTodas());
         modelo.addAttribute("provincia", null);
+        modelo.addAttribute("envios", servicioNewsletter.listarEnvios());
         return "panel.html";
     }
 }
