@@ -1,6 +1,9 @@
 package com.ejercicioIntegrador.tiendaderopa.repository;
 
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.RolUsuario;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
+
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,4 +18,5 @@ public interface UsuarioRepositorio extends JpaRepository<Usuario, String> {
     // Busca el usuario que se encuentra actualmente activo para la persona
     Optional<Usuario> findByPersonaIdAndEliminadoFalse(String personaId);
 
+    List<Usuario> findByRolUsuarioAndEliminadoFalse(RolUsuario rolUsuario);
 }
