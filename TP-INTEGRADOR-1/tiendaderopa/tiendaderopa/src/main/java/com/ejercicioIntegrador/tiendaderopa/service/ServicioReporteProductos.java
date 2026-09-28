@@ -21,10 +21,15 @@ public class ServicioReporteProductos {
 
     @Autowired
     private ServicioProducto svcProducto;
+
     @Autowired
     private ServicioStock svcStock;
+
     @Autowired
     private ServicioReporteProveedores svcReporteProveedores;
+
+    @Autowired
+    private ServicioWhatsapp svcWhatsapp;
 
     public ReporteProductosDTO generarReporte() {
         Collection<Producto> productos = svcProducto.listarProductoActivo();
@@ -56,7 +61,8 @@ public class ServicioReporteProductos {
         dto.setNombre(producto.getNombre());
         dto.setSubCategoria(subCategoria != null ? subCategoria.getNombre() : null);
         dto.setCategoria(subCategoria != null && subCategoria.getCategoria() != null
-                ? subCategoria.getCategoria().getNombre() : null);
+                ? subCategoria.getCategoria().getNombre()
+                : null);
         dto.setStockActual(cantidadActual);
         dto.setStockMaximo(stockMaximo);
 
@@ -79,20 +85,33 @@ public class ServicioReporteProductos {
     }
 
     private void completarSugerenciaDeReposicion(ProductoStockDTO dto, Producto producto,
-                                                  int stockMaximo, int cantidadActual) {
+            int stockMaximo, int cantidadActual) {
         int cantidadParaLlegarAlCincuenta = (int) Math.ceil(stockMaximo * UMBRAL_BUENO) - cantidadActual;
-        dto.setCantidadSugeridaCompra(Math.max(cantidadParaLlegarAlCincuenta, 0));
+        int cantidadSugerida = Math.max(cantidadParaLlegarAlCincuenta, 0);
+        dto.setCantidadSugeridaCompra(cantidadSugerida);
 
         svcReporteProveedores.buscarProveedorMasEconomico(producto.getId())
                 .ifPresent(proveedor -> {
                     dto.setSugerenciaProveedorRazonSocial(proveedor.getRazonSocial());
-                    dto.setSugerenciaProveedorWhatsappLink(proveedor.getWhatsappLink());
+                    String mensaje = armarMensajeReposicion(
+                            proveedor.getRazonSocial(), producto.getNombre(), cantidadActual, cantidadSugerida);
+                    dto.setSugerenciaProveedorWhatsappLink(
+                            svcWhatsapp.armarLinkWhatsappWeb(proveedor.getTelefonoWhatsapp(), mensaje));
                 });
     }
 
+    private String armarMensajeReposicion(String razonSocial, String nombreProducto,
+            int stockActual, int cantidadSugerida) {
+        return "Hola " + razonSocial + ", te escribimos de Zero. Nos quedan " + stockActual
+                + " unidades de \"" + nombreProducto + "\". Por favor, enviános " + cantidadSugerida
+                + " unidades para reponer el stock. ¡Gracias!";
+    }
+
     private EstadoStock clasificar(double proporcion) {
-        if (proporcion > UMBRAL_BUENO) return EstadoStock.BUENO;
-        if (proporcion >= UMBRAL_REGULAR) return EstadoStock.REGULAR;
+        if (proporcion > UMBRAL_BUENO)
+            return EstadoStock.BUENO;
+        if (proporcion >= UMBRAL_REGULAR)
+            return EstadoStock.REGULAR;
         return EstadoStock.MALO;
     }
 

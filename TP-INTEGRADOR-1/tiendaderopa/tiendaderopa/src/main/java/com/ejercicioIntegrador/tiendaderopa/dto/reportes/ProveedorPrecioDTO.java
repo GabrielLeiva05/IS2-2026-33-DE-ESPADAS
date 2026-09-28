@@ -15,5 +15,5 @@ public class ProveedorPrecioDTO {
     private String razonSocial;
     private double precioCompra;
     private Date fechaUltimaCompra;
-    private String whatsappLink;
+    private String telefonoWhatsapp;
 }
