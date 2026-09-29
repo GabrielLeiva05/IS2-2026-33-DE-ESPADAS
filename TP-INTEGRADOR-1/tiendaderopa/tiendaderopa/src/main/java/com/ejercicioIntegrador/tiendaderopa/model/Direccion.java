@@ -17,7 +17,7 @@ import org.hibernate.annotations.UuidGenerator;
 @Entity
 @Getter
 @Setter
-@Table(name = "Localidad")
+@Table(name = "direcciones")
 @NoArgsConstructor
 public class Direccion implements Serializable {
     @Id
@@ -32,6 +32,8 @@ public class Direccion implements Serializable {
     private String calle;
     @Column(nullable = false)
     private String numeracion;
+    @Column(length = 20)
+    private String codigoPostal;
     @Column
     private String barrio;
     @Column

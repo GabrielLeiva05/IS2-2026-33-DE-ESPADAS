@@ -35,12 +35,14 @@ public class PersonaServicio {
 
     @Transactional
     public Persona crearPersona(Direccion direccion, String documento, TipoDocumento tipoDocumento,
-                                String nombre, Date fechaNacimiento, String apellido) throws MiException {
+                                String nombre, Date fechaNacimiento, String apellido, String sexo) throws MiException {
 
         validar(nombre, apellido, fechaNacimiento, tipoDocumento, documento);
 
         Persona persona = new Persona(nombre.trim(), apellido.trim(), fechaNacimiento, documento.trim(), tipoDocumento);
+        persona.setSexo(sexo);
         if (direccion != null) {
+            direccion.setPersona(persona);
             List<Direccion> dir = new ArrayList<>();
             dir.add(direccion);
             persona.setDirecciones(dir);
@@ -101,6 +103,11 @@ public class PersonaServicio {
         persona.setDocumento(documento.trim());
 
         return this.repositorio.save(persona);
+    }
+
+    @Transactional
+    public Persona guardarCambiosPerfil(Persona persona) {
+        return repositorio.save(persona);
     }
 
     @Transactional

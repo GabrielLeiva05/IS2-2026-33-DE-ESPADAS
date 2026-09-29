@@ -26,23 +26,53 @@ public class DireccionServicio {
                                     Localidad localidad,
                                     String codigoPostal,
                                     String barrio,
-                                    String direccion,
+                                    String calle,
+                                    String numeracion,
                                     String manzanaPiso,
+                                    String casaDepartamento,
                                     String referencia) throws MiException {
 
-        validar(pais, provincia, departamento, localidad, codigoPostal, barrio, direccion);
+        validar(pais, provincia, departamento, localidad, codigoPostal, barrio, calle, numeracion);
 
         Direccion nuevaDireccion = new Direccion();
         nuevaDireccion.setLocalidad(localidad);
+        nuevaDireccion.setCodigoPostal(codigoPostal.trim());
         nuevaDireccion.setBarrio(barrio);
+        nuevaDireccion.setCalle(calle.trim());
+        nuevaDireccion.setNumeracion(numeracion.trim());
         nuevaDireccion.setManzanaPiso(manzanaPiso);
+        nuevaDireccion.setCasaDepartamento(casaDepartamento);
         nuevaDireccion.setReferencia(referencia); // Referencia queda opcional
 
-        return direccionRepositorio.save(nuevaDireccion);
+        return nuevaDireccion;
+    }
+
+    @Transactional
+    public Direccion guardarDireccionPerfil(com.ejercicioIntegrador.tiendaderopa.model.Persona persona,
+            Localidad localidad, String codigoPostal, String barrio, String calle, String numeracion,
+            String manzanaPiso, String casaDepartamento, String referencia) {
+        Direccion direccion = persona.getDirecciones().stream()
+                .filter(actual -> !actual.isEliminado())
+                .findFirst()
+                .orElseGet(Direccion::new);
+        direccion.setPersona(persona);
+        direccion.setLocalidad(localidad);
+        direccion.setCodigoPostal(codigoPostal.trim());
+        direccion.setBarrio(barrio.trim());
+        direccion.setCalle(calle.trim());
+        direccion.setNumeracion(numeracion.trim());
+        direccion.setManzanaPiso(manzanaPiso);
+        direccion.setCasaDepartamento(casaDepartamento);
+        direccion.setReferencia(referencia);
+        if (!persona.getDirecciones().contains(direccion)) {
+            persona.getDirecciones().add(direccion);
+        }
+        return direccionRepositorio.save(direccion);
     }
 
     private void validar(Pais pais, Provincia provincia, Departamento departamento,
-                         Localidad localidad, String codigoPostal, String barrio, String direccion) throws MiException {
+                         Localidad localidad, String codigoPostal, String barrio, String calle,
+                         String numeracion) throws MiException {
         if (pais == null) {
             throw new MiException("Debe seleccionar un país");
         }
@@ -61,8 +91,11 @@ public class DireccionServicio {
         if (barrio == null || barrio.trim().isEmpty()) {
             throw new MiException("El barrio no puede estar vacío");
         }
-        if (direccion == null || direccion.trim().isEmpty()) {
-            throw new MiException("La dirección no puede estar vacía");
+        if (calle == null || calle.trim().isEmpty()) {
+            throw new MiException("La calle no puede estar vacía");
+        }
+        if (numeracion == null || numeracion.trim().isEmpty()) {
+            throw new MiException("La numeración no puede estar vacía");
         }
     }
 }

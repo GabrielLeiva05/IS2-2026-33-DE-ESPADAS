@@ -1,5 +1,6 @@
 package com.ejercicioIntegrador.tiendaderopa.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,5 +46,10 @@ public class OrdenCompra {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "factura_cliente_id")
     private FacturaCliente facturaCliente;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    @JsonIgnore
+    private Usuario usuario;
     
 }

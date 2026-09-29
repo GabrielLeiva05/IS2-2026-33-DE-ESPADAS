@@ -14,7 +14,6 @@ import com.ejercicioIntegrador.tiendaderopa.service.PaisServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.ProvinciaServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.UsuarioServicio;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,7 +47,6 @@ public class PortalControlador {
         this.localidadServicio = localidadServicio;
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_CLIENTE', 'ROLE_JEFE')")
     @GetMapping("/")
     public String index() {
         return "index.html";
@@ -69,13 +67,17 @@ public class PortalControlador {
             @RequestParam Localidad localidad,
             @RequestParam String codigoPostal,
             @RequestParam String barrio,
-            @RequestParam String direccion,
+            @RequestParam String calle,
+            @RequestParam String numeracion,
             @RequestParam(required = false) String manzanaPiso,
+            @RequestParam(required = false) String casaDepartamento,
             @RequestParam(required = false) String referencia,
             @RequestParam String documento,
             @RequestParam TipoDocumento tipoDocumento,
             @RequestParam String nombre,
             @RequestParam String apellido,
+            @RequestParam(required = false) String sexo,
+            @RequestParam String telefono,
             @RequestParam String email,
             @RequestParam String clave,
             @RequestParam String clave2,
@@ -85,12 +87,12 @@ public class PortalControlador {
         try {
             Direccion direccionGuardada = direccionServicio.crearDireccion(
                     pais, provincia, departamento, localidad,
-                    codigoPostal, barrio, direccion, manzanaPiso, referencia
+                        codigoPostal, barrio, calle, numeracion, manzanaPiso, casaDepartamento, referencia
             );
 
             usuarioServicio.registrar(
                     direccionGuardada, documento, tipoDocumento, nombre, apellido,
-                    email, clave, clave2, fechaNacimiento
+                        email, clave, clave2, fechaNacimiento, sexo, telefono
             );
 
             modelo.put("exito", "Usuario registrado correctamente");
@@ -107,7 +109,8 @@ public class PortalControlador {
             modelo.put("fechaNacimiento", fechaNacimiento);
             modelo.put("codigoPostal", codigoPostal);
             modelo.put("barrio", barrio);
-            modelo.put("direccion", direccion);
+            modelo.put("calle", calle);
+            modelo.put("numeracion", numeracion);
             modelo.put("manzanaPiso", manzanaPiso);
             modelo.put("referencia", referencia);
             return "register.html";

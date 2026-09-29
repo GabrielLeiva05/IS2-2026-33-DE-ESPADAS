@@ -86,6 +86,25 @@ public class ServicioContactoTelefonico {
     }
 
     @Transactional
+    public ContactoTelefonico guardarTelefonoPerfil(Persona persona, String telefono) throws MiException {
+        validar(telefono, TipoTelefono.CELULAR, TipoContacto.PERSONAL, null);
+        ContactoTelefonico contacto = persona.getContactos().stream()
+                .filter(ContactoTelefonico.class::isInstance)
+                .map(ContactoTelefonico.class::cast)
+                .filter(actual -> !actual.isEliminado())
+                .findFirst()
+                .orElseGet(() -> new ContactoTelefonico(telefono.trim(), TipoTelefono.CELULAR,
+                        TipoContacto.PERSONAL, null, persona));
+        contacto.setTelefono(telefono.trim());
+        contacto.setTipoTelefono(TipoTelefono.CELULAR);
+        contacto.setTipoContacto(TipoContacto.PERSONAL);
+        if (!persona.getContactos().contains(contacto)) {
+            persona.getContactos().add(contacto);
+        }
+        return repositorio.save(contacto);
+    }
+
+    @Transactional
     public List<ContactoTelefonico> listarContactoTelefonico() {
         return this.repositorio.findAll();
     }

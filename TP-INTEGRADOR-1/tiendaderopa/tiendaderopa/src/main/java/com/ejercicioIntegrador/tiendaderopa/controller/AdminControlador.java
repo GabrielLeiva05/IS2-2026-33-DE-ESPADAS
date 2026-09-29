@@ -11,7 +11,7 @@ import com.ejercicioIntegrador.tiendaderopa.service.ProvinciaServicio;
 
 @Controller
 @RequestMapping("/admin")
-@PreAuthorize("hasRole('ROLE_ADMINISTRATIVO')")
+@PreAuthorize("hasRole('ADMINISTRATIVO')")
 public class AdminControlador {
 
     private final PaisServicio paisServicio;

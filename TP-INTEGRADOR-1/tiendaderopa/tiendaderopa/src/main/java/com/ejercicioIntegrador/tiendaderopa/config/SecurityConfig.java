@@ -2,10 +2,10 @@ package com.ejercicioIntegrador.tiendaderopa.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -24,12 +24,20 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        // Rutas públicas y recursos estáticos
-                        .requestMatchers("/css/**", "/js/**", "/img/**", "/login", "/registrar", "/registro").permitAll()
-                        // Rutas exclusivas para ADMIN
-                        .requestMatchers("/admin/**").hasRole("ADMINISTRATIVO")
-                        // El resto de rutas requieren autenticación
-                        .anyRequest().authenticated()
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/login", "/logincheck",
+                    "/logout", "/registrar", "/registro", "/").permitAll()
+                .requestMatchers(HttpMethod.GET, "/productos").permitAll()
+                        .requestMatchers("/perfil", "/perfil/**", "/api/v1/perfil", "/api/v1/perfil/**")
+                            .hasRole("CLIENTE")
+                .requestMatchers("/api/ordenes-compra/**")
+                    .hasAnyRole("CLIENTE", "ADMINISTRATIVO")
+                .requestMatchers("/admin/**", "/api/**", "/proveedores/**", "/contactos/**",
+                    "/configuraciones-correo/**", "/categorias/**", "/subcategorias/**",
+                    "/formulario/**", "/eliminar/**", "/ordenesCompraProveedor/**",
+                    "/facturas/**", "/imagen/**", "/empleados/**", "/empresas/**",
+                    "/personas/**", "/pais/**", "/provincia/**", "/api/v1/nacionalidades/**")
+                    .hasRole("ADMINISTRATIVO")
+                        .anyRequest().hasRole("ADMINISTRATIVO")
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -53,8 +61,7 @@ public class SecurityConfig {
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login")
                         .permitAll()
-                )
-                .csrf(AbstractHttpConfigurer::disable);
+                );
 
         return http.build();
     }

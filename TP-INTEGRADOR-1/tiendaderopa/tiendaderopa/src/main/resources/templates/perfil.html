@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/headauth :: headauth}"></head>
+<body>
+<main class="auth-container register">
+    <h1>Mi perfil</h1>
+
+    <div th:if="${exito != null}" class="alert-success">
+        <p th:text="${exito}"></p>
+    </div>
+
+    <form th:action="@{/perfil}" th:object="${datos}" method="post" class="auth-form form-grid">
+        <div th:if="${#fields.hasErrors('*')}" class="alert-error">
+            <p>Revisá los campos ingresados.</p>
+        </div>
+        <div class="form-group">
+            <label for="email">Correo electrónico</label>
+            <input id="email" type="email" th:value="${perfil.email}" readonly>
+        </div>
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" type="text" th:field="*{nombre}" required>
+        </div>
+        <div class="form-group">
+            <label for="apellido">Apellido</label>
+            <input id="apellido" type="text" th:field="*{apellido}" required>
+        </div>
+        <div class="form-group">
+            <label for="sexo">Sexo</label>
+            <input id="sexo" type="text" th:field="*{sexo}">
+        </div>
+        <div class="form-group">
+            <label for="fechaNacimiento">Fecha de nacimiento</label>
+            <input id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}" required>
+        </div>
+        <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input id="telefono" type="tel" th:field="*{telefono}" required>
+        </div>
+        <div class="form-group">
+            <label for="codigoPostal">Código postal</label>
+            <input id="codigoPostal" type="text" th:field="*{codigoPostal}" required>
+        </div>
+        <div class="form-group">
+            <label for="localidadId">Localidad</label>
+            <select id="localidadId" th:field="*{localidadId}" required>
+                <option value="" disabled>Seleccione una localidad</option>
+                <option th:each="localidad : ${localidades}"
+                        th:value="${localidad.id}"
+                        th:text="${localidad.nombre}"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="barrio">Barrio</label>
+            <input id="barrio" type="text" th:field="*{barrio}" required>
+        </div>
+        <div class="form-group">
+            <label for="calle">Calle</label>
+            <input id="calle" type="text" th:field="*{calle}" required>
+        </div>
+        <div class="form-group">
+            <label for="numeracion">Número de calle</label>
+            <input id="numeracion" type="text" th:field="*{numeracion}" required>
+        </div>
+        <div class="form-group">
+            <label for="manzanaPiso">Manzana / Piso</label>
+            <input id="manzanaPiso" type="text" th:field="*{manzanaPiso}">
+        </div>
+        <div class="form-group">
+            <label for="casaDepartamento">Casa / Departamento</label>
+            <input id="casaDepartamento" type="text" th:field="*{casaDepartamento}">
+        </div>
+        <div class="form-group col-full">
+            <label for="referencia">Referencia</label>
+            <input id="referencia" type="text" th:field="*{referencia}">
+        </div>
+        <div class="col-full">
+            <button type="submit" class="btn-submit">Guardar cambios</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

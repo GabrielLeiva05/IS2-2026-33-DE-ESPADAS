@@ -1,7 +1,9 @@
 package com.ejercicioIntegrador.tiendaderopa.service;
 
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.RolUsuario;
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
@@ -16,7 +18,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -33,7 +35,13 @@ public class UsuarioServicio implements UserDetailsService {
     @Autowired
     @Lazy
     private PersonaServicio personaServicio;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    @Lazy
+    private ServicioContactoTelefonico servicioContactoTelefonico;
 
+    @Transactional
     public void registrar(Direccion direccion,
                           String documento,
                           TipoDocumento tipoDocumento,
@@ -42,15 +50,18 @@ public class UsuarioServicio implements UserDetailsService {
                           String email,
                           String clave,
                           String clave2,
-                          Date fechaNacimiento) throws MiException {
+                          Date fechaNacimiento,
+                          String sexo,
+                          String telefono) throws MiException {
 
         validar(documento, tipoDocumento, nombre, apellido, email, clave, clave2, fechaNacimiento);
 
-        Persona persona = personaServicio.crearPersona(direccion, documento, tipoDocumento, nombre, fechaNacimiento, apellido);
+        Persona persona = personaServicio.crearPersona(direccion, documento, tipoDocumento, nombre,
+            fechaNacimiento, apellido, sexo);
         Usuario usuario = new Usuario();
         usuario.setPersona(persona);
         usuario.setNombreUsuario(email);
-        usuario.setClave(new BCryptPasswordEncoder().encode(clave));
+        usuario.setClave(passwordEncoder.encode(clave));
         usuario.setRolUsuario(RolUsuario.CLIENTE);
 
         /*
@@ -58,6 +69,8 @@ public class UsuarioServicio implements UserDetailsService {
         usuario.setImagen(imagen);*/
 
         usuarioRepositorio.save(usuario);
+        servicioContactoTelefonico.crearContactoTelefonico(telefono, TipoTelefono.CELULAR,
+            TipoContacto.PERSONAL, null, persona.getId(), null);
     }
 
     private void validar(String documento,
@@ -99,7 +112,7 @@ public class UsuarioServicio implements UserDetailsService {
     public UserDetails loadUserByUsername(String nombreUsuario) throws UsernameNotFoundException {
         Usuario usuario = usuarioRepositorio.buscarPorNombreUsuario(nombreUsuario);
 
-        if (usuario != null) {
+        if (usuario != null && !usuario.isEliminado()) {
             List<GrantedAuthority> permisos = new ArrayList<>();
             GrantedAuthority p = new SimpleGrantedAuthority("ROLE_" + usuario.getRolUsuario().name());
             permisos.add(p);
@@ -113,9 +126,9 @@ public class UsuarioServicio implements UserDetailsService {
                     usuario.getClave(),
                     permisos
             );
-        } else {
-            throw new UsernameNotFoundException("Usuario no encontrado con el email: " + nombreUsuario);
         }
+
+        throw new UsernameNotFoundException("Usuario no encontrado con el email: " + nombreUsuario);
 
     }
 
@@ -128,6 +141,15 @@ public class UsuarioServicio implements UserDetailsService {
     public Usuario buscarPorId(String id) throws MiException {
         return usuarioRepositorio.findById(id)
                 .orElseThrow(() -> new MiException("No existe un usuario con id: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public Usuario buscarActivoPorNombreUsuario(String nombreUsuario) throws MiException {
+        Usuario usuario = usuarioRepositorio.buscarPorNombreUsuario(nombreUsuario);
+        if (usuario == null || usuario.isEliminado()) {
+            throw new MiException("No existe un usuario activo con el email indicado");
+        }
+        return usuario;
     }
 
     @Transactional(readOnly = true)

@@ -14,7 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/admin/newsletter")
-@PreAuthorize("hasRole('ROLE_ADMINISTRATIVO')")
+@PreAuthorize("hasRole('ADMINISTRATIVO')")
 public class ControladorNewsletter {
 
     private final ServicioNewsletter servicio;

@@ -31,6 +31,9 @@ public class Persona implements Serializable {
     @Column(nullable = false)
     private String apellido;
 
+    @Column(length = 40)
+    private String sexo;
+
     @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL)
     private List<Contacto> contactos = new ArrayList<>();
 

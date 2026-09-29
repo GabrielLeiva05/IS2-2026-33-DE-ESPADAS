@@ -12,5 +12,7 @@ public interface RepositorioOrdenCompra extends JpaRepository<OrdenCompra, Strin
 
     List<OrdenCompra> findByEliminadoFalse();
 
+    List<OrdenCompra> findByUsuario_IdAndEliminadoFalse(String usuarioId);
+
     List<OrdenCompra> findByEstadoOrdenCompraAndEliminadoFalse(EstadoOrdenCompra estado);
 }
