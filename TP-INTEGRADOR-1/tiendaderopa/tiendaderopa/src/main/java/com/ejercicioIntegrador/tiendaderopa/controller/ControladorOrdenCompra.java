@@ -50,7 +50,7 @@ public class ControladorOrdenCompra {
     public ResponseEntity<OrdenCompra> crear(@org.springframework.security.core.annotation.AuthenticationPrincipal UserDetails usuario)
             throws Exception {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(servicioOrdenCompra.crearOrdenCompra(usuario.getUsername()));
+            .body(servicioOrdenCompra.obtenerCarrito(usuario.getUsername()));
     }
 
     @PostMapping("/{ordenId}/detalles")
@@ -58,10 +58,9 @@ public class ControladorOrdenCompra {
             @PathVariable String ordenId,
             @RequestParam String productoId,
             @RequestParam int cantidad,
-            @RequestParam double precioUnitario,
             Authentication authentication) throws Exception {
-        return ResponseEntity.ok(servicioOrdenCompra.agregarDetalleAOrden(ordenId, productoId, cantidad,
-                precioUnitario, authentication.getName(), esAdministrativo(authentication)));
+            return ResponseEntity.ok(servicioOrdenCompra.agregarDetalleAOrden(ordenId, productoId, cantidad,
+                authentication.getName(), esAdministrativo(authentication)));
     }
 
     @PutMapping("/{id}/estado")

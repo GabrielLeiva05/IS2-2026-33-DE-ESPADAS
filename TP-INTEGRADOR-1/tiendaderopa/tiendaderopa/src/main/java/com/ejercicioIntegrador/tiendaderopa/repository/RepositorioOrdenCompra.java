@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RepositorioOrdenCompra extends JpaRepository<OrdenCompra, String> {
@@ -13,6 +14,9 @@ public interface RepositorioOrdenCompra extends JpaRepository<OrdenCompra, Strin
     List<OrdenCompra> findByEliminadoFalse();
 
     List<OrdenCompra> findByUsuario_IdAndEliminadoFalse(String usuarioId);
+
+        Optional<OrdenCompra> findFirstByUsuario_IdAndEstadoOrdenCompraAndEliminadoFalseOrderByFechaDesc(
+            String usuarioId, EstadoOrdenCompra estadoOrdenCompra);
 
     List<OrdenCompra> findByEstadoOrdenCompraAndEliminadoFalse(EstadoOrdenCompra estado);
 }

@@ -6,6 +6,8 @@ import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.model.Producto;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioOrdenCompra;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,12 @@ public class ServicioOrdenCompra {
     @Autowired
     private UsuarioServicio usuarioServicio;
 
+    @Autowired
+    private ServicioVigenciaPrecio servicioVigenciaPrecio;
+
+    @Autowired
+    private ServicioStock servicioStock;
+
     @Transactional(readOnly = true)
     public List<OrdenCompra> listarTodas() {
         return repositorioOrdenCompra.findAll();
@@ -44,6 +52,32 @@ public class ServicioOrdenCompra {
     public List<OrdenCompra> listarActivasDeUsuario(String email) throws Exception {
         Usuario usuario = usuarioServicio.buscarActivoPorNombreUsuario(email);
         return repositorioOrdenCompra.findByUsuario_IdAndEliminadoFalse(usuario.getId());
+    }
+
+    @Transactional
+    public OrdenCompra obtenerCarrito(String email) throws Exception {
+        Usuario usuario = usuarioServicio.buscarActivoPorNombreUsuario(email);
+        if (usuario.getRolUsuario() != com.ejercicioIntegrador.tiendaderopa.enumeraciones.RolUsuario.CLIENTE) {
+            throw new AccessDeniedException("Solo un cliente puede usar el carrito");
+        }
+        OrdenCompra carrito = repositorioOrdenCompra
+                .findFirstByUsuario_IdAndEstadoOrdenCompraAndEliminadoFalseOrderByFechaDesc(
+                        usuario.getId(), EstadoOrdenCompra.PENDIENTE_DE_PAGO)
+                .orElseGet(() -> {
+                    OrdenCompra nueva = new OrdenCompra();
+                    nueva.setIdentificadorCompra("ORD-" + UUID.randomUUID());
+                    nueva.setFecha(new Date());
+                    nueva.setEstadoOrdenCompra(EstadoOrdenCompra.PENDIENTE_DE_PAGO);
+                    nueva.setTotal(0.0);
+                    nueva.setEliminado(false);
+                    nueva.setUsuario(usuario);
+                    return repositorioOrdenCompra.save(nueva);
+                });
+        if (actualizarPreciosVigentes(carrito)) {
+            recalcularTotal(carrito);
+            repositorioOrdenCompra.save(carrito);
+        }
+        return carrito;
     }
 
     public List<OrdenCompra> listarPorEstado(EstadoOrdenCompra estado) {
@@ -80,27 +114,143 @@ public class ServicioOrdenCompra {
     }
 
     @Transactional
-    public OrdenCompra agregarDetalleAOrden(String ordenId, String productoId, int cantidad, double precioUnitario,
+    public OrdenCompra agregarDetalleAOrden(String ordenId, String productoId, int cantidad,
                                              String email, boolean administrativo) throws Exception {
         OrdenCompra orden = buscarAccesible(ordenId, email, administrativo);
-        if (orden.getEstadoOrdenCompra() != EstadoOrdenCompra.PENDIENTE_DE_PAGO) {
+        if (orden.getEstadoOrdenCompra() != EstadoOrdenCompra.PENDIENTE_DE_PAGO
+                || orden.getMercadoPagoPreferenceId() != null) {
             throw new IllegalStateException("Solo se pueden editar órdenes pendientes de pago");
         }
-        if (cantidad <= 0 || precioUnitario <= 0) {
-            throw new IllegalArgumentException("La cantidad y el precio deben ser mayores a cero");
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
         Producto producto = servicioProducto.buscarPorId(productoId); // Delega la búsqueda al servicio de Producto
+        if (producto.isEliminado()) {
+            throw new IllegalArgumentException("El producto ya no está disponible");
+        }
+
+        var vigencia = servicioVigenciaPrecio.buscarVigenciaPrecioVigente(productoId);
+        if (vigencia == null || vigencia.isEliminado() || vigencia.getFechaDesde().isAfter(java.time.LocalDate.now())) {
+            throw new IllegalStateException("El producto no tiene un precio vigente");
+        }
+
+        var stock = servicioStock.buscarStockActual(productoId);
+        int stockDisponible = stock == null ? 0 : stock.getCantActual();
+        int cantidadEnCarrito = orden.getDetalles().stream()
+                .filter(detalle -> !detalle.isEliminado() && detalle.getProducto().getId().equals(productoId))
+                .mapToInt(DetalleCompra::getCantidad)
+                .sum();
+        if (cantidadEnCarrito + cantidad > stockDisponible) {
+            throw new IllegalStateException("No hay stock suficiente para esa cantidad");
+        }
+
+        double subtotal = BigDecimal.valueOf(vigencia.getPrecio())
+                .multiply(BigDecimal.valueOf(cantidad))
+                .setScale(2, RoundingMode.HALF_UP)
+                .doubleValue();
 
         DetalleCompra detalle = new DetalleCompra();
         detalle.setProducto(producto);
         detalle.setCantidad(cantidad);
-        detalle.setSubtotal(cantidad * precioUnitario);
+        detalle.setSubtotal(subtotal);
         detalle.setOrdenCompra(orden);
         detalle.setEliminado(false);
 
         orden.getDetalles().add(detalle);
         recalcularTotal(orden);
 
+        return repositorioOrdenCompra.save(orden);
+    }
+
+    @Transactional
+    public OrdenCompra agregarAlCarrito(String productoId, int cantidad, String email) throws Exception {
+        OrdenCompra carrito = obtenerCarrito(email);
+        return agregarDetalleAOrden(carrito.getId(), productoId, cantidad, email, false);
+    }
+
+    @Transactional
+    public OrdenCompra eliminarDelCarrito(String detalleId, String email) throws Exception {
+        OrdenCompra carrito = obtenerCarrito(email);
+        if (carrito.getMercadoPagoPreferenceId() != null) {
+            throw new IllegalStateException("No se puede modificar el carrito luego de iniciar el pago");
+        }
+        DetalleCompra detalle = carrito.getDetalles().stream()
+                .filter(actual -> actual.getId().equals(detalleId) && !actual.isEliminado())
+                .findFirst()
+                .orElseThrow(() -> new AccessDeniedException("El producto no pertenece a tu carrito"));
+        detalle.setEliminado(true);
+        recalcularTotal(carrito);
+        return repositorioOrdenCompra.save(carrito);
+    }
+
+    @Transactional(readOnly = true)
+    public OrdenCompra validarCarritoParaCheckout(String id, String email) throws Exception {
+        OrdenCompra orden = buscarAccesible(id, email, false);
+        if (orden.getEstadoOrdenCompra() != EstadoOrdenCompra.PENDIENTE_DE_PAGO) {
+            throw new IllegalStateException("La orden no está pendiente de pago");
+        }
+        List<DetalleCompra> detalles = orden.getDetalles().stream()
+                .filter(detalle -> !detalle.isEliminado())
+                .toList();
+        if (detalles.isEmpty()) {
+            throw new IllegalStateException("Agregá al menos un producto antes de pagar");
+        }
+        for (DetalleCompra detalle : detalles) {
+            var precioVigente = servicioVigenciaPrecio.buscarVigenciaPrecioVigente(detalle.getProducto().getId());
+            if (precioVigente == null || precioVigente.isEliminado()
+                || precioVigente.getFechaDesde().isAfter(java.time.LocalDate.now())) {
+            throw new IllegalStateException("El producto " + detalle.getProducto().getNombre()
+                + " ya no tiene un precio vigente");
+            }
+            BigDecimal subtotalActual = BigDecimal.valueOf(precioVigente.getPrecio())
+                .multiply(BigDecimal.valueOf(detalle.getCantidad()))
+                .setScale(2, RoundingMode.HALF_UP);
+            if (subtotalActual.compareTo(BigDecimal.valueOf(detalle.getSubtotal())
+                .setScale(2, RoundingMode.HALF_UP)) != 0) {
+            throw new IllegalStateException("El precio de " + detalle.getProducto().getNombre()
+                + " cambió. Revisá el carrito antes de pagar");
+            }
+            var stock = servicioStock.buscarStockActual(detalle.getProducto().getId());
+            int disponible = stock == null ? 0 : stock.getCantActual();
+            if (detalle.getCantidad() > disponible) {
+                throw new IllegalStateException("El stock de " + detalle.getProducto().getNombre()
+                        + " cambió. Actualizá el carrito antes de pagar");
+            }
+        }
+        return orden;
+    }
+
+    @Transactional
+    public OrdenCompra registrarPreferenciaMercadoPago(String id, String email,
+            String preferenceId, String initPoint) throws Exception {
+        OrdenCompra orden = validarCarritoParaCheckout(id, email);
+        if (orden.getMercadoPagoPreferenceId() != null) {
+            throw new IllegalStateException("La orden ya tiene un pago iniciado");
+        }
+        orden.setMercadoPagoPreferenceId(preferenceId);
+        orden.setMercadoPagoInitPoint(initPoint);
+        orden.setMercadoPagoStatus("preference_created");
+        return repositorioOrdenCompra.save(orden);
+    }
+
+    @Transactional
+    public OrdenCompra registrarResultadoMercadoPago(String id, String paymentId, String paymentStatus)
+            throws Exception {
+        OrdenCompra orden = buscarPorId(id);
+        if (orden.getEstadoOrdenCompra() == EstadoOrdenCompra.PAGO_REALIZADO) {
+            if (paymentId.equals(orden.getMercadoPagoPaymentId())) {
+                return orden;
+            }
+            throw new IllegalStateException("La orden ya fue pagada con otra transacción");
+        }
+        if (orden.getEstadoOrdenCompra() != EstadoOrdenCompra.PENDIENTE_DE_PAGO) {
+            throw new IllegalStateException("La orden ya no puede recibir un pago");
+        }
+        orden.setMercadoPagoPaymentId(paymentId);
+        orden.setMercadoPagoStatus(paymentStatus);
+        if ("approved".equalsIgnoreCase(paymentStatus)) {
+            orden.setEstadoOrdenCompra(EstadoOrdenCompra.PAGO_REALIZADO);
+        }
         return repositorioOrdenCompra.save(orden);
     }
 
@@ -119,6 +269,11 @@ public class ServicioOrdenCompra {
         OrdenCompra orden = buscarAccesible(id, email, false);
         if (orden.getEstadoOrdenCompra() != EstadoOrdenCompra.PENDIENTE_DE_PAGO) {
             throw new IllegalStateException("Solo se puede anular una orden pendiente de pago");
+        }
+        if ("pending".equalsIgnoreCase(orden.getMercadoPagoStatus())
+                || "in_process".equalsIgnoreCase(orden.getMercadoPagoStatus())
+                || "preference_created".equalsIgnoreCase(orden.getMercadoPagoStatus())) {
+            throw new IllegalStateException("No se puede anular una orden mientras Mercado Pago procesa el pago");
         }
         orden.setEstadoOrdenCompra(EstadoOrdenCompra.ANULADA);
         repositorioOrdenCompra.save(orden);
@@ -140,6 +295,32 @@ public class ServicioOrdenCompra {
                 .mapToDouble(DetalleCompra::getSubtotal)
                 .sum();
         orden.setTotal(total);
+    }
+
+    private boolean actualizarPreciosVigentes(OrdenCompra carrito) {
+        if (carrito.getMercadoPagoPreferenceId() != null) {
+            return false;
+        }
+        boolean actualizado = false;
+        for (DetalleCompra detalle : carrito.getDetalles()) {
+            if (detalle.isEliminado()) {
+                continue;
+            }
+            var vigencia = servicioVigenciaPrecio.buscarVigenciaPrecioVigente(detalle.getProducto().getId());
+            if (vigencia == null || vigencia.isEliminado()
+                    || vigencia.getFechaDesde().isAfter(java.time.LocalDate.now())) {
+                continue;
+            }
+            double subtotal = BigDecimal.valueOf(vigencia.getPrecio())
+                    .multiply(BigDecimal.valueOf(detalle.getCantidad()))
+                    .setScale(2, RoundingMode.HALF_UP)
+                    .doubleValue();
+            if (Double.compare(detalle.getSubtotal(), subtotal) != 0) {
+                detalle.setSubtotal(subtotal);
+                actualizado = true;
+            }
+        }
+        return actualizado;
     }
 
     private OrdenCompra buscarAccesible(String id, String email, boolean administrativo) throws Exception {

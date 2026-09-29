@@ -26,7 +26,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/login", "/logincheck",
                     "/logout", "/registrar", "/registro", "/").permitAll()
+                .requestMatchers("/webhooks/mercadopago").permitAll()
+                .requestMatchers("/carrito", "/carrito/**", "/pago/resultado").hasRole("CLIENTE")
                 .requestMatchers(HttpMethod.GET, "/productos").permitAll()
+                .requestMatchers(HttpMethod.GET, "/imagen/**").permitAll()
                         .requestMatchers("/perfil", "/perfil/**", "/api/v1/perfil", "/api/v1/perfil/**")
                             .hasRole("CLIENTE")
                 .requestMatchers("/api/ordenes-compra/**")
@@ -61,7 +64,8 @@ public class SecurityConfig {
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login")
                         .permitAll()
-                );
+                )
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/webhooks/mercadopago"));
 
         return http.build();
     }

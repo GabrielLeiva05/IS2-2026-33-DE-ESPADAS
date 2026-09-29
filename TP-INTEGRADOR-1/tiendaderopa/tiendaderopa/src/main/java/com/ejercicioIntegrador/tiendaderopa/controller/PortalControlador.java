@@ -1,6 +1,7 @@
 package com.ejercicioIntegrador.tiendaderopa.controller;
 
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioCatalogo;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Departamento;
 import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
@@ -32,23 +33,27 @@ public class PortalControlador {
     private final ProvinciaServicio provinciaServicio;
     private final DepartamentoServicio departamentoServicio;
     private final LocalidadServicio localidadServicio;
+    private final ServicioCatalogo catalogoServicio;
 
     public PortalControlador(UsuarioServicio usuarioServicio,
                              DireccionServicio direccionServicio,
                              PaisServicio paisServicio,
                              ProvinciaServicio provinciaServicio,
                              DepartamentoServicio departamentoServicio,
-                             LocalidadServicio localidadServicio) {
+                             LocalidadServicio localidadServicio,
+                             ServicioCatalogo catalogoServicio) {
         this.usuarioServicio = usuarioServicio;
         this.direccionServicio = direccionServicio;
         this.paisServicio = paisServicio;
         this.provinciaServicio = provinciaServicio;
         this.departamentoServicio = departamentoServicio;
         this.localidadServicio = localidadServicio;
+        this.catalogoServicio = catalogoServicio;
     }
 
     @GetMapping("/")
-    public String index() {
+    public String index(ModelMap modelo) {
+        modelo.addAttribute("productos", catalogoServicio.listarDisponibles());
         return "index.html";
     }
 

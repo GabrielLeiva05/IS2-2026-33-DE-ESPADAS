@@ -15,13 +15,7 @@ public class ControladorProducto {
 
     @GetMapping("/productos")
     public String listaProductos(Model model) {
-        try {
-            model.addAttribute("productos", svcProducto.listarProductoActivo());
-            return "views/productos/lista";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
-        }
+        return "redirect:/";
     }
 
     @PostMapping("/formulario/producto/{id}")

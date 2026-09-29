@@ -1,9 +1,81 @@
-<!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Zero | Ropa deportiva</title>
+    <link rel="stylesheet" th:href="@{/css/store.css}">
+</head>
+<body class="storefront">
+<header class="store-header">
+    <a class="brand" th:href="@{/}">ZERO<span>.</span></a>
+    <nav aria-label="Navegación principal">
+        <a href="#productos">Productos</a>
+        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/carrito}">Mi carrito</a>
+        <a sec:authorize="isAnonymous()" th:href="@{/login}">Ingresar</a>
+        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/perfil}">Mi perfil</a>
+        <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
+            <button class="nav-logout" type="submit">Salir</button>
+        </form>
+    </nav>
+</header>
 
-<head th:replace="~{fragments/head :: head}"></head>
+<main>
+    <section class="store-intro">
+        <div>
+            <p class="eyebrow">ROPA DEPORTIVA · TODOS LOS DÍAS</p>
+            <h1>Movete a tu manera.</h1>
+            <p>Prendas, calzado y accesorios para acompañar cada ritmo.</p>
+        </div>
+        <a class="catalog-link" href="#productos">Ver catálogo <span aria-hidden="true">↓</span></a>
+    </section>
 
-<body>
-    pagina principal
+    <section id="productos" class="catalog-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">SELECCIÓN ZERO</p>
+                <h2>Productos disponibles</h2>
+            </div>
+            <span th:text="${#lists.size(productos)} + ' productos'"></span>
+        </div>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(productos)}">
+            No hay productos con precio vigente y stock disponible en este momento.
+        </p>
+
+        <div class="product-grid" th:if="${!#lists.isEmpty(productos)}">
+            <article class="product-item" th:each="item : ${productos}">
+                <div class="product-photo">
+                    <img th:if="${item.producto.imagen != null}"
+                         th:src="@{/imagen/{id}(id=${item.producto.imagen.id})}"
+                         th:alt="${item.producto.nombre}">
+                    <div class="photo-placeholder" th:if="${item.producto.imagen == null}">ZERO</div>
+                    <span class="offer-label" th:if="${item.producto.enOferta}">OFERTA</span>
+                </div>
+                <div class="product-copy">
+                    <p class="product-category"
+                       th:text="${item.producto.subCategoria != null ? item.producto.subCategoria.nombre : 'ZERO'}"></p>
+                    <h3 th:text="${item.producto.nombre}"></h3>
+                    <p class="product-description" th:text="${item.producto.descripcion}"></p>
+                    <p class="product-size" th:if="${item.producto.talle != null}"
+                              th:text="${'Talle ' + item.producto.talle}"></p>
+                    <div class="product-buy-row">
+                        <strong th:text="${'$ ' + #numbers.formatDecimal(item.precio, 1, 2, 'COMMA')}"></strong>
+                        <form sec:authorize="hasRole('CLIENTE')" th:action="@{/carrito/items}" method="post">
+                            <input type="hidden" name="productoId" th:value="${item.producto.id}">
+                            <input type="hidden" name="cantidad" value="1">
+                            <button type="submit" aria-label="Agregar al carrito">Agregar</button>
+                        </form>
+                        <a sec:authorize="isAnonymous()" th:href="@{/login}" class="sign-in-link">Ingresar para comprar</a>
+                    </div>
+                    <p class="stock-note" th:text="${item.stockDisponible} + ' disponibles'"></p>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+<footer class="store-footer"><span>ZERO</span><span>Ropa deportiva unisex</span></footer>
 </body>
 </html>

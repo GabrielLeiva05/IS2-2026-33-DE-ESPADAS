@@ -51,5 +51,17 @@ public class OrdenCompra {
     @JoinColumn(name = "usuario_id")
     @JsonIgnore
     private Usuario usuario;
+
+    @Column(name = "mercado_pago_preference_id", length = 100)
+    private String mercadoPagoPreferenceId;
+
+    @Column(name = "mercado_pago_init_point", length = 1000)
+    private String mercadoPagoInitPoint;
+
+    @Column(name = "mercado_pago_payment_id", length = 80)
+    private String mercadoPagoPaymentId;
+
+    @Column(name = "mercado_pago_status", length = 40)
+    private String mercadoPagoStatus;
     
 }
