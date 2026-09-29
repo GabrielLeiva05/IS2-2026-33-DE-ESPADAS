@@ -24,31 +24,83 @@
         <div class="cards">
             <div class="card">
                 <h3>Países</h3>
-                <p th:text="${paises != null ? #lists.size(paises) : 0}">0</p>
+                <p th:text="${paises != null ? paises.size() : 0}">0</p>
             </div>
-        </div>
-        <div class="cards">
             <div class="card">
                 <h3>Provincias</h3>
-                <p th:text="${provincias != null ? #lists.size(provincias) : 0}">0</p>
+                <p th:text="${provincias != null ? provincias.size() : 0}">0</p>
             </div>
-        </div>
-        <div class="cards">
             <div class="card">
                 <h3>Departamentos</h3>
-                <p th:text="${departamentos != null ? #lists.size(departamentos) : 0}">0</p>
+                <p th:text="${departamentos != null ? departamentos.size() : 0}">0</p>
             </div>
-        </div>
-        <div class="cards">
             <div class="card">
-                <h3>Localidad</h3>
-                <p th:text="${localidades != null ? #lists.size(localidades) : 0}">0</p>
+                <h3>Localidades</h3>
+                <p th:text="${localidades != null ? localidades.size() : 0}">0</p>
             </div>
-        </div>
-        <div class="cards">
             <div class="card">
-                <h3>Direccion</h3>
-                <p th:text="${direcciones != null ? #lists.size(direcciones) : 0}">0</p>
+                <h3>Direcciones</h3>
+                <p th:text="${direcciones != null ? direcciones.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Categorías</h3>
+                <p th:text="${categorias != null ? categorias.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Subcategorías</h3>
+                <p th:text="${subcategorias != null ? subcategorias.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Productos</h3>
+                <p th:text="${productos != null ? productos.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Precios</h3>
+                <p th:text="${vigencias != null ? vigencias.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Personas</h3>
+                <p th:text="${personas != null ? personas.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Usuarios</h3>
+                <p th:text="${usuarios != null ? usuarios.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Empleados</h3>
+                <p th:text="${empleados != null ? empleados.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Contactos telefónicos</h3>
+                <p th:text="${contactosTelefonicos != null ? contactosTelefonicos.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Contactos de correo</h3>
+                <p th:text="${contactosCorreo != null ? contactosCorreo.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Empresas</h3>
+                <p th:text="${empresas != null ? empresas.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Correos de empresa</h3>
+                <p th:text="${configuracionesCorreo != null ? configuracionesCorreo.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Formas de pago</h3>
+                <p th:text="${formasDePago != null ? formasDePago.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Proveedores</h3>
+                <p th:text="${proveedores != null ? proveedores.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Facturas de clientes</h3>
+                <p th:text="${facturasCliente != null ? facturasCliente.size() : 0}">0</p>
+            </div>
+            <div class="card">
+                <h3>Facturas de proveedores</h3>
+                <p th:text="${facturasProveedor != null ? facturasProveedor.size() : 0}">0</p>
             </div>
         </div>
     </section>
@@ -60,6 +112,21 @@
     <section th:replace="~{fragments/abmDepartamento :: abmDepartamento}"></section>
     <section th:replace="~{fragments/abmLocalidad :: abmLocalidad}"></section>
     <section th:replace="~{fragments/abmDireccion :: abmDireccion}"></section>
+    <section th:replace="~{fragments/abmCategoria :: abmCategoria}"></section>
+    <section th:replace="~{fragments/abmSubCategoria :: abmSubCategoria}"></section>
+    <section th:replace="~{fragments/abmProducto :: abmProducto}"></section>
+    <section th:replace="~{fragments/abmVigenciaPrecio :: abmVigenciaPrecio}"></section>
+    <section th:replace="~{fragments/abmPersona :: abmPersona}"></section>
+    <section th:replace="~{fragments/abmUsuario :: abmUsuario}"></section>
+    <section th:replace="~{fragments/abmEmpleado :: abmEmpleado}"></section>
+    <section th:replace="~{fragments/abmContactoTelefonico :: abmContactoTelefonico}"></section>
+    <section th:replace="~{fragments/abmContactoCorreo :: abmContactoCorreo}"></section>
+    <section th:replace="~{fragments/abmEmpresa :: abmEmpresa}"></section>
+    <section th:replace="~{fragments/abmConfiguracionCorreo :: abmConfiguracionCorreo}"></section>
+    <section th:replace="~{fragments/abmFormaDePago :: abmFormaDePago}"></section>
+    <section th:replace="~{fragments/abmProveedor :: abmProveedor}"></section>
+    <section th:replace="~{fragments/abmFacturaCliente :: abmFacturaCliente}"></section>
+    <section th:replace="~{fragments/abmFacturaProveedor :: abmFacturaProveedor}"></section>
 
 </main>
 
@@ -69,4 +136,4 @@
 <script th:src="@{/js/main.js}"></script>
 
 </body>
-</html>
+</html>

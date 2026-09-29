@@ -81,4 +81,10 @@ public class ServicioContactoCorreoElectronico {
     public List<ContactoCorreoElectronico> listarContactoCorreoElectronicoActivo() {
         return this.repositorio.findByEliminadoFalse();
     }
+
+    @Transactional(readOnly = true)
+    public ContactoCorreoElectronico buscarContactoCorreoElectronico(String id) throws MiException {
+        return this.repositorio.findById(id)
+                .orElseThrow(() -> new MiException("No existe un contacto de correo electrónico con id: " + id));
+    }
 }

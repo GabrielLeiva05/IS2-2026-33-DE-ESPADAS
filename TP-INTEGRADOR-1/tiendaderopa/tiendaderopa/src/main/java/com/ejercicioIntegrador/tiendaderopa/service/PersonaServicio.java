@@ -87,6 +87,11 @@ public class PersonaServicio {
                 .orElseThrow(() -> new MiException("No existe una persona con id: " + id));
     }
 
+    @Transactional(readOnly = true)
+    public List<Persona> listarTodas() {
+        return repositorio.findAll();
+    }
+
     @Transactional
     public Persona modificarPersona(String id, String nombre, String apellido, Date fechaNacimiento,
                                     TipoDocumento tipoDocumento, String documento) throws MiException {

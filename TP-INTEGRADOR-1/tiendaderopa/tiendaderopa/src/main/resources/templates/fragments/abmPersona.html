@@ -1,0 +1,131 @@
+<section id="personas" class="section" th:fragment="abmPersona">
+    <div class="header">
+        <h1>Personas</h1>
+        <p>Gestión y administración de personas.</p>
+    </div>
+
+    <!-- Mensajes de Éxito o Error -->
+    <div th:if="${exito != null}" class="alert alert-success" style="padding: 10px; margin-bottom: 15px; background: #d4edda; color: #155724; border-radius: 4px;">
+        <p th:text="${exito}" style="margin: 0;"></p>
+    </div>
+
+    <div th:if="${error != null}" class="alert alert-danger" style="padding: 10px; margin-bottom: 15px; background: #f8d7da; color: #721c24; border-radius: 4px;">
+        <p th:text="${error}" style="margin: 0;"></p>
+    </div>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+
+        <!-- Modo: Modificar -->
+        <form th:if="${persona != null}" th:action="@{/persona/modificar/{id}(id=${persona.id})}" method="POST">
+            <h3>Modificar Persona</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label>ID:</label>
+                <input type="text" th:value="${persona.id}" disabled style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="persona-nombre-mod">Nombre:</label>
+                <input type="text" id="persona-nombre-mod" name="nombre" th:value="${persona.nombre}" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="persona-apellido-mod">Apellido:</label>
+                <input type="text" id="persona-apellido-mod" name="apellido" th:value="${persona.apellido}" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="persona-fechaNacimiento-mod">Fecha de nacimiento:</label>
+                <input type="date" id="persona-fechaNacimiento-mod" name="fechaNacimiento" th:value="${#dates.format(persona.fechaNacimiento, 'yyyy-MM-dd')}" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="persona-tipoDocumento-mod">Tipo de documento:</label>
+                <select id="persona-tipoDocumento-mod" name="tipoDocumento" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposDocumento}" th:value="${en}" th:text="${en}" th:selected="${persona.tipoDocumento == en}"></option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="persona-documento-mod">Número de documento:</label>
+                <input type="text" id="persona-documento-mod" name="documento" th:value="${persona.documento}" placeholder="Ej. 30123456" required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
+                <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar -->
+        <form th:unless="${persona != null}" th:action="@{/persona/registro}" method="POST">
+            <h3>Registrar Nueva Persona</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label for="persona-nombre-reg">Nombre:</label>
+                <input type="text" id="persona-nombre-reg" name="nombre" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="persona-apellido-reg">Apellido:</label>
+                <input type="text" id="persona-apellido-reg" name="apellido" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="persona-fechaNacimiento-reg">Fecha de nacimiento:</label>
+                <input type="date" id="persona-fechaNacimiento-reg" name="fechaNacimiento" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="persona-tipoDocumento-reg">Tipo de documento:</label>
+                <select id="persona-tipoDocumento-reg" name="tipoDocumento" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposDocumento}" th:value="${en}" th:text="${en}"></option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="persona-documento-reg">Número de documento:</label>
+                <input type="text" id="persona-documento-reg" name="documento" placeholder="Ej. 30123456" required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Listado -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Listado de personas</h2>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Apellido y nombre</th>
+                <th>Documento</th>
+                <th>Nacimiento</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${personas != null}" th:each="r : ${personas}">
+                <td th:text="${r.id}">ID</td>
+                <td th:text="${r.apellido + ', ' + r.nombre}">Apellido y nombre</td>
+                <td th:text="${r.tipoDocumento + ' ' + r.documento}">Documento</td>
+                <td th:text="${#dates.format(r.fechaNacimiento, 'dd/MM/yyyy')}">Nacimiento</td>
+                <td>
+                    <span th:if="${r.eliminado}" style="color: red; font-weight: bold;">Eliminada</span>
+                    <span th:unless="${r.eliminado}" style="color: green; font-weight: bold;">Activa</span>
+                </td>
+                <td>
+                    <a th:href="@{/persona/modificar/{id}(id=${r.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+                    <a th:href="@{/persona/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta persona?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${personas == null or personas.isEmpty()}">
+                <td colspan="6" style="text-align: center;">No hay personas cargados en el sistema.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

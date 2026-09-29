@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 
 @Service
 public class ServicioCategoria {
@@ -75,6 +76,37 @@ public class ServicioCategoria {
             return true;
         } catch (Exception e) {
             throw new Exception(e.getMessage());
+        }
+    }
+
+    // ---------- Métodos usados por el ABM del dashboard ----------
+
+    @Transactional(readOnly = true)
+    public List<Categoria> listarTodas() {
+        return this.repositorio.findAll();
+    }
+
+    @Transactional
+    public Categoria crearCategoria(String nombre) throws MiException {
+        validarNombre(nombre);
+        Categoria categoria = new Categoria();
+        categoria.setNombre(nombre.trim());
+        categoria.setActivo(true);
+        return this.repositorio.save(categoria);
+    }
+
+    @Transactional
+    public Categoria modificarCategoria(String id, String nombre) throws MiException {
+        validarNombre(nombre);
+        Categoria categoria = this.repositorio.findById(id)
+                .orElseThrow(() -> new MiException("No se encontró la categoría solicitada"));
+        categoria.setNombre(nombre.trim());
+        return this.repositorio.save(categoria);
+    }
+
+    private void validarNombre(String nombre) throws MiException {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new MiException("El nombre de la categoría no puede estar vacío");
         }
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Mismo patrón que ServicioFacturaCliente: por composición, no por
@@ -24,6 +25,10 @@ public class ServicioFacturaProveedor {
     private RepositorioFacturaProveedor repositorio;
     @Autowired
     private ServicioFormaDePago svcFormaDePago;
+    @Autowired
+    private ServicioFactura svcFactura;
+    @Autowired
+    private ServicioProveedor svcProveedor;
 
     public void validar(Long numeroFactura, Date fechaFactura, String idFormaDePago) throws Exception {
         if (numeroFactura == null || numeroFactura < 1) {
@@ -65,4 +70,59 @@ public class ServicioFacturaProveedor {
     }
 
 // Pendiente: listarPorCliente(String idCliente)
+
+    // ---------- Métodos usados por el ABM del dashboard ----------
+
+    @Transactional(readOnly = true)
+    public List<FacturaProveedor> listarTodas() {
+        return repositorio.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public FacturaProveedor buscarFactura(String id) throws Exception {
+        return repositorio.findById(id)
+                .orElseThrow(() -> new Exception("No existe la factura con id " + id));
+    }
+
+    @Transactional
+    public void crearFactura(Long numeroFactura, Date fechaFactura, double totalPago, EstadoFactura estado,
+                             String idFormaDePago, String idProveedor) throws Exception {
+        validar(numeroFactura, fechaFactura, idFormaDePago);
+        validarTotalYEstado(totalPago, estado);
+        svcFactura.validarNumeroUnico(numeroFactura, null);
+        FacturaProveedor factura = new FacturaProveedor();
+        factura.setNumeroFactura(numeroFactura);
+        factura.setFechaFactura(fechaFactura);
+        factura.setTotalPagado(totalPago);
+        factura.setEstadoFactura(estado);
+        factura.setFormaDePago(svcFormaDePago.buscarFormaDePago(idFormaDePago));
+        factura.setProveedor(svcProveedor.buscarPorId(idProveedor));
+        factura.setEliminado(false);
+        repositorio.save(factura);
+    }
+
+    @Transactional
+    public void modificarFactura(String id, Long numeroFactura, Date fechaFactura, double totalPago,
+                                 EstadoFactura estado, String idFormaDePago, String idProveedor) throws Exception {
+        validar(numeroFactura, fechaFactura, idFormaDePago);
+        validarTotalYEstado(totalPago, estado);
+        svcFactura.validarNumeroUnico(numeroFactura, id);
+        FacturaProveedor factura = buscarFactura(id);
+        factura.setNumeroFactura(numeroFactura);
+        factura.setFechaFactura(fechaFactura);
+        factura.setTotalPagado(totalPago);
+        factura.setEstadoFactura(estado);
+        factura.setFormaDePago(svcFormaDePago.buscarFormaDePago(idFormaDePago));
+        factura.setProveedor(svcProveedor.buscarPorId(idProveedor));
+        repositorio.save(factura);
+    }
+
+    private void validarTotalYEstado(double totalPago, EstadoFactura estado) throws Exception {
+        if (totalPago < 0) {
+            throw new Exception("El total pagado no puede ser negativo");
+        }
+        if (estado == null) {
+            throw new Exception("El estado de la factura es obligatorio");
+        }
+    }
 }

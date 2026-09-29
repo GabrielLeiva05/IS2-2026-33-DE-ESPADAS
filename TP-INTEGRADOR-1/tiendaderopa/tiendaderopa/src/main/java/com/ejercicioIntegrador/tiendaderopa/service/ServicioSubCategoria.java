@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 
 @Service
 public class ServicioSubCategoria {
@@ -76,6 +77,42 @@ public class ServicioSubCategoria {
             return true;
         } catch (Exception e) {
             throw new Exception(e.getMessage());
+        }
+    }
+
+    // ---------- Métodos usados por el ABM del dashboard ----------
+
+    @Transactional(readOnly = true)
+    public List<SubCategoria> listarTodas() {
+        return this.repositorio.findAll();
+    }
+
+    @Transactional
+    public SubCategoria crearSubCategoria(String nombre, Categoria categoria) throws MiException {
+        validar(nombre, categoria);
+        SubCategoria subCategoria = new SubCategoria();
+        subCategoria.setNombre(nombre.trim());
+        subCategoria.setCategoria(categoria);
+        subCategoria.setActivo(true);
+        return this.repositorio.save(subCategoria);
+    }
+
+    @Transactional
+    public SubCategoria modificarSubCategoria(String id, String nombre, Categoria categoria) throws MiException {
+        validar(nombre, categoria);
+        SubCategoria subCategoria = this.repositorio.findById(id)
+                .orElseThrow(() -> new MiException("No se encontró la subcategoría solicitada"));
+        subCategoria.setNombre(nombre.trim());
+        subCategoria.setCategoria(categoria);
+        return this.repositorio.save(subCategoria);
+    }
+
+    private void validar(String nombre, Categoria categoria) throws MiException {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new MiException("El nombre de la subcategoría no puede estar vacío");
+        }
+        if (categoria == null) {
+            throw new MiException("Debe asociar una categoría a la subcategoría");
         }
     }
 }

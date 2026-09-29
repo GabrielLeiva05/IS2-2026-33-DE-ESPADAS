@@ -27,9 +27,12 @@ public class ServicioProducto {
     public void crearProducto(String codigo, String nombre, String descripcion, String talle,
                               boolean enOferta, String idImagen, String idSubCategoria) throws Exception {
         validarProducto(codigo, nombre, descripcion, talle, enOferta, idImagen, idSubCategoria);
+        if (repositorio.findByCodigo(codigo.trim()) != null) {
+            throw new Exception("Ya existe un producto con el código: " + codigo.trim());
+        }
 
         Producto producto = new Producto();
-        producto.setCodigo(codigo);
+        producto.setCodigo(codigo.trim());
         producto.setNombre(nombre);
         producto.setDescripcion(descripcion);
         producto.setTalle(talle);
@@ -50,6 +53,8 @@ public class ServicioProducto {
     @Transactional
     public void modificarProducto(String id, String nombre, String descripcion, String talle,
                                   boolean enOferta, String idImagen, String idSubCategoria) throws Exception {
+        if (nombre == null || nombre.isBlank()) throw new Exception("El nombre es obligatorio");
+        if (idSubCategoria == null || idSubCategoria.isBlank()) throw new Exception("Debe indicar una subcategoría");
         Producto producto = repositorio.findById(id)
                 .orElseThrow(() -> new Exception("No existe el producto con id " + id));
         producto.setNombre(nombre);
@@ -98,5 +103,12 @@ public class ServicioProducto {
         }
 
         return producto;
+    }
+
+    // ---------- Métodos usados por el ABM del dashboard ----------
+
+    public Producto buscarProducto(String id) throws Exception {
+        return repositorio.findById(id)
+                .orElseThrow(() -> new Exception("No existe el producto con id " + id));
     }
 }

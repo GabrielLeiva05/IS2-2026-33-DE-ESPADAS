@@ -1,0 +1,89 @@
+<section id="proveedores" class="section" th:fragment="abmProveedor">
+    <div class="header">
+        <h1>Proveedores</h1>
+        <p>Gestión y administración de proveedores.</p>
+    </div>
+
+    <!-- Mensajes de Éxito o Error -->
+    <div th:if="${exito != null}" class="alert alert-success" style="padding: 10px; margin-bottom: 15px; background: #d4edda; color: #155724; border-radius: 4px;">
+        <p th:text="${exito}" style="margin: 0;"></p>
+    </div>
+
+    <div th:if="${error != null}" class="alert alert-danger" style="padding: 10px; margin-bottom: 15px; background: #f8d7da; color: #721c24; border-radius: 4px;">
+        <p th:text="${error}" style="margin: 0;"></p>
+    </div>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+
+        <!-- Modo: Modificar -->
+        <form th:if="${proveedor != null}" th:action="@{/proveedor/modificar/{id}(id=${proveedor.id})}" method="POST">
+            <h3>Modificar Proveedor</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label>ID:</label>
+                <input type="text" th:value="${proveedor.id}" disabled style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="proveedor-razonSocial-mod">Razón social:</label>
+                <input type="text" id="proveedor-razonSocial-mod" name="razonSocial" th:value="${proveedor.razonSocial}" placeholder="Ej. Textil del Sur S.R.L." required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
+                <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar -->
+        <form th:unless="${proveedor != null}" th:action="@{/proveedor/registro}" method="POST">
+            <h3>Registrar Nuevo Proveedor</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label for="proveedor-razonSocial-reg">Razón social:</label>
+                <input type="text" id="proveedor-razonSocial-reg" name="razonSocial" placeholder="Ej. Textil del Sur S.R.L." required style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Listado -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Listado de proveedores</h2>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Razón social</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${proveedores != null}" th:each="r : ${proveedores}">
+                <td th:text="${r.id}">ID</td>
+                <td th:text="${r.razonSocial}">Razón social</td>
+                <td>
+                    <span th:if="${r.eliminado}" style="color: red; font-weight: bold;">Eliminado</span>
+                    <span th:unless="${r.eliminado}" style="color: green; font-weight: bold;">Activo</span>
+                </td>
+                <td>
+                    <a th:href="@{/proveedor/modificar/{id}(id=${r.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+                    <a th:href="@{/proveedor/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este proveedor?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${proveedores == null or proveedores.isEmpty()}">
+                <td colspan="4" style="text-align: center;">No hay proveedores cargados en el sistema.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

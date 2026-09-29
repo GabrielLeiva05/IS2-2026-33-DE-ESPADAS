@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.Date;
 
 @Service
 public class ServicioFactura {
@@ -46,4 +47,17 @@ public class ServicioFactura {
     // public DetalleFactura buscarDetalleFactura(String id) throws Exception { ... }
     // public DetalleFactura modificarDetalleFactura(String idDetalleFactura, String idProducto) throws Exception { ... }
     // public void eliminarDetalleFactura(String idDetalleFactura) throws Exception { ... }
+
+    // ---------- Reglas compartidas por FacturaCliente y FacturaProveedor ----------
+
+    public void validarNumeroUnico(Long numeroFactura, String idActual) throws Exception {
+        if (numeroFactura == null || numeroFactura < 1) {
+            throw new Exception("El número de factura debe ser mayor a 0");
+        }
+        repositorio.findByNumeroFactura(numeroFactura).ifPresent(existente -> {
+            if (idActual == null || !existente.getId().equals(idActual)) {
+                throw new IllegalStateException("Ya existe una factura con el número " + numeroFactura);
+            }
+        });
+    }
 }

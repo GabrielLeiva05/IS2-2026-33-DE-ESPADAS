@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ServicioFacturaCliente {
@@ -21,11 +22,13 @@ public class ServicioFacturaCliente {
         @Autowired
         private ServicioFormaDePago svcFormaDePago;
         @Autowired
+        private ServicioFactura svcFactura;
+        @Autowired
         private RepositorioFacturaCliente repositorio;
 
         public void crearFactura(Long numeroFactura, Date fechaFactura, double totalPago, EstadoFactura estado, String idFormaDePago) throws Exception {
             validar(numeroFactura, fechaFactura, totalPago, estado);
-            //validarNumeroFacturaUnico(numeroFactura, null);
+            svcFactura.validarNumeroUnico(numeroFactura, null);
             //Socio socio = socioService.buscarSocio(idSocio);
             FormaDePago formaDePago = svcFormaDePago.buscarFormaDePago(idFormaDePago);
 
@@ -67,4 +70,31 @@ public class ServicioFacturaCliente {
         }
 
     // Pendiente: listarPorCliente(String idCliente)
+
+    // ---------- Métodos usados por el ABM del dashboard ----------
+
+    @Transactional(readOnly = true)
+    public List<FacturaCliente> listarTodas() {
+        return repositorio.findAll();
     }
+
+    @Transactional(readOnly = true)
+    public FacturaCliente buscarFactura(String id) throws Exception {
+        return repositorio.findById(id)
+                .orElseThrow(() -> new Exception("No existe la factura con id " + id));
+    }
+
+    @Transactional
+    public void modificarFactura(String id, Long numeroFactura, Date fechaFactura, double totalPago,
+                                 EstadoFactura estado, String idFormaDePago) throws Exception {
+        validar(numeroFactura, fechaFactura, totalPago, estado);
+        svcFactura.validarNumeroUnico(numeroFactura, id);
+        FacturaCliente factura = buscarFactura(id);
+        factura.setNumeroFactura(numeroFactura);
+        factura.setFechaFactura(fechaFactura);
+        factura.setTotalPagado(totalPago);
+        factura.setEstadoFactura(estado);
+        factura.setFormaDePago(svcFormaDePago.buscarFormaDePago(idFormaDePago));
+        repositorio.save(factura);
+    }
+}

@@ -78,4 +78,10 @@ public class ServicioContactoTelefonico {
     public List<ContactoTelefonico> listarContactoTelefonicoActivo() {
         return this.repositorio.findByEliminadoFalse();
     }
+
+    @Transactional(readOnly = true)
+    public ContactoTelefonico buscarContactoTelefonico(String id) throws MiException {
+        return this.repositorio.findById(id)
+                .orElseThrow(() -> new MiException("No existe un contacto telefónico con id: " + id));
+    }
 }

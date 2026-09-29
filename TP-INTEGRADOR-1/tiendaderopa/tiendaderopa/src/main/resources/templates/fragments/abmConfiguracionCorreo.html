@@ -1,0 +1,146 @@
+<section id="correosempresa" class="section" th:fragment="abmConfiguracionCorreo">
+    <div class="header">
+        <h1>Correo de empresa</h1>
+        <p>Configuración SMTP para el envío automático de correos por empresa.</p>
+    </div>
+
+    <!-- Mensajes de Éxito o Error -->
+    <div th:if="${exito != null}" class="alert alert-success" style="padding: 10px; margin-bottom: 15px; background: #d4edda; color: #155724; border-radius: 4px;">
+        <p th:text="${exito}" style="margin: 0;"></p>
+    </div>
+
+    <div th:if="${error != null}" class="alert alert-danger" style="padding: 10px; margin-bottom: 15px; background: #f8d7da; color: #721c24; border-radius: 4px;">
+        <p th:text="${error}" style="margin: 0;"></p>
+    </div>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+
+        <!-- Modo: Modificar -->
+        <form th:if="${configuracionCorreo != null}" th:action="@{/config-correo/modificar/{id}(id=${configuracionCorreo.id})}" method="POST">
+            <h3>Modificar Configuración de Correo</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label>ID:</label>
+                <input type="text" th:value="${configuracionCorreo.id}" disabled style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-idEmpresa-mod">Empresa:</label>
+                <select id="configuracionCorreo-idEmpresa-mod" name="idEmpresa" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled>Seleccione una empresa</option>
+                    <option th:each="x : ${empresas}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}"
+                            th:selected="${configuracionCorreo.empresa != null and configuracionCorreo.empresa.id == x.id}">
+                    </option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-correo-mod">Correo:</label>
+                <input type="email" id="configuracionCorreo-correo-mod" name="correo" th:value="${configuracionCorreo.correo}" placeholder="Ej. ventas@empresa.com" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-clave-mod">Clave / contraseña de aplicación:</label>
+                <input type="password" id="configuracionCorreo-clave-mod" name="clave" placeholder="Dejar vacío para no cambiarla" style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-smtp-mod">Servidor SMTP:</label>
+                <input type="text" id="configuracionCorreo-smtp-mod" name="smtp" th:value="${configuracionCorreo.smtp}" placeholder="Ej. smtp.gmail.com" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-puerto-mod">Puerto:</label>
+                <input type="text" id="configuracionCorreo-puerto-mod" name="puerto" th:value="${configuracionCorreo.puerto}" placeholder="Ej. 587" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label><input type="checkbox" id="configuracionCorreo-tls-mod" name="tls" value="true" th:checked="${configuracionCorreo.tls}" /> Usar TLS</label>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
+                <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar -->
+        <form th:unless="${configuracionCorreo != null}" th:action="@{/config-correo/registro}" method="POST">
+            <h3>Registrar Nueva Configuración de Correo</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-idEmpresa-reg">Empresa:</label>
+                <select id="configuracionCorreo-idEmpresa-reg" name="idEmpresa" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled selected>Seleccione una empresa</option>
+                    <option th:each="x : ${empresas}" th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}">
+                    </option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-correo-reg">Correo:</label>
+                <input type="email" id="configuracionCorreo-correo-reg" name="correo" placeholder="Ej. ventas@empresa.com" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-clave-reg">Clave / contraseña de aplicación:</label>
+                <input type="password" id="configuracionCorreo-clave-reg" name="clave" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-smtp-reg">Servidor SMTP:</label>
+                <input type="text" id="configuracionCorreo-smtp-reg" name="smtp" placeholder="Ej. smtp.gmail.com" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="configuracionCorreo-puerto-reg">Puerto:</label>
+                <input type="text" id="configuracionCorreo-puerto-reg" name="puerto" placeholder="Ej. 587" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label><input type="checkbox" id="configuracionCorreo-tls-reg" name="tls" value="true" /> Usar TLS</label>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Listado -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Listado de configuraciones de correo</h2>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Empresa</th>
+                <th>Correo</th>
+                <th>SMTP</th>
+                <th>TLS</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${configuracionesCorreo != null}" th:each="r : ${configuracionesCorreo}">
+                <td th:text="${r.id}">ID</td>
+                <td th:text="${r.empresa != null ? r.empresa.razonSocial : '-'}">Empresa</td>
+                <td th:text="${r.correo}">Correo</td>
+                <td th:text="${r.smtp + ':' + r.puerto}">SMTP</td>
+                <td th:text="${r.tls ? 'Sí' : 'No'}">TLS</td>
+                <td>
+                    <span th:if="${r.eliminado}" style="color: red; font-weight: bold;">Eliminada</span>
+                    <span th:unless="${r.eliminado}" style="color: green; font-weight: bold;">Activa</span>
+                </td>
+                <td>
+                    <a th:href="@{/config-correo/modificar/{id}(id=${r.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+                    <a th:href="@{/config-correo/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta configuración?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${configuracionesCorreo == null or configuracionesCorreo.isEmpty()}">
+                <td colspan="7" style="text-align: center;">No hay configuraciones de correo cargados en el sistema.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>

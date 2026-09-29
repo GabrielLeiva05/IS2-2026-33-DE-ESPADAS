@@ -1,0 +1,115 @@
+<section id="empresas" class="section" th:fragment="abmEmpresa">
+    <div class="header">
+        <h1>Empresas</h1>
+        <p>Gestión y administración de empresas y sucursales.</p>
+    </div>
+
+    <!-- Mensajes de Éxito o Error -->
+    <div th:if="${exito != null}" class="alert alert-success" style="padding: 10px; margin-bottom: 15px; background: #d4edda; color: #155724; border-radius: 4px;">
+        <p th:text="${exito}" style="margin: 0;"></p>
+    </div>
+
+    <div th:if="${error != null}" class="alert alert-danger" style="padding: 10px; margin-bottom: 15px; background: #f8d7da; color: #721c24; border-radius: 4px;">
+        <p th:text="${error}" style="margin: 0;"></p>
+    </div>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <div class="form-container" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+
+        <!-- Modo: Modificar -->
+        <form th:if="${empresa != null}" th:action="@{/empresa/modificar/{id}(id=${empresa.id})}" method="POST">
+            <h3>Modificar Empresa</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label>ID:</label>
+                <input type="text" th:value="${empresa.id}" disabled style="width: 100%; padding: 8px;" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="empresa-razonSocial-mod">Razón social:</label>
+                <input type="text" id="empresa-razonSocial-mod" name="razonSocial" th:value="${empresa.razonSocial}" placeholder="Ej. Tienda de Ropa S.A." required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="empresa-cuit-mod">CUIT:</label>
+                <input type="text" id="empresa-cuit-mod" name="cuit" th:value="${empresa.cuit}" placeholder="Ej. 30-12345678-9" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="empresa-tipoSucursal-mod">Tipo de sucursal:</label>
+                <select id="empresa-tipoSucursal-mod" name="tipoSucursal" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposSucursal}" th:value="${en}" th:text="${en}" th:selected="${empresa.tipoSucursal == en}"></option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Actualizar</button>
+                <a th:href="@{/admin/dashboard}" style="margin-left: 10px; text-decoration: none; color: #555;">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar -->
+        <form th:unless="${empresa != null}" th:action="@{/empresa/registro}" method="POST">
+            <h3>Registrar Nueva Empresa</h3>
+
+            <div style="margin-bottom: 15px;">
+                <label for="empresa-razonSocial-reg">Razón social:</label>
+                <input type="text" id="empresa-razonSocial-reg" name="razonSocial" placeholder="Ej. Tienda de Ropa S.A." required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="empresa-cuit-reg">CUIT:</label>
+                <input type="text" id="empresa-cuit-reg" name="cuit" placeholder="Ej. 30-12345678-9" required style="width: 100%; padding: 8px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="empresa-tipoSucursal-reg">Tipo de sucursal:</label>
+                <select id="empresa-tipoSucursal-reg" name="tipoSucursal" required style="width: 100%; padding: 8px;">
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposSucursal}" th:value="${en}" th:text="${en}"></option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-submit" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px;">Guardar</button>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- Listado -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Listado de empresas</h2>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Razón social</th>
+                <th>CUIT</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${empresas != null}" th:each="r : ${empresas}">
+                <td th:text="${r.id}">ID</td>
+                <td th:text="${r.razonSocial}">Razón social</td>
+                <td th:text="${r.cuit}">CUIT</td>
+                <td th:text="${r.tipoSucursal}">Tipo</td>
+                <td>
+                    <span th:if="${r.eliminado}" style="color: red; font-weight: bold;">Eliminada</span>
+                    <span th:unless="${r.eliminado}" style="color: green; font-weight: bold;">Activa</span>
+                </td>
+                <td>
+                    <a th:href="@{/empresa/modificar/{id}(id=${r.id})}" class="btn-edit" style="text-decoration: none; padding: 5px 10px; background: #ffc107; color: black; border-radius: 3px;">Editar</a>
+                    <a th:href="@{/empresa/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta empresa?');" style="text-decoration: none; padding: 5px 10px; background: #dc3545; color: white; border-radius: 3px;">Eliminar</a>
+                </td>
+            </tr>
+            <tr th:if="${empresas == null or empresas.isEmpty()}">
+                <td colspan="6" style="text-align: center;">No hay empresas cargados en el sistema.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
