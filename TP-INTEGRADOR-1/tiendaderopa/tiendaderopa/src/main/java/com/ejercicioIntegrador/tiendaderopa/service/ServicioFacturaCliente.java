@@ -52,7 +52,36 @@ public class ServicioFacturaCliente {
         return repositorio.findByEliminadoFalse();
     }
 
+    public Collection<FacturaCliente> listarTodas() {
+        return repositorio.findAll();
+    }
+
     public Collection<FacturaCliente> listarPorEstado(EstadoFactura estado) {
         return repositorio.findByEstadoFactura(estado);
+    }
+
+    public FacturaCliente buscarPorId(String id) throws Exception {
+        return repositorio.findById(id)
+                .orElseThrow(() -> new Exception("No existe una factura de cliente con id " + id));
+    }
+
+    public void modificarFactura(String id, Long numeroFactura, Date fechaFactura, double totalPago,
+            EstadoFactura estado, String idFormaDePago) throws Exception {
+        validar(numeroFactura, fechaFactura, totalPago, estado);
+        FormaDePago formaDePago = svcFormaDePago.buscarFormaDePago(idFormaDePago);
+
+        FacturaCliente factura = buscarPorId(id);
+        factura.setNumeroFactura(numeroFactura);
+        factura.setFechaFactura(fechaFactura);
+        factura.setEstadoFactura(estado);
+        factura.setFormaDePago(formaDePago);
+        factura.setTotalPagado(totalPago);
+        repositorio.save(factura);
+    }
+
+    public void eliminarFactura(String id) throws Exception {
+        FacturaCliente factura = buscarPorId(id);
+        factura.setEliminado(true);
+        repositorio.save(factura);
     }
 }

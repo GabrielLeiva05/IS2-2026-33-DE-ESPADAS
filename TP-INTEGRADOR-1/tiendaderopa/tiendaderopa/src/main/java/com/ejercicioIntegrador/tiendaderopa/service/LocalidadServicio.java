@@ -31,6 +31,11 @@ public class LocalidadServicio {
 
     @Transactional
     public Localidad crearLocalidad(String nombre, Departamento departamento) throws MiException {
+        return crearLocalidad(nombre, null, departamento);
+    }
+
+    @Transactional
+    public Localidad crearLocalidad(String nombre, String codigoPostal, Departamento departamento) throws MiException {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new MiException("El nombre de la localidad no puede estar vacío");
         }
@@ -40,6 +45,24 @@ public class LocalidadServicio {
 
         Localidad localidad = new Localidad();
         localidad.setNombre(nombre.trim());
+        localidad.setCodigoPostal(codigoPostal == null ? "" : codigoPostal.trim());
+        localidad.setDepartamento(departamento);
+        return localidadRepositorio.save(localidad);
+    }
+
+    @Transactional
+    public Localidad modificarLocalidad(String id, String nombre, String codigoPostal, Departamento departamento)
+            throws MiException {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new MiException("El nombre de la localidad no puede estar vacío");
+        }
+        if (departamento == null) {
+            throw new MiException("Debe asociar un departamento a la localidad");
+        }
+
+        Localidad localidad = buscarPorId(id);
+        localidad.setNombre(nombre.trim());
+        localidad.setCodigoPostal(codigoPostal == null ? "" : codigoPostal.trim());
         localidad.setDepartamento(departamento);
         return localidadRepositorio.save(localidad);
     }

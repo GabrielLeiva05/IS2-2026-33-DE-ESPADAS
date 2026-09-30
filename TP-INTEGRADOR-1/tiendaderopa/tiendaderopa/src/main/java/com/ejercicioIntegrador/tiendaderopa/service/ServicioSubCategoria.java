@@ -78,4 +78,41 @@ public class ServicioSubCategoria {
             throw new Exception(e.getMessage());
         }
     }
+
+    @Transactional
+    public SubCategoria crear(String nombre, Categoria categoria) throws Exception {
+        if (nombre == null || nombre.isBlank()) {
+            throw new Exception("El nombre de la subcategoría no puede estar vacío");
+        }
+        if (categoria == null) {
+            throw new Exception("Debe seleccionar una categoría");
+        }
+        SubCategoria subCategoria = new SubCategoria();
+        subCategoria.setNombre(nombre.trim());
+        subCategoria.setActivo(true);
+        subCategoria.setCategoria(categoria);
+        return this.repositorio.save(subCategoria);
+    }
+
+    @Transactional
+    public SubCategoria modificar(String id, String nombre, Categoria categoria, boolean activo) throws Exception {
+        if (nombre == null || nombre.isBlank()) {
+            throw new Exception("El nombre de la subcategoría no puede estar vacío");
+        }
+        if (categoria == null) {
+            throw new Exception("Debe seleccionar una categoría");
+        }
+        SubCategoria subCategoria = findById(id);
+        subCategoria.setNombre(nombre.trim());
+        subCategoria.setCategoria(categoria);
+        subCategoria.setActivo(activo);
+        return this.repositorio.save(subCategoria);
+    }
+
+    @Transactional
+    public void eliminar(String id) throws Exception {
+        SubCategoria subCategoria = findById(id);
+        subCategoria.setActivo(false);
+        this.repositorio.save(subCategoria);
+    }
 }

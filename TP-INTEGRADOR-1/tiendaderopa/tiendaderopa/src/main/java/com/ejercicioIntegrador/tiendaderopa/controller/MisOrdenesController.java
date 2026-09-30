@@ -3,8 +3,10 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoOrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.model.DetalleCompra;
 import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompra;
+import com.ejercicioIntegrador.tiendaderopa.model.Producto;
 import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioOrdenCompra;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioProducto;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -22,9 +24,11 @@ import java.util.List;
 public class MisOrdenesController {
 
     private final ServicioOrdenCompra servicio;
+    private final ServicioProducto servicioProducto;
 
-    public MisOrdenesController(ServicioOrdenCompra servicio) {
+    public MisOrdenesController(ServicioOrdenCompra servicio, ServicioProducto servicioProducto) {
         this.servicio = servicio;
+        this.servicioProducto = servicioProducto;
     }
 
     @GetMapping("/mis-ordenes")
@@ -56,6 +60,8 @@ public class MisOrdenesController {
         model.addAttribute("permitirEliminar", false);
         model.addAttribute("permitirAgregarDetalle", true);
         model.addAttribute("ordenId", id);
+        model.addAttribute("productosDisponibles", AdminPageSupport.mapaOpciones(servicioProducto.listarProductoActivo(),
+                Producto::getId, Producto::getNombre));
         return "admin/registros";
     }
 

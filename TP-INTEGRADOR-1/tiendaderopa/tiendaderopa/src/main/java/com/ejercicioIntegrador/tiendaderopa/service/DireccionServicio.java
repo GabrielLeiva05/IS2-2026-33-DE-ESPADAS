@@ -5,6 +5,7 @@ import com.ejercicioIntegrador.tiendaderopa.model.Departamento;
 import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
 import com.ejercicioIntegrador.tiendaderopa.model.Localidad;
 import com.ejercicioIntegrador.tiendaderopa.model.Pais;
+import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.model.Provincia;
 import com.ejercicioIntegrador.tiendaderopa.repository.DireccionRepositorio;
 import org.springframework.stereotype.Service;
@@ -90,6 +91,81 @@ public class DireccionServicio {
         }
         if (barrio == null || barrio.trim().isEmpty()) {
             throw new MiException("El barrio no puede estar vacío");
+        }
+        if (calle == null || calle.trim().isEmpty()) {
+            throw new MiException("La calle no puede estar vacía");
+        }
+        if (numeracion == null || numeracion.trim().isEmpty()) {
+            throw new MiException("La numeración no puede estar vacía");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<Direccion> listarTodas() {
+        return direccionRepositorio.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Direccion buscarPorId(String id) throws MiException {
+        return direccionRepositorio.findById(id)
+                .orElseThrow(() -> new MiException("No se encontró la dirección solicitada"));
+    }
+
+    @Transactional
+    public Direccion crearDireccionAdmin(Persona persona, Localidad localidad, String codigoPostal, String barrio,
+            String calle, String numeracion, String manzanaPiso, String casaDepartamento, String referencia)
+            throws MiException {
+        validarDireccionAdmin(persona, localidad, codigoPostal, calle, numeracion);
+
+        Direccion direccion = new Direccion();
+        direccion.setPersona(persona);
+        direccion.setLocalidad(localidad);
+        direccion.setCodigoPostal(codigoPostal.trim());
+        direccion.setBarrio(barrio);
+        direccion.setCalle(calle.trim());
+        direccion.setNumeracion(numeracion.trim());
+        direccion.setManzanaPiso(manzanaPiso);
+        direccion.setCasaDepartamento(casaDepartamento);
+        direccion.setReferencia(referencia);
+        return direccionRepositorio.save(direccion);
+    }
+
+    @Transactional
+    public Direccion modificarDireccionAdmin(String id, Persona persona, Localidad localidad, String codigoPostal,
+            String barrio, String calle, String numeracion, String manzanaPiso, String casaDepartamento,
+            String referencia) throws MiException {
+        validarDireccionAdmin(persona, localidad, codigoPostal, calle, numeracion);
+
+        Direccion direccion = buscarPorId(id);
+        direccion.setPersona(persona);
+        direccion.setLocalidad(localidad);
+        direccion.setCodigoPostal(codigoPostal.trim());
+        direccion.setBarrio(barrio);
+        direccion.setCalle(calle.trim());
+        direccion.setNumeracion(numeracion.trim());
+        direccion.setManzanaPiso(manzanaPiso);
+        direccion.setCasaDepartamento(casaDepartamento);
+        direccion.setReferencia(referencia);
+        return direccionRepositorio.save(direccion);
+    }
+
+    @Transactional
+    public void eliminar(String id) throws MiException {
+        Direccion direccion = buscarPorId(id);
+        direccion.setEliminado(true);
+        direccionRepositorio.save(direccion);
+    }
+
+    private void validarDireccionAdmin(Persona persona, Localidad localidad, String codigoPostal, String calle,
+            String numeracion) throws MiException {
+        if (persona == null) {
+            throw new MiException("Debe seleccionar una persona");
+        }
+        if (localidad == null) {
+            throw new MiException("Debe seleccionar una localidad");
+        }
+        if (codigoPostal == null || codigoPostal.trim().isEmpty()) {
+            throw new MiException("El código postal no puede estar vacío");
         }
         if (calle == null || calle.trim().isEmpty()) {
             throw new MiException("La calle no puede estar vacía");

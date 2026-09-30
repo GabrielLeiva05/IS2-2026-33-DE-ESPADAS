@@ -3,8 +3,10 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
+import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
 import com.ejercicioIntegrador.tiendaderopa.service.PersonaServicio;
+import com.ejercicioIntegrador.tiendaderopa.service.UsuarioServicio;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,9 +20,11 @@ import java.util.Date;
 public class PersonaControlador {
 
     private final PersonaServicio servicio;
+    private final UsuarioServicio usuarioServicio;
 
-    public PersonaControlador(PersonaServicio servicio) {
+    public PersonaControlador(PersonaServicio servicio, UsuarioServicio usuarioServicio) {
         this.servicio = servicio;
+        this.usuarioServicio = usuarioServicio;
     }
 
     @GetMapping
@@ -125,6 +129,8 @@ public class PersonaControlador {
                         AdminPageSupport.campo("documento", "text", true)), seleccionada);
         model.addAttribute("asociacionUsuarios", true);
         model.addAttribute("desasociarUsuarios", true);
+        model.addAttribute("usuariosDisponibles", AdminPageSupport.mapaOpciones(usuarioServicio.listarTodos(),
+                Usuario::getId, Usuario::getNombreUsuario));
         return "admin/registros";
     }
 }

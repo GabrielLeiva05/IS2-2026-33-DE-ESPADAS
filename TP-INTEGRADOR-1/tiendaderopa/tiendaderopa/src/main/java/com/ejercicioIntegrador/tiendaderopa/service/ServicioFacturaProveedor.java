@@ -60,8 +60,45 @@ public class ServicioFacturaProveedor {
         return repositorio.findByEliminadoFalse();
     }
 
+    public Collection<FacturaProveedor> listarTodas() {
+        return repositorio.findAll();
+    }
+
     public Collection<FacturaProveedor> listarPorEstado(EstadoFactura estado) {
         return repositorio.findByEstadoFactura(estado);
+    }
+
+    public FacturaProveedor buscarPorId(String id) throws Exception {
+        return repositorio.findById(id)
+                .orElseThrow(() -> new Exception("No existe una factura de proveedor con id " + id));
+    }
+
+    @Transactional
+    public FacturaProveedor modificarFactura(String id, Long numeroFactura, Date fechaFactura, double totalPago,
+            EstadoFactura estado, String idFormaDePago, String idProveedor, String idOrdenCompraProveedor)
+            throws Exception {
+        validar(numeroFactura, fechaFactura, idFormaDePago);
+
+        FormaDePago formaDePago = svcFormaDePago.buscarFormaDePago(idFormaDePago);
+        Proveedor proveedor = svcProveedor.buscarProveedor(idProveedor);
+        OrdenCompraProveedor orden = svcOrdenCompraProveedor.buscarOrdenCompraProveedor(idOrdenCompraProveedor);
+
+        FacturaProveedor factura = buscarPorId(id);
+        factura.setNumeroFactura(numeroFactura);
+        factura.setFechaFactura(fechaFactura);
+        factura.setTotalPagado(totalPago);
+        factura.setEstadoFactura(estado);
+        factura.setFormaDePago(formaDePago);
+        factura.setProveedor(proveedor);
+        factura.setOrdenCompraProveedor(orden);
+        return repositorio.save(factura);
+    }
+
+    @Transactional
+    public void eliminarFactura(String id) throws Exception {
+        FacturaProveedor factura = buscarPorId(id);
+        factura.setEliminado(true);
+        repositorio.save(factura);
     }
 
     public FacturaProveedor buscarPorOrdenCompra(String idOrdenCompraProveedor) throws Exception {

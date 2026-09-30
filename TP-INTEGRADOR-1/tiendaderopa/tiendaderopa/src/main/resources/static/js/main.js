@@ -1,6 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const links = document.querySelectorAll(".menu-link");
+    // Resalta en el sidebar el enlace de página completa que corresponde a la URL actual.
+    const currentPath = window.location.pathname;
+    document.querySelectorAll(".menu-link:not([data-section])").forEach(link => {
+        const linkPath = new URL(link.href, window.location.origin).pathname;
+        if (currentPath === linkPath || currentPath.startsWith(linkPath + "/")) {
+            link.classList.add("active");
+        }
+    });
+
+    // Solo los enlaces con data-section son pestañas internas (SPA); el resto
+    // son enlaces normales a otras páginas del panel y deben navegar.
+    const links = document.querySelectorAll(".menu-link[data-section]");
     const sections = document.querySelectorAll(".section");
+
+    if (links.length === 0) {
+        return;
+    }
 
     function activarSeccion(sectionId) {
         // 1. Quitar 'active' de todos los enlaces y secciones
@@ -23,12 +38,17 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("seccionActiva", sectionId);
     }
 
-    // Evento al hacer clic en un enlace del sidebar
+    // Evento al hacer clic en un enlace del sidebar: si la sección existe en esta
+    // página se activa in-place; si no, se navega normalmente al dashboard.
     links.forEach(link => {
         link.addEventListener("click", function (event) {
-            event.preventDefault();
             const sectionId = this.dataset.section;
-            activarSeccion(sectionId);
+            if (document.getElementById(sectionId)) {
+                event.preventDefault();
+                activarSeccion(sectionId);
+            } else {
+                localStorage.setItem("seccionActiva", sectionId);
+            }
         });
     });
 

@@ -34,9 +34,12 @@
                     <td th:text="${cliente.direccionEstadia ?: '-'}"></td>
                     <td class="row-actions">
                         <a class="btn-edit" th:href="@{/admin/clientes/{id}/editar(id=${cliente.id})}">Editar</a>
-                        <form th:action="@{/admin/clientes/{id}/asociar-usuario(id=${cliente.id})}" method="post">
-                            <label class="visually-hidden" th:for="${'usuario-' + cliente.id}">ID de usuario</label>
-                            <input th:id="${'usuario-' + cliente.id}" name="usuarioId" required placeholder="ID de usuario">
+                        <form class="inline-form" th:action="@{/admin/clientes/{id}/asociar-usuario(id=${cliente.id})}" method="post">
+                            <label class="visually-hidden" th:for="${'usuario-' + cliente.id}">Usuario</label>
+                            <select th:id="${'usuario-' + cliente.id}" name="usuarioId" required>
+                                <option value="">Seleccionar usuario</option>
+                                <option th:each="opcion : ${usuariosDisponibles}" th:value="${opcion.key}" th:text="${opcion.value}"></option>
+                            </select>
                             <button class="btn-submit" type="submit">Asociar usuario</button>
                         </form>
                     </td>

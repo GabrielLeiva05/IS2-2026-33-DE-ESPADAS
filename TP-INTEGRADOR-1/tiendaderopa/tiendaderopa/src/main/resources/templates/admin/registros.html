@@ -44,7 +44,7 @@
                 <label th:for="${campo.nombre}" th:text="${campo.etiqueta}"></label>
                 <select th:if="${campo.tipo == 'select'}" th:id="${campo.nombre}" th:name="${campo.nombre}" th:required="${campo.requerido}">
                     <option value="">Seleccionar</option>
-                    <option th:each="opcion : ${campo.opciones}" th:value="${opcion}" th:text="${opcion}" th:selected="${opcion == valores[campo.nombre]}"></option>
+                    <option th:each="opcion : ${campo.opcionesMapa}" th:value="${opcion.key}" th:text="${opcion.value}" th:selected="${opcion.key == valores[campo.nombre]}"></option>
                 </select>
                   <textarea th:if="${campo.tipo == 'textarea'}" th:id="${campo.nombre}" th:name="${campo.nombre}"
                          th:text="${valores[campo.nombre]}" th:required="${campo.requerido}"></textarea>
@@ -63,7 +63,13 @@
     <section class="form-container" th:if="${permitirAgregarDetalle}">
         <h2>Agregar producto</h2>
         <form method="post" th:action="${basePath + '/' + ordenId + '/detalles'}">
-            <div class="form-group"><label for="productoId">ID del producto</label><input id="productoId" name="productoId" required></div>
+            <div class="form-group">
+                <label for="productoId">Producto</label>
+                <select id="productoId" name="productoId" required>
+                    <option value="">Seleccionar</option>
+                    <option th:each="opcion : ${productosDisponibles}" th:value="${opcion.key}" th:text="${opcion.value}"></option>
+                </select>
+            </div>
             <div class="form-group"><label for="cantidad">Cantidad</label><input id="cantidad" name="cantidad" type="number" min="1" value="1" required></div>
             <button class="btn-submit" type="submit">Agregar</button>
         </form>
@@ -96,8 +102,11 @@
                             <button class="btn-delete" type="submit">Eliminar</button>
                         </form>
                         <form method="post" th:if="${asociacionUsuarios}" th:action="${basePath + '/' + fila['id'] + '/usuario'}">
-                            <label class="visually-hidden" th:for="${'usuario-' + fila['id']}">ID de usuario</label>
-                            <input th:id="${'usuario-' + fila['id']}" name="usuarioId" required placeholder="ID de usuario">
+                            <label class="visually-hidden" th:for="${'usuario-' + fila['id']}">Usuario</label>
+                            <select th:id="${'usuario-' + fila['id']}" name="usuarioId" required>
+                                <option value="">Seleccionar usuario</option>
+                                <option th:each="opcion : ${usuariosDisponibles}" th:value="${opcion.key}" th:text="${opcion.value}"></option>
+                            </select>
                             <button class="btn-submit" type="submit">Asociar</button>
                         </form>
                         <form method="post" th:if="${desasociarUsuarios}" th:action="${basePath + '/' + fila['id'] + '/usuario/eliminar'}">

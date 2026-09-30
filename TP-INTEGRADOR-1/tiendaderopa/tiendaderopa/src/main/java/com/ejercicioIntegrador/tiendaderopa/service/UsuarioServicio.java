@@ -193,6 +193,64 @@ public class UsuarioServicio implements UserDetailsService {
                 .distinct()
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<Usuario> listarTodos() {
+        return usuarioRepositorio.findAll();
+    }
+
+    @Transactional
+    public Usuario crearUsuarioAdmin(String nombreUsuario, String clave, RolUsuario rolUsuario, String idPersona)
+            throws MiException {
+        if (nombreUsuario == null || nombreUsuario.trim().isEmpty()) {
+            throw new MiException("El nombre de usuario no puede estar vacío");
+        }
+        if (clave == null || clave.length() <= 5) {
+            throw new MiException("La contraseña debe tener más de 5 caracteres");
+        }
+        if (rolUsuario == null) {
+            throw new MiException("Debe indicar el rol del usuario");
+        }
+        Persona persona = personaServicio.buscarPersona(idPersona);
+
+        Usuario usuario = new Usuario();
+        usuario.setNombreUsuario(nombreUsuario.trim());
+        usuario.setClave(passwordEncoder.encode(clave));
+        usuario.setRolUsuario(rolUsuario);
+        usuario.setPersona(persona);
+        return usuarioRepositorio.save(usuario);
+    }
+
+    @Transactional
+    public Usuario modificarUsuarioAdmin(String id, String nombreUsuario, String clave, RolUsuario rolUsuario,
+            String idPersona) throws MiException {
+        if (nombreUsuario == null || nombreUsuario.trim().isEmpty()) {
+            throw new MiException("El nombre de usuario no puede estar vacío");
+        }
+        if (rolUsuario == null) {
+            throw new MiException("Debe indicar el rol del usuario");
+        }
+        Usuario usuario = buscarPorId(id);
+        Persona persona = personaServicio.buscarPersona(idPersona);
+
+        usuario.setNombreUsuario(nombreUsuario.trim());
+        if (clave != null && !clave.isBlank()) {
+            if (clave.length() <= 5) {
+                throw new MiException("La contraseña debe tener más de 5 caracteres");
+            }
+            usuario.setClave(passwordEncoder.encode(clave));
+        }
+        usuario.setRolUsuario(rolUsuario);
+        usuario.setPersona(persona);
+        return usuarioRepositorio.save(usuario);
+    }
+
+    @Transactional
+    public void eliminarUsuario(String id) throws MiException {
+        Usuario usuario = buscarPorId(id);
+        usuario.setEliminado(true);
+        usuarioRepositorio.save(usuario);
+    }
 }
 
 

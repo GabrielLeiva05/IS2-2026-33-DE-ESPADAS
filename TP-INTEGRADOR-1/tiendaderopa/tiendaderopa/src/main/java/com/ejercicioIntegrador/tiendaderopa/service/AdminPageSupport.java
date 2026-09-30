@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public final class AdminPageSupport {
 
@@ -59,15 +60,41 @@ public final class AdminPageSupport {
         model.addAttribute("nombreFiltroId", "id");
         model.addAttribute("permitirBuscarNombre", false);
         model.addAttribute("permitirMostrarActivos", false);
+        model.addAttribute("usuariosDisponibles", Map.of());
+        model.addAttribute("productosDisponibles", Map.of());
     }
 
     public static Map<String, Object> campo(String nombre, String tipo, boolean requerido, String... opciones) {
+        Map<String, String> mapa = new LinkedHashMap<>();
+        for (String opcion : opciones) {
+            mapa.put(opcion, opcion);
+        }
+        return campoConOpciones(nombre, tipo, requerido, mapa);
+    }
+
+    /** Campo de selección para una relación (FK): el value es el id real, el texto es la etiqueta legible. */
+    public static Map<String, Object> campoRelacion(String nombre, boolean requerido, Map<String, String> opciones) {
+        return campoConOpciones(nombre, "select", requerido, opciones);
+    }
+
+    /** Arma un mapa id -> etiqueta a partir de una colección de entidades, para usar en campoRelacion. */
+    public static <T> Map<String, String> mapaOpciones(Collection<T> entidades, Function<T, String> idFn,
+            Function<T, String> etiquetaFn) {
+        Map<String, String> mapa = new LinkedHashMap<>();
+        for (T entidad : entidades) {
+            mapa.put(idFn.apply(entidad), etiquetaFn.apply(entidad));
+        }
+        return mapa;
+    }
+
+    private static Map<String, Object> campoConOpciones(String nombre, String tipo, boolean requerido,
+            Map<String, String> opciones) {
         Map<String, Object> campo = new LinkedHashMap<>();
         campo.put("nombre", nombre);
         campo.put("etiqueta", etiqueta(nombre));
         campo.put("tipo", tipo);
         campo.put("requerido", requerido);
-        campo.put("opciones", List.of(opciones));
+        campo.put("opcionesMapa", opciones);
         return campo;
     }
 
@@ -124,8 +151,15 @@ public final class AdminPageSupport {
         if (valor instanceof Date fecha) {
             return new SimpleDateFormat("yyyy-MM-dd").format(fecha);
         }
-        if (valor instanceof TemporalAccessor || valor instanceof Enum<?>) {
+        if (valor instanceof TemporalAccessor || valor instanceof Enum<?> || valor instanceof CharSequence
+                || valor instanceof Number || valor instanceof Boolean) {
             return valor.toString();
+        }
+        // Entidad relacionada (FK): se muestra/compara por su id, no por Object#toString().
+        BeanWrapper bean = new BeanWrapperImpl(valor);
+        if (bean.isReadableProperty("id")) {
+            Object id = bean.getPropertyValue("id");
+            return id == null ? "" : id.toString();
         }
         return valor.toString();
     }

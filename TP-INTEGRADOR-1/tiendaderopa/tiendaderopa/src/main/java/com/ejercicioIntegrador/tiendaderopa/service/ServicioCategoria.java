@@ -77,4 +77,33 @@ public class ServicioCategoria {
             throw new Exception(e.getMessage());
         }
     }
+
+    @Transactional
+    public Categoria crear(String nombre) throws Exception {
+        if (nombre == null || nombre.isBlank()) {
+            throw new Exception("El nombre de la categoría no puede estar vacío");
+        }
+        Categoria categoria = new Categoria();
+        categoria.setNombre(nombre.trim());
+        categoria.setActivo(true);
+        return this.repositorio.save(categoria);
+    }
+
+    @Transactional
+    public Categoria modificar(String id, String nombre, boolean activo) throws Exception {
+        if (nombre == null || nombre.isBlank()) {
+            throw new Exception("El nombre de la categoría no puede estar vacío");
+        }
+        Categoria categoria = findById(id);
+        categoria.setNombre(nombre.trim());
+        categoria.setActivo(activo);
+        return this.repositorio.save(categoria);
+    }
+
+    @Transactional
+    public void eliminar(String id) throws Exception {
+        Categoria categoria = findById(id);
+        categoria.setActivo(false);
+        this.repositorio.save(categoria);
+    }
 }

@@ -45,6 +45,21 @@ public class DepartamentoServicio {
     }
 
     @Transactional
+    public Departamento modificarDepartamento(String id, String nombre, Provincia provincia) throws MiException {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new MiException("El nombre del departamento no puede estar vacío");
+        }
+        if (provincia == null) {
+            throw new MiException("Debe asociar una provincia al departamento");
+        }
+
+        Departamento departamento = buscarPorId(id);
+        departamento.setNombre(nombre.trim());
+        departamento.setProvincia(provincia);
+        return departamentoRepositorio.save(departamento);
+    }
+
+    @Transactional
     public void eliminar(String id) throws MiException {
         Departamento departamento = buscarPorId(id);
         departamentoRepositorio.delete(departamento);

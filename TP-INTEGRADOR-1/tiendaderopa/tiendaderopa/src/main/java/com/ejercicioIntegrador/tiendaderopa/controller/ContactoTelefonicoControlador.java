@@ -4,8 +4,10 @@ import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
+import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
+import com.ejercicioIntegrador.tiendaderopa.service.PersonaServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioContactoTelefonico;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioProveedor;
 import org.springframework.stereotype.Controller;
@@ -20,9 +22,14 @@ import java.util.List;
 public class ContactoTelefonicoControlador {
 
     private final ServicioContactoTelefonico servicio;
+    private final ServicioProveedor servicioProveedor;
+    private final PersonaServicio personaServicio;
 
-    public ContactoTelefonicoControlador(ServicioContactoTelefonico servicio, ServicioProveedor servicioProveedor) {
+    public ContactoTelefonicoControlador(ServicioContactoTelefonico servicio, ServicioProveedor servicioProveedor,
+            PersonaServicio personaServicio) {
         this.servicio = servicio;
+        this.servicioProveedor = servicioProveedor;
+        this.personaServicio = personaServicio;
     }
 
     @GetMapping
@@ -96,8 +103,12 @@ public class ContactoTelefonicoControlador {
                         AdminPageSupport.campo("tipoContacto", "select", true,
                                 java.util.Arrays.stream(TipoContacto.values()).map(Enum::name).toArray(String[]::new)),
                         AdminPageSupport.campo("observacion", "text", false),
-                        AdminPageSupport.campo("personaId", "text", false),
-                        AdminPageSupport.campo("proveedorId", "text", false)), seleccionado);
+                        AdminPageSupport.campoRelacion("personaId", false, AdminPageSupport.mapaOpciones(
+                                personaServicio.listarPersona(), Persona::getId,
+                                persona -> persona.getNombre() + " " + persona.getApellido())),
+                        AdminPageSupport.campoRelacion("proveedorId", false, AdminPageSupport.mapaOpciones(
+                                servicioProveedor.listarProveedorActivo(), Proveedor::getId, Proveedor::getRazonSocial))),
+                seleccionado);
                 model.addAttribute("permitirVerDetalle", true);
                 model.addAttribute("detallePath", "/admin/contactos");
         model.addAttribute("permitirEliminar", false);

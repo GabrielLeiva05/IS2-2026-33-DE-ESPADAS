@@ -1,8 +1,11 @@
 package com.ejercicioIntegrador.tiendaderopa.controller;
 
 import com.ejercicioIntegrador.tiendaderopa.model.Cliente;
+import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
+import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
 import com.ejercicioIntegrador.tiendaderopa.service.ClienteService;
+import com.ejercicioIntegrador.tiendaderopa.service.UsuarioServicio;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -19,6 +22,7 @@ import java.util.List;
 public class ClienteController {
 
     private final ClienteService service;
+    private final UsuarioServicio usuarioServicio;
 
     @GetMapping
     public String listar(@RequestParam(defaultValue = "false") boolean incluirInactivos, Model model) {
@@ -26,6 +30,8 @@ public class ClienteController {
         model.addAttribute("clientes", clientes);
         model.addAttribute("incluirInactivos", incluirInactivos);
         model.addAttribute("tiposDocumento", TipoDocumento.values());
+        model.addAttribute("usuariosDisponibles", AdminPageSupport.mapaOpciones(usuarioServicio.listarTodos(),
+                Usuario::getId, Usuario::getNombreUsuario));
         return "admin/clientes";
     }
 
