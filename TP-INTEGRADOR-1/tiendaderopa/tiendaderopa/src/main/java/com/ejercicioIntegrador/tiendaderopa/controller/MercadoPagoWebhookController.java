@@ -9,13 +9,13 @@ import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 public class MercadoPagoWebhookController {
 
     private final MercadoPagoCheckoutService checkoutService;
@@ -36,6 +36,7 @@ public class MercadoPagoWebhookController {
             @RequestHeader(name = "x-signature", required = false) String signature,
             @RequestHeader(name = "x-request-id", required = false) String requestId,
             @RequestBody(required = false) String body) throws Exception {
+                
         if (webhookSecret == null || webhookSecret.isBlank()) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
         }

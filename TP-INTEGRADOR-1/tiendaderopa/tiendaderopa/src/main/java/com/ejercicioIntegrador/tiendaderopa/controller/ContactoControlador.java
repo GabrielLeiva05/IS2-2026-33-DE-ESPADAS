@@ -2,13 +2,15 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Contacto;
+import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioContacto;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/contactos")
+@Controller
+@RequestMapping("/admin/contactos")
 public class ContactoControlador {
 
     private final ServicioContacto contactoServicio;
@@ -18,22 +20,28 @@ public class ContactoControlador {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarContacto(@PathVariable String id) {
+    public String buscarContacto(@PathVariable String id, Model model, RedirectAttributes redirect) {
         try {
             Contacto contacto = contactoServicio.buscarContacto(id);
-            return ResponseEntity.ok(contacto);
+            AdminPageSupport.cargar(model, "Contacto", "/admin/contactos", Contacto.class,
+                    java.util.List.of(contacto), java.util.List.of(), null);
+            model.addAttribute("permitirCrear", false);
+            model.addAttribute("permitirEditar", false);
+            return "admin/registros";
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/contactos/correo";
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminarContacto(@PathVariable String id) {
+    @PostMapping("/{id}/eliminar")
+    public String eliminarContacto(@PathVariable String id, RedirectAttributes redirect) {
         try {
             contactoServicio.eliminarContacto(id);
-            return ResponseEntity.noContent().build();
+            redirect.addFlashAttribute("mensaje", "Contacto eliminado correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/contactos/correo";
     }
 }

@@ -9,9 +9,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,7 +34,7 @@ class TiendaderopaApplicationTests {
 	@Test
 	@WithMockUser(roles = "ADMINISTRATIVO")
 	void administradorNoPuedeAccederAlPerfilDeCliente() throws Exception {
-		mockMvc.perform(get("/api/v1/perfil"))
+		mockMvc.perform(get("/perfil"))
 				.andExpect(status().isForbidden());
 	}
 
@@ -48,7 +48,7 @@ class TiendaderopaApplicationTests {
 	@Test
 	@WithMockUser(roles = "CLIENTE")
 	void clienteNoPuedeCambiarElEstadoDeUnaOrden() throws Exception {
-		mockMvc.perform(put("/api/ordenes-compra/orden-1/estado")
+		mockMvc.perform(post("/admin/ordenes-compra/orden-1/estado")
 					.param("estado", "PAGO_REALIZADO")
 					.with(csrf()))
 				.andExpect(status().isForbidden());
@@ -56,9 +56,28 @@ class TiendaderopaApplicationTests {
 
 	@Test
 	@WithMockUser(roles = "CLIENTE")
-	void apiDeEscrituraRequiereTokenCsrf() throws Exception {
-		mockMvc.perform(post("/api/ordenes-compra"))
+	void rutaMvcDeEscrituraRequiereTokenCsrf() throws Exception {
+		mockMvc.perform(post("/mis-ordenes/crear"))
 				.andExpect(status().isForbidden());
 	}
 
+
+	@Test
+	@WithMockUser(roles = "ADMINISTRATIVO")
+	void yaNoSePublicaLaApiRestDeClientes() throws Exception {
+		mockMvc.perform(get("/api/v1/clientes"))
+				.andExpect(status().isNotFound());
+		mockMvc.perform(get("/api/ordenes-compra"))
+				.andExpect(status().isNotFound());
+		mockMvc.perform(get("/api/v1/perfil"))
+				.andExpect(status().isNotFound());
+	}
+
+	@Test
+	@WithMockUser(roles = "ADMINISTRATIVO")
+	void listadoAdministrativoSeRenderizaComoHtml() throws Exception {
+		mockMvc.perform(get("/admin/nacionalidades"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentTypeCompatibleWith("text/html"));
+	}
 }

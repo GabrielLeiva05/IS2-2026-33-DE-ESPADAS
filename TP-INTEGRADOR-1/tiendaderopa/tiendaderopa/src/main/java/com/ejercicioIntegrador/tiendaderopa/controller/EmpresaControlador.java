@@ -3,15 +3,15 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoSucursal;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Empresa;
+import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioEmpresa;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/empresas")
+@Controller
+@RequestMapping("/admin/empresas")
 public class EmpresaControlador {
 
     private final ServicioEmpresa servicio;
@@ -21,71 +21,72 @@ public class EmpresaControlador {
     }
 
     @GetMapping
-    public List<Empresa> listar() {
-        return servicio.listarEmpresa();
+    public String listar(Model model) {
+        return mostrar(model, null);
     }
 
-    @GetMapping("/activas")
-    public List<Empresa> listarActivas() {
-        return servicio.listarEmpresaActiva();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> buscar(@PathVariable String id) {
+    @GetMapping("/{id}/editar")
+    public String editar(@PathVariable String id, Model model, RedirectAttributes redirect) {
         try {
-            Empresa empresa = servicio.buscarEmpresa(id);
-            return ResponseEntity.ok(empresa);
+            return mostrar(model, servicio.buscarEmpresa(id));
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
-
-    @GetMapping("/buscar")
-    public ResponseEntity<?> buscarPorNombre(@RequestParam String razonSocial) {
-        try {
-            Empresa empresa = servicio.buscarEmpresaPorNombre(razonSocial);
-            return ResponseEntity.ok(empresa);
-        } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/empresas";
         }
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(
+    public String crear(
             @RequestParam String razonSocial,
             @RequestParam String cuit,
-            @RequestParam TipoSucursal tipoSucursal
+            @RequestParam TipoSucursal tipoSucursal,
+            RedirectAttributes redirect
     ) {
         try {
-            Empresa empresa = servicio.crearEmpresa(razonSocial, cuit, tipoSucursal);
-            return ResponseEntity.status(HttpStatus.CREATED).body(empresa);
+            servicio.crearEmpresa(razonSocial, cuit, tipoSucursal);
+            redirect.addFlashAttribute("mensaje", "Empresa creada correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/empresas";
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> modificar(
+    @PostMapping("/{id}")
+    public String modificar(
             @PathVariable String id,
             @RequestParam String razonSocial,
             @RequestParam String cuit,
-            @RequestParam TipoSucursal tipoSucursal
+            @RequestParam TipoSucursal tipoSucursal,
+            RedirectAttributes redirect
     ) {
         try {
-            Empresa empresa = servicio.modificarEmpresa(id, razonSocial, cuit, tipoSucursal);
-            return ResponseEntity.ok(empresa);
+            servicio.modificarEmpresa(id, razonSocial, cuit, tipoSucursal);
+            redirect.addFlashAttribute("mensaje", "Empresa actualizada correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/empresas";
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable String id) {
+    @PostMapping("/{id}/eliminar")
+    public String eliminar(@PathVariable String id, RedirectAttributes redirect) {
         try {
             servicio.eliminarEmpresa(id);
-            return ResponseEntity.noContent().build();
+            redirect.addFlashAttribute("mensaje", "Empresa eliminada correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/empresas";
+    }
+
+    private String mostrar(Model model, Empresa seleccionada) {
+        AdminPageSupport.cargar(model, "Empresas", "/admin/empresas", Empresa.class,
+                servicio.listarEmpresa(), java.util.List.of(
+                        AdminPageSupport.campo("razonSocial", "text", true),
+                        AdminPageSupport.campo("cuit", "text", true),
+                        AdminPageSupport.campo("tipoSucursal", "select", true,
+                                java.util.Arrays.stream(TipoSucursal.values()).map(Enum::name).toArray(String[]::new))),
+                seleccionada);
+        return "admin/registros";
     }
 }

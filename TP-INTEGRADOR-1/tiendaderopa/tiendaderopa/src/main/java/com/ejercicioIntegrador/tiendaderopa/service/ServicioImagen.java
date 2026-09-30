@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
+import java.util.List;
 
 @Service
 public class ServicioImagen {
@@ -66,6 +67,10 @@ public class ServicioImagen {
 
     public Imagen findById(String id) {
         return imagenRepositorio.findById(id).orElse(null);
+    }
+
+    public List<Imagen> listar() {
+        return imagenRepositorio.findAll();
     }
 
     private byte[] extraerContenido(MultipartFile archivo) throws MiException {

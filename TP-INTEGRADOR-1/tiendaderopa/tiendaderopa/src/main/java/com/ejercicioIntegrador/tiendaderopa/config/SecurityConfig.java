@@ -27,18 +27,16 @@ public class SecurityConfig {
                 .requestMatchers("/css/**", "/js/**", "/img/**", "/login", "/logincheck",
                     "/logout", "/registrar", "/registro", "/").permitAll()
                 .requestMatchers("/webhooks/mercadopago").permitAll()
-                .requestMatchers("/carrito", "/carrito/**", "/pago/resultado").hasRole("CLIENTE")
+                .requestMatchers("/carrito", "/carrito/**", "/pago/resultado", "/mis-ordenes/**").hasRole("CLIENTE")
                 .requestMatchers(HttpMethod.GET, "/productos").permitAll()
                 .requestMatchers(HttpMethod.GET, "/imagen/**").permitAll()
-                        .requestMatchers("/perfil", "/perfil/**", "/api/v1/perfil", "/api/v1/perfil/**")
+                        .requestMatchers("/perfil", "/perfil/**")
                             .hasRole("CLIENTE")
-                .requestMatchers("/api/ordenes-compra/**")
-                    .hasAnyRole("CLIENTE", "ADMINISTRATIVO")
-                .requestMatchers("/admin/**", "/api/**", "/proveedores/**", "/contactos/**",
-                    "/configuraciones-correo/**", "/categorias/**", "/subcategorias/**",
+                .requestMatchers("/admin/**")
+                    .hasRole("ADMINISTRATIVO")
+                .requestMatchers("/categorias/**", "/subcategorias/**",
                     "/formulario/**", "/eliminar/**", "/ordenesCompraProveedor/**",
-                    "/facturas/**", "/imagen/**", "/empleados/**", "/empresas/**",
-                    "/personas/**", "/pais/**", "/provincia/**", "/api/v1/nacionalidades/**")
+                    "/facturas/**", "/imagen/**", "/pais/**", "/provincia/**")
                     .hasRole("ADMINISTRATIVO")
                         .anyRequest().hasRole("ADMINISTRATIVO")
                 )

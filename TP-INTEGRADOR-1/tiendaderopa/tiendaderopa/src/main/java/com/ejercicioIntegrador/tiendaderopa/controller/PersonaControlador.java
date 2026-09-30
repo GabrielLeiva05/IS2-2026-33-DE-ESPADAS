@@ -3,17 +3,18 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
+import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
 import com.ejercicioIntegrador.tiendaderopa.service.PersonaServicio;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
-import java.util.List;
 
-@RestController
-@RequestMapping("/personas")
+@Controller
+@RequestMapping("/admin/personas")
 public class PersonaControlador {
 
     private final PersonaServicio servicio;
@@ -23,85 +24,107 @@ public class PersonaControlador {
     }
 
     @GetMapping
-    public List<Persona> listar() {
-        return servicio.listarPersona();
+    public String listar(Model model) {
+        return mostrar(model, null);
     }
 
-    @GetMapping("/activas")
-    public List<Persona> listarActivas() {
-        return servicio.listarPersona();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> buscar(@PathVariable String id) {
+    @GetMapping("/{id}/editar")
+    public String editar(@PathVariable String id, Model model, RedirectAttributes redirect) {
         try {
-            Persona persona = servicio.buscarPersona(id);
-            return ResponseEntity.ok(persona);
+            return mostrar(model, servicio.buscarPersona(id));
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
+            return "redirect:/admin/personas";
         }
     }
 
+    @GetMapping("/nuevo")
+    public String nuevo(Model model) {
+        return mostrar(model, null);
+    }
+
     @PostMapping
-    public ResponseEntity<?> crear(
+    public String crear(
             @RequestParam String nombre,
             @RequestParam String apellido,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fechaNacimiento,
             @RequestParam TipoDocumento tipoDocumento,
-            @RequestParam String documento
+            @RequestParam String documento,
+            RedirectAttributes redirect
     ) {
         try {
-            Persona persona = servicio.crearPersona(nombre, apellido, fechaNacimiento, tipoDocumento, documento);
-            return ResponseEntity.status(HttpStatus.CREATED).body(persona);
+            servicio.crearPersona(nombre, apellido, fechaNacimiento, tipoDocumento, documento);
+            redirect.addFlashAttribute("mensaje", "Persona creada correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/personas";
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> modificar(
+    @PostMapping("/{id}")
+    public String modificar(
             @PathVariable String id,
             @RequestParam String nombre,
             @RequestParam String apellido,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fechaNacimiento,
             @RequestParam TipoDocumento tipoDocumento,
-            @RequestParam String documento
+            @RequestParam String documento,
+            RedirectAttributes redirect
     ) {
         try {
-            Persona persona = servicio.modificarPersona(id, nombre, apellido, fechaNacimiento, tipoDocumento, documento);
-            return ResponseEntity.ok(persona);
+            servicio.modificarPersona(id, nombre, apellido, fechaNacimiento, tipoDocumento, documento);
+            redirect.addFlashAttribute("mensaje", "Persona actualizada correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/personas";
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable String id) {
+    @PostMapping("/{id}/eliminar")
+    public String eliminar(@PathVariable String id, RedirectAttributes redirect) {
         try {
             servicio.eliminarPersona(id);
-            return ResponseEntity.noContent().build();
+            redirect.addFlashAttribute("mensaje", "Persona eliminada correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/personas";
     }
 
-    @PostMapping("/{idPersona}/usuario/{idUsuario}")
-    public ResponseEntity<?> asignarUsuario(@PathVariable String idPersona, @PathVariable String idUsuario) {
+    @PostMapping("/{idPersona}/usuario")
+    public String asignarUsuario(@PathVariable String idPersona, @RequestParam String usuarioId,
+            RedirectAttributes redirect) {
         try {
-            servicio.asignarUsuario(idPersona, idUsuario);
-            return ResponseEntity.ok().build();
+            servicio.asignarUsuario(idPersona, usuarioId);
+            redirect.addFlashAttribute("mensaje", "Usuario asociado correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/personas";
     }
 
-    @DeleteMapping("/{idPersona}/usuario")
-    public ResponseEntity<?> removerUsuario(@PathVariable String idPersona) {
+    @PostMapping("/{idPersona}/usuario/eliminar")
+    public String removerUsuario(@PathVariable String idPersona, RedirectAttributes redirect) {
         try {
             servicio.removerUsuario(idPersona);
-            return ResponseEntity.noContent().build();
+            redirect.addFlashAttribute("mensaje", "Usuario desasociado correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/personas";
+    }
+
+    private String mostrar(Model model, Persona seleccionada) {
+        AdminPageSupport.cargar(model, "Personas", "/admin/personas", Persona.class,
+                servicio.listarPersona(), java.util.List.of(
+                        AdminPageSupport.campo("nombre", "text", true),
+                        AdminPageSupport.campo("apellido", "text", true),
+                        AdminPageSupport.campo("fechaNacimiento", "date", true),
+                        AdminPageSupport.campo("tipoDocumento", "select", true,
+                                java.util.Arrays.stream(TipoDocumento.values()).map(Enum::name).toArray(String[]::new)),
+                        AdminPageSupport.campo("documento", "text", true)), seleccionada);
+        model.addAttribute("asociacionUsuarios", true);
+        model.addAttribute("desasociarUsuarios", true);
+        return "admin/registros";
     }
 }

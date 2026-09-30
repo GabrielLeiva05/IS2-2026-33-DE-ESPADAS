@@ -13,6 +13,7 @@
     <nav aria-label="Navegación principal">
         <a href="#productos">Productos</a>
         <a sec:authorize="hasRole('CLIENTE')" th:href="@{/carrito}">Mi carrito</a>
+        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/mis-ordenes}">Mis compras</a>
         <a sec:authorize="isAnonymous()" th:href="@{/login}">Ingresar</a>
         <a sec:authorize="hasRole('CLIENTE')" th:href="@{/perfil}">Mi perfil</a>
         <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">

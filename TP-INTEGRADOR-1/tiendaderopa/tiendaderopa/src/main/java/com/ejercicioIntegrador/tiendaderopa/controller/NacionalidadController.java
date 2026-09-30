@@ -1,53 +1,81 @@
 package com.ejercicioIntegrador.tiendaderopa.controller;
 
 import com.ejercicioIntegrador.tiendaderopa.model.Nacionalidad;
+import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
 import com.ejercicioIntegrador.tiendaderopa.service.NacionalidadService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-@RestController
-@RequestMapping("/api/v1/nacionalidades")
+@Controller
+@RequestMapping("/admin/nacionalidades")
 @RequiredArgsConstructor
 public class NacionalidadController {
 
     private final NacionalidadService service;
 
-    @PostMapping
-    public ResponseEntity<Nacionalidad> crear(@RequestBody Nacionalidad nacionalidad) {
-        return ResponseEntity.ok(service.crearNacionalidad(nacionalidad.getNombre()));
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Nacionalidad> buscarPorId(@PathVariable String id) {
-        return ResponseEntity.ok(service.buscarNacionalidad(id));
-    }
-
-    @GetMapping("/nombre/{nombre}")
-    public ResponseEntity<Nacionalidad> buscarPorNombre(@PathVariable String nombre) {
-        return ResponseEntity.ok(service.buscarNacionalidadPorNombre(nombre));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Nacionalidad> modificar(@PathVariable String id, @RequestBody Nacionalidad nacionalidad) {
-        return ResponseEntity.ok(service.modificarNacionalidad(id, nacionalidad.getNombre()));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable String id) {
-        service.eliminarNacionalidad(id);
-        return ResponseEntity.noContent().build();
-    }
-
     @GetMapping
-    public ResponseEntity<List<Nacionalidad>> listarTodas() {
-        return ResponseEntity.ok(service.listarNacionalidad());
+    public String listar(Model model) {
+        return mostrar(model, null, service.listarNacionalidad());
     }
 
     @GetMapping("/activas")
-    public ResponseEntity<List<Nacionalidad>> listarActivas() {
-        return ResponseEntity.ok(service.listarNacionalidadActiva());
+    public String listarActivas(Model model) {
+        return mostrar(model, null, service.listarNacionalidadActiva());
+    }
+
+    @GetMapping("/buscar")
+    public String buscarPorNombre(@RequestParam String nombre, Model model) {
+        model.addAttribute("permitirBuscarNombre", true);
+        return mostrar(model, null, java.util.List.of(service.buscarNacionalidadPorNombre(nombre)));
+    }
+
+    @GetMapping("/{id}/editar")
+    public String editar(@PathVariable String id, Model model) {
+        return mostrar(model, service.buscarNacionalidad(id), service.listarNacionalidad());
+    }
+
+    @PostMapping
+    public String crear(@RequestParam String nombre, RedirectAttributes redirect) {
+        try {
+            service.crearNacionalidad(nombre);
+            redirect.addFlashAttribute("mensaje", "Nacionalidad creada correctamente.");
+        } catch (RuntimeException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/nacionalidades";
+    }
+
+    @PostMapping("/{id}")
+    public String modificar(@PathVariable String id, @RequestParam String nombre, RedirectAttributes redirect) {
+        try {
+            service.modificarNacionalidad(id, nombre);
+            redirect.addFlashAttribute("mensaje", "Nacionalidad actualizada correctamente.");
+        } catch (RuntimeException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/nacionalidades";
+    }
+
+    @PostMapping("/{id}/eliminar")
+    public String eliminar(@PathVariable String id, RedirectAttributes redirect) {
+        try {
+            service.eliminarNacionalidad(id);
+            redirect.addFlashAttribute("mensaje", "Nacionalidad eliminada correctamente.");
+        } catch (RuntimeException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/nacionalidades";
+    }
+
+    private String mostrar(Model model, Nacionalidad seleccionada, java.util.Collection<Nacionalidad> nacionalidades) {
+        AdminPageSupport.cargar(model, "Nacionalidades", "/admin/nacionalidades", Nacionalidad.class,
+                nacionalidades, java.util.List.of(
+                        AdminPageSupport.campo("nombre", "text", true)), seleccionada);
+        model.addAttribute("permitirBuscarNombre", true);
+        model.addAttribute("permitirMostrarActivos", true);
+        return "admin/registros";
     }
 }

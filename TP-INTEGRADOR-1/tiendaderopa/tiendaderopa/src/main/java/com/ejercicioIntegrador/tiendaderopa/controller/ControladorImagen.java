@@ -3,15 +3,19 @@ package com.ejercicioIntegrador.tiendaderopa.controller;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoImagen;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Imagen;
+import com.ejercicioIntegrador.tiendaderopa.service.AdminPageSupport;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioImagen;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@RestController
-@RequestMapping("/imagen")
+@Controller
 public class ControladorImagen {
 
     private final ServicioImagen imagenServicio;
@@ -20,7 +24,20 @@ public class ControladorImagen {
         this.imagenServicio = imagenServicio;
     }
 
+    @GetMapping("/admin/imagenes")
+    public String listar(Model model) {
+        AdminPageSupport.cargar(model, "Imágenes", "/admin/imagenes", Imagen.class,
+                imagenServicio.listar(), java.util.List.of(
+                AdminPageSupport.campo("archivo", "file", true),
+                        AdminPageSupport.campo("tipoImagen", "select", true,
+                                java.util.Arrays.stream(TipoImagen.values()).map(Enum::name).toArray(String[]::new))), null);
+        model.addAttribute("permitirEditar", false);
+        model.addAttribute("permitirEliminar", false);
+        return "admin/registros";
+    }
+
     @GetMapping("/{id}")
+    @ResponseBody
     public ResponseEntity<byte[]> obtenerImagen(@PathVariable String id) {
 
 
@@ -39,30 +56,51 @@ public class ControladorImagen {
                 .body(imagen.getContenido());
     }
 
-    @PostMapping
-    public ResponseEntity<?> crearImagen(
+    @PostMapping("/admin/imagenes")
+    public String crearImagen(
             @RequestParam("archivo") MultipartFile archivo,
-            @RequestParam("tipoImagen") TipoImagen tipoImagen
+            @RequestParam("tipoImagen") TipoImagen tipoImagen,
+            RedirectAttributes redirect
     ) {
         try {
-            Imagen imagen = imagenServicio.guardar(archivo, tipoImagen);
-            return ResponseEntity.status(HttpStatus.CREATED).body(imagen);
+            imagenServicio.guardar(archivo, tipoImagen);
+            redirect.addFlashAttribute("mensaje", "Imagen guardada correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/imagenes";
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> modificarImagen(
+    @GetMapping("/admin/imagenes/{id}/editar")
+    public String editar(@PathVariable String id, Model model, RedirectAttributes redirect) {
+        Imagen imagen = imagenServicio.findById(id);
+        if (imagen == null) {
+            redirect.addFlashAttribute("error", "No se encontró la imagen.");
+            return "redirect:/admin/imagenes";
+        }
+        AdminPageSupport.cargar(model, "Imágenes", "/admin/imagenes", Imagen.class,
+                imagenServicio.listar(), java.util.List.of(
+                AdminPageSupport.campo("archivo", "file", true),
+                        AdminPageSupport.campo("tipoImagen", "select", true,
+                                java.util.Arrays.stream(TipoImagen.values()).map(Enum::name).toArray(String[]::new))), imagen);
+        model.addAttribute("permitirEditar", false);
+        model.addAttribute("permitirEliminar", false);
+        return "admin/registros";
+    }
+
+    @PostMapping("/admin/imagenes/{id}")
+    public String modificarImagen(
             @PathVariable String id,
             @RequestParam("archivo") MultipartFile archivo,
-            @RequestParam("tipoImagen") TipoImagen tipoImagen
+            @RequestParam("tipoImagen") TipoImagen tipoImagen,
+            RedirectAttributes redirect
     ) {
         try {
-            Imagen imagen = imagenServicio.actualizar(archivo, id, tipoImagen);
-            return ResponseEntity.ok(imagen);
+            imagenServicio.actualizar(archivo, id, tipoImagen);
+            redirect.addFlashAttribute("mensaje", "Imagen actualizada correctamente.");
         } catch (MiException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            redirect.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/imagenes";
     }
 }

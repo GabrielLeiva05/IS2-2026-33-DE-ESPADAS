@@ -69,6 +69,12 @@ public class ClienteService {
     public List<Cliente> listarClienteActivo() {
         return clienteRepository.findByEliminadoFalse();
     }
+
+    @Transactional(readOnly = true)
+    public Cliente buscarCliente(String id) {
+        return clienteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+    }
     
     @Transactional
     public void asociarClienteUsuario(String clienteId, String usuarioId) throws MiException {
