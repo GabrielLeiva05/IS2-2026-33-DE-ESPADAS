@@ -1,0 +1,66 @@
+package com.ejercicioIntegrador.tiendaderopa.model;
+
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.io.DataInput;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@Table(name ="Persona")
+@Inheritance(strategy = InheritanceType.JOINED)
+public class Persona implements Serializable {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false)
+    private String id;
+
+    @Column(nullable = false)
+    private String nombre;
+
+    @Column(nullable = false)
+    private String apellido;
+
+    @Column(length = 40)
+    private String sexo;
+
+    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL)
+    private List<Contacto> contactos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL)
+    private List<Usuario> usuarios = new ArrayList<>();
+
+    @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL)
+    private List<Direccion> direcciones = new ArrayList<>();
+
+    @Column(nullable = false)
+    private Date fechaNacimiento;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoDocumento tipoDocumento;
+
+    @Column(nullable = false)
+    private String documento;
+
+    @Column(nullable = false)
+    private boolean eliminado = false;
+
+    public Persona(String nombre, String apellido, Date fechaNacimiento, String documento, TipoDocumento tipoDocumento) {
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.fechaNacimiento = fechaNacimiento;
+        this.documento = documento;
+        this.tipoDocumento = tipoDocumento;
+    }
+}
