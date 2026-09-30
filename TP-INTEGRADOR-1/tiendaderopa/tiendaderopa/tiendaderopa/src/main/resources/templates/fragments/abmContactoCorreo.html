@@ -1,0 +1,150 @@
+<section id="correos" class="section" th:fragment="abmContactoCorreo">
+    <div class="header">
+        <h1>Contactos de correo</h1>
+        <p>Gestión de correos electrónicos de contacto de personas y proveedores.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Contacto de Correo -->
+        <form th:if="${contactoCorreo != null}" th:action="@{/admin/abm/contacto-correo/modificar/{id}(id=${contactoCorreo.id})}" method="POST">
+            <h3>Modificar contacto de correo</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${contactoCorreo.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label>Asociado a</label>
+                <input type="text" th:value="${contactoCorreo.persona != null ? contactoCorreo.persona.apellido + ', ' + contactoCorreo.persona.nombre : (contactoCorreo.proveedor != null ? contactoCorreo.proveedor.razonSocial : '-')}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="email-cor-mod">Correo electrónico</label>
+                <input type="email" id="email-cor-mod" name="email" th:value="${contactoCorreo.email}" placeholder="Ej. nombre@correo.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoContacto-cor-mod">Tipo de contacto</label>
+                <select id="tipoContacto-cor-mod" name="tipoContacto" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposContacto}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${contactoCorreo.tipoContacto == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="observacion-cor-mod">Observación</label>
+                <input type="text" id="observacion-cor-mod" name="observacion" th:value="${contactoCorreo.observacion}" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nuevo Contacto de Correo -->
+        <form th:unless="${contactoCorreo != null}" th:action="@{/admin/abm/contacto-correo/registro}" method="POST">
+            <h3>Registrar nuevo contacto de correo</h3>
+
+            <div class="form-group">
+                <label for="idPersona-cor-reg">Persona (opcional)</label>
+                <select id="idPersona-cor-reg" name="idPersona">
+                    <option value="">Sin persona</option>
+                    <option th:each="x : ${personas}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.apellido + ', ' + x.nombre + ' (' + x.documento + ')'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idProveedor-cor-reg">Proveedor (opcional)</label>
+                <select id="idProveedor-cor-reg" name="idProveedor">
+                    <option value="">Sin proveedor</option>
+                    <option th:each="x : ${proveedores}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="email-cor-reg">Correo electrónico</label>
+                <input type="email" id="email-cor-reg" name="email" placeholder="Ej. nombre@correo.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoContacto-cor-reg">Tipo de contacto</label>
+                <select id="tipoContacto-cor-reg" name="tipoContacto" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposContacto}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="observacion-cor-reg">Observación</label>
+                <input type="text" id="observacion-cor-reg" name="observacion" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de contactos de correo -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de contactos de correo</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Asociado a</th>
+                    <th>Correo</th>
+                    <th>Contacto</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${contactosCorreo != null}" th:each="r : ${contactosCorreo}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.persona != null ? r.persona.apellido + ', ' + r.persona.nombre : (r.proveedor != null ? r.proveedor.razonSocial : '-')}">Asociado a</td>
+                    <td th:text="${r.email}">Correo</td>
+                    <td th:text="${r.tipoContacto}">Contacto</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminado</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activo</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/contacto-correo/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/contacto-correo/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este contacto?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${contactosCorreo == null or contactosCorreo.isEmpty()}">
+                    <td colspan="6">No hay contactos de correo cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

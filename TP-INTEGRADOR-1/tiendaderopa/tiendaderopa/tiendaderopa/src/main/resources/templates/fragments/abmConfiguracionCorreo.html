@@ -1,0 +1,152 @@
+<section id="correosempresa" class="section" th:fragment="abmConfiguracionCorreo">
+    <div class="header">
+        <h1>Correo de empresa</h1>
+        <p>Configuración SMTP para el envío automático de correos por empresa.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Configuración de Correo -->
+        <form th:if="${configuracionCorreo != null}" th:action="@{/admin/abm/config-correo/modificar/{id}(id=${configuracionCorreo.id})}" method="POST">
+            <h3>Modificar configuración de correo</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${configuracionCorreo.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="idEmpresa-cfg-mod">Empresa</label>
+                <select id="idEmpresa-cfg-mod" name="idEmpresa" required>
+                    <option value="" disabled>Seleccione una empresa</option>
+                    <option th:each="x : ${empresas}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}"
+                            th:selected="${configuracionCorreo.empresa != null and configuracionCorreo.empresa.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="correo-cfg-mod">Correo</label>
+                <input type="email" id="correo-cfg-mod" name="correo" th:value="${configuracionCorreo.correo}" placeholder="Ej. ventas@empresa.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="clave-cfg-mod">Clave / contraseña de aplicación</label>
+                <input type="password" id="clave-cfg-mod" name="clave" placeholder="Dejar vacío para no cambiarla" />
+            </div>
+
+            <div class="form-group">
+                <label for="smtp-cfg-mod">Servidor SMTP</label>
+                <input type="text" id="smtp-cfg-mod" name="smtp" th:value="${configuracionCorreo.smtp}" placeholder="Ej. smtp.gmail.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="puerto-cfg-mod">Puerto</label>
+                <input type="text" id="puerto-cfg-mod" name="puerto" th:value="${configuracionCorreo.puerto}" placeholder="Ej. 587" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tls-cfg-mod"><input type="checkbox" id="tls-cfg-mod" name="tls" value="true" th:checked="${configuracionCorreo.tls}" /> Usar TLS</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Configuración de Correo -->
+        <form th:unless="${configuracionCorreo != null}" th:action="@{/admin/abm/config-correo/registro}" method="POST">
+            <h3>Registrar nueva configuración de correo</h3>
+
+            <div class="form-group">
+                <label for="idEmpresa-cfg-reg">Empresa</label>
+                <select id="idEmpresa-cfg-reg" name="idEmpresa" required>
+                    <option value="" disabled selected>Seleccione una empresa</option>
+                    <option th:each="x : ${empresas}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="correo-cfg-reg">Correo</label>
+                <input type="email" id="correo-cfg-reg" name="correo" placeholder="Ej. ventas@empresa.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="clave-cfg-reg">Clave / contraseña de aplicación</label>
+                <input type="password" id="clave-cfg-reg" name="clave" required />
+            </div>
+
+            <div class="form-group">
+                <label for="smtp-cfg-reg">Servidor SMTP</label>
+                <input type="text" id="smtp-cfg-reg" name="smtp" placeholder="Ej. smtp.gmail.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="puerto-cfg-reg">Puerto</label>
+                <input type="text" id="puerto-cfg-reg" name="puerto" placeholder="Ej. 587" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tls-cfg-reg"><input type="checkbox" id="tls-cfg-reg" name="tls" value="true" /> Usar TLS</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de configuraciones de correo -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de configuraciones de correo</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Empresa</th>
+                    <th>Correo</th>
+                    <th>SMTP</th>
+                    <th>TLS</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${configuracionesCorreo != null}" th:each="r : ${configuracionesCorreo}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.empresa != null ? r.empresa.razonSocial : '-'}">Empresa</td>
+                    <td th:text="${r.correo}">Correo</td>
+                    <td th:text="${r.smtp + ':' + r.puerto}">SMTP</td>
+                    <td th:text="${r.tls ? 'Sí' : 'No'}">TLS</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminada</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activa</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/config-correo/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/config-correo/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta configuración?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${configuracionesCorreo == null or configuracionesCorreo.isEmpty()}">
+                    <td colspan="7">No hay configuraciones de correo cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

@@ -1,0 +1,172 @@
+<section id="productos" class="section" th:fragment="abmProducto">
+    <div class="header">
+        <h1>Productos</h1>
+        <p>Gestión y administración del catálogo de productos.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Producto -->
+        <form th:if="${producto != null}" th:action="@{/admin/abm/producto/modificar/{id}(id=${producto.id})}" method="POST" enctype="multipart/form-data">
+            <h3>Modificar producto</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${producto.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label>Código</label>
+                <input type="text" th:value="${producto.codigo}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="nombre-prod-mod">Nombre</label>
+                <input type="text" id="nombre-prod-mod" name="nombre" th:value="${producto.nombre}" placeholder="Ej. Remera lisa" required />
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion-prod-mod">Descripción</label>
+                <input type="text" id="descripcion-prod-mod" name="descripcion" th:value="${producto.descripcion}" />
+            </div>
+
+            <div class="form-group">
+                <label for="talle-prod-mod">Talle</label>
+                <input type="text" id="talle-prod-mod" name="talle" th:value="${producto.talle}" placeholder="Ej. M" />
+            </div>
+
+            <div class="form-group">
+                <label for="idSubCategoria-prod-mod">Subcategoría</label>
+                <select id="idSubCategoria-prod-mod" name="idSubCategoria" required>
+                    <option value="" disabled>Seleccione una subcategoría</option>
+                    <option th:each="x : ${subcategorias}"
+                            th:value="${x.id}"
+                            th:text="${x.nombre + (x.categoria != null ? ' (' + x.categoria.nombre + ')' : '')}"
+                            th:selected="${producto.subCategoria != null and producto.subCategoria.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="enOferta-prod-mod"><input type="checkbox" id="enOferta-prod-mod" name="enOferta" value="true" th:checked="${producto.enOferta}" /> En oferta</label>
+            </div>
+
+            <div class="form-group" th:if="${producto.imagen != null}">
+                <label>Imagen actual</label>
+                <img th:src="@{/imagen/{id}(id=${producto.imagen.id})}" alt="Imagen actual" style="max-height: 80px; border-radius: 4px;" />
+            </div>
+
+            <div class="form-group">
+                <label for="archivo-prod-mod">Imagen (opcional)</label>
+                <input type="file" id="archivo-prod-mod" name="archivo" accept="image/*" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nuevo Producto -->
+        <form th:unless="${producto != null}" th:action="@{/admin/abm/producto/registro}" method="POST" enctype="multipart/form-data">
+            <h3>Registrar nuevo producto</h3>
+
+            <div class="form-group">
+                <label for="codigo-prod-reg">Código</label>
+                <input type="text" id="codigo-prod-reg" name="codigo" placeholder="Ej. REM-001" required />
+            </div>
+
+            <div class="form-group">
+                <label for="nombre-prod-reg">Nombre</label>
+                <input type="text" id="nombre-prod-reg" name="nombre" placeholder="Ej. Remera lisa" required />
+            </div>
+
+            <div class="form-group">
+                <label for="descripcion-prod-reg">Descripción</label>
+                <input type="text" id="descripcion-prod-reg" name="descripcion" />
+            </div>
+
+            <div class="form-group">
+                <label for="talle-prod-reg">Talle</label>
+                <input type="text" id="talle-prod-reg" name="talle" placeholder="Ej. M" />
+            </div>
+
+            <div class="form-group">
+                <label for="idSubCategoria-prod-reg">Subcategoría</label>
+                <select id="idSubCategoria-prod-reg" name="idSubCategoria" required>
+                    <option value="" disabled selected>Seleccione una subcategoría</option>
+                    <option th:each="x : ${subcategorias}"
+                            th:if="${x.activo}"
+                            th:value="${x.id}"
+                            th:text="${x.nombre + (x.categoria != null ? ' (' + x.categoria.nombre + ')' : '')}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="enOferta-prod-reg"><input type="checkbox" id="enOferta-prod-reg" name="enOferta" value="true" /> En oferta</label>
+            </div>
+
+            <div class="form-group">
+                <label for="archivo-prod-reg">Imagen (opcional)</label>
+                <input type="file" id="archivo-prod-reg" name="archivo" accept="image/*" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de productos -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de productos</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>Imagen</th>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Subcategoría</th>
+                    <th>Talle</th>
+                    <th>Oferta</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${productos != null}" th:each="r : ${productos}">
+                    <td>
+                        <img th:if="${r.imagen != null}" th:src="@{/imagen/{id}(id=${r.imagen.id})}" alt="Imagen" style="height: 40px; border-radius: 4px;" />
+                        <span th:unless="${r.imagen != null}">-</span>
+                    </td>
+                    <td th:text="${r.codigo}">Código</td>
+                    <td th:text="${r.nombre}">Nombre</td>
+                    <td th:text="${r.subCategoria != null ? r.subCategoria.nombre : 'Sin subcategoría'}">Subcategoría</td>
+                    <td th:text="${r.talle != null ? r.talle : '-'}">Talle</td>
+                    <td th:text="${r.enOferta ? 'Sí' : 'No'}">Oferta</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminado</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activo</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/producto/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/producto/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este producto?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${productos == null or productos.isEmpty()}">
+                    <td colspan="8">No hay productos cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

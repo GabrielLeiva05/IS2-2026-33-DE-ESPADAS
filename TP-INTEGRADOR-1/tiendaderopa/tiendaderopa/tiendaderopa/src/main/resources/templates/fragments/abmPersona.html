@@ -1,0 +1,141 @@
+<section id="personas" class="section" th:fragment="abmPersona">
+    <div class="header">
+        <h1>Personas</h1>
+        <p>Gestión y administración de personas.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Persona -->
+        <form th:if="${persona != null}" th:action="@{/admin/abm/persona/modificar/{id}(id=${persona.id})}" method="POST">
+            <h3>Modificar persona</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${persona.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="nombre-per-mod">Nombre</label>
+                <input type="text" id="nombre-per-mod" name="nombre" th:value="${persona.nombre}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="apellido-per-mod">Apellido</label>
+                <input type="text" id="apellido-per-mod" name="apellido" th:value="${persona.apellido}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaNacimiento-per-mod">Fecha de nacimiento</label>
+                <input type="date" id="fechaNacimiento-per-mod" name="fechaNacimiento" th:value="${#dates.format(persona.fechaNacimiento, 'yyyy-MM-dd')}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoDocumento-per-mod">Tipo de documento</label>
+                <select id="tipoDocumento-per-mod" name="tipoDocumento" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposDocumento}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${persona.tipoDocumento == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="documento-per-mod">Número de documento</label>
+                <input type="text" id="documento-per-mod" name="documento" th:value="${persona.documento}" placeholder="Ej. 30123456" required />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Persona -->
+        <form th:unless="${persona != null}" th:action="@{/admin/abm/persona/registro}" method="POST">
+            <h3>Registrar nueva persona</h3>
+
+            <div class="form-group">
+                <label for="nombre-per-reg">Nombre</label>
+                <input type="text" id="nombre-per-reg" name="nombre" required />
+            </div>
+
+            <div class="form-group">
+                <label for="apellido-per-reg">Apellido</label>
+                <input type="text" id="apellido-per-reg" name="apellido" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaNacimiento-per-reg">Fecha de nacimiento</label>
+                <input type="date" id="fechaNacimiento-per-reg" name="fechaNacimiento" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoDocumento-per-reg">Tipo de documento</label>
+                <select id="tipoDocumento-per-reg" name="tipoDocumento" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposDocumento}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="documento-per-reg">Número de documento</label>
+                <input type="text" id="documento-per-reg" name="documento" placeholder="Ej. 30123456" required />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de personas -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de personas</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Apellido y nombre</th>
+                    <th>Documento</th>
+                    <th>Nacimiento</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${personas != null}" th:each="r : ${personas}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.apellido + ', ' + r.nombre}">Apellido y nombre</td>
+                    <td th:text="${r.tipoDocumento + ' ' + r.documento}">Documento</td>
+                    <td th:text="${#dates.format(r.fechaNacimiento, 'dd/MM/yyyy')}">Nacimiento</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminada</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activa</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/persona/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/persona/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta persona?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${personas == null or personas.isEmpty()}">
+                    <td colspan="6">No hay personas cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

@@ -1,0 +1,175 @@
+<section id="telefonos" class="section" th:fragment="abmContactoTelefonico">
+    <div class="header">
+        <h1>Contactos telefónicos</h1>
+        <p>Gestión de teléfonos de contacto de personas y proveedores.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Contacto Telefónico -->
+        <form th:if="${contactoTelefonico != null}" th:action="@{/admin/abm/contacto-telefonico/modificar/{id}(id=${contactoTelefonico.id})}" method="POST">
+            <h3>Modificar contacto telefónico</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${contactoTelefonico.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label>Asociado a</label>
+                <input type="text" th:value="${contactoTelefonico.persona != null ? contactoTelefonico.persona.apellido + ', ' + contactoTelefonico.persona.nombre : (contactoTelefonico.proveedor != null ? contactoTelefonico.proveedor.razonSocial : '-')}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="telefono-tel-mod">Teléfono (solo dígitos)</label>
+                <input type="tel" id="telefono-tel-mod" name="telefono" th:value="${contactoTelefonico.telefono}" placeholder="Ej. 2614567890" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoTelefono-tel-mod">Tipo de teléfono</label>
+                <select id="tipoTelefono-tel-mod" name="tipoTelefono" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposTelefono}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${contactoTelefonico.tipoTelefono == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tipoContacto-tel-mod">Tipo de contacto</label>
+                <select id="tipoContacto-tel-mod" name="tipoContacto" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposContacto}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${contactoTelefonico.tipoContacto == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="observacion-tel-mod">Observación</label>
+                <input type="text" id="observacion-tel-mod" name="observacion" th:value="${contactoTelefonico.observacion}" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nuevo Contacto Telefónico -->
+        <form th:unless="${contactoTelefonico != null}" th:action="@{/admin/abm/contacto-telefonico/registro}" method="POST">
+            <h3>Registrar nuevo contacto telefónico</h3>
+
+            <div class="form-group">
+                <label for="idPersona-tel-reg">Persona (opcional)</label>
+                <select id="idPersona-tel-reg" name="idPersona">
+                    <option value="">Sin persona</option>
+                    <option th:each="x : ${personas}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.apellido + ', ' + x.nombre + ' (' + x.documento + ')'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idProveedor-tel-reg">Proveedor (opcional)</label>
+                <select id="idProveedor-tel-reg" name="idProveedor">
+                    <option value="">Sin proveedor</option>
+                    <option th:each="x : ${proveedores}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="telefono-tel-reg">Teléfono (solo dígitos)</label>
+                <input type="tel" id="telefono-tel-reg" name="telefono" placeholder="Ej. 2614567890" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoTelefono-tel-reg">Tipo de teléfono</label>
+                <select id="tipoTelefono-tel-reg" name="tipoTelefono" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposTelefono}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="tipoContacto-tel-reg">Tipo de contacto</label>
+                <select id="tipoContacto-tel-reg" name="tipoContacto" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposContacto}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="observacion-tel-reg">Observación</label>
+                <input type="text" id="observacion-tel-reg" name="observacion" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de contactos telefónicos -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de contactos telefónicos</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Asociado a</th>
+                    <th>Teléfono</th>
+                    <th>Tipo</th>
+                    <th>Contacto</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${contactosTelefonicos != null}" th:each="r : ${contactosTelefonicos}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.persona != null ? r.persona.apellido + ', ' + r.persona.nombre : (r.proveedor != null ? r.proveedor.razonSocial : '-')}">Asociado a</td>
+                    <td th:text="${r.telefono}">Teléfono</td>
+                    <td th:text="${r.tipoTelefono}">Tipo</td>
+                    <td th:text="${r.tipoContacto}">Contacto</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminado</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activo</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/contacto-telefonico/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/contacto-telefonico/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este contacto?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${contactosTelefonicos == null or contactosTelefonicos.isEmpty()}">
+                    <td colspan="7">No hay contactos telefónicos cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

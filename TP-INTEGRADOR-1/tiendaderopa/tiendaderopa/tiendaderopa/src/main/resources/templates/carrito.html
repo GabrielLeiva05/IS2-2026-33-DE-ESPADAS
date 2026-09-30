@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi carrito | Zero</title>
+    <link rel="stylesheet" th:href="@{/css/store.css}">
+</head>
+<body class="storefront">
+<header class="store-header">
+    <a class="brand" th:href="@{/}">ZERO<span>.</span></a>
+    <nav aria-label="Navegación principal">
+        <a th:href="@{/}">Seguir comprando</a>
+        <a th:href="@{/perfil}">Mi perfil</a>
+    </nav>
+</header>
+
+<main class="cart-main">
+    <div class="cart-heading">
+        <div>
+            <p class="eyebrow">TU COMPRA</p>
+            <h1>Mi carrito</h1>
+        </div>
+        <span th:text="${carrito.identificadorCompra}"></span>
+    </div>
+
+    <p class="feedback success" th:if="${mensaje != null}" th:text="${mensaje}"></p>
+    <p class="feedback error" th:if="${error != null}" th:text="${error}"></p>
+
+    <p class="empty-state" th:if="${#lists.isEmpty(lineas)}">Tu carrito todavía está vacío.</p>
+
+    <div class="cart-layout" th:if="${!#lists.isEmpty(lineas)}">
+        <section class="cart-lines" aria-label="Productos en el carrito">
+            <article class="cart-line" th:each="linea : ${lineas}">
+                <div class="cart-product-image">
+                    <img th:if="${linea.producto.imagen != null}"
+                         th:src="@{/imagen/{id}(id=${linea.producto.imagen.id})}"
+                         th:alt="${linea.producto.nombre}">
+                    <span th:if="${linea.producto.imagen == null}">ZERO</span>
+                </div>
+                <div class="cart-product-info">
+                    <h2 th:text="${linea.producto.nombre}"></h2>
+                    <p th:text="${linea.producto.talle != null ? 'Talle ' + linea.producto.talle : 'Ropa deportiva'}"></p>
+                    <p th:text="${'Cantidad: ' + linea.cantidad}"></p>
+                    <form th:if="${carrito.mercadoPagoPreferenceId == null}"
+                          th:action="@{/carrito/items/{id}/eliminar(id=${linea.id})}" method="post">
+                        <button class="remove-item" type="submit">Quitar</button>
+                    </form>
+                </div>
+                <strong th:text="${'$ ' + #numbers.formatDecimal(linea.subtotal, 1, 2, 'COMMA')}"></strong>
+            </article>
+        </section>
+
+        <aside class="cart-summary">
+            <p class="eyebrow">RESUMEN</p>
+            <div class="summary-total">
+                <span>Total</span>
+                <strong th:text="${'$ ' + #numbers.formatDecimal(carrito.total, 1, 2, 'COMMA')}"></strong>
+            </div>
+            <p>El pago se procesa en el checkout seguro de Mercado Pago.</p>
+            <form th:if="${carrito.mercadoPagoInitPoint == null}" th:action="@{/carrito/pagar}" method="post">
+                <button class="pay-button" type="submit">Pagar con Mercado Pago</button>
+            </form>
+            <a th:if="${carrito.mercadoPagoInitPoint != null}"
+               class="pay-button pay-link" th:href="${carrito.mercadoPagoInitPoint}">Continuar con el pago</a>
+        </aside>
+    </div>
+</main>
+
+<footer class="store-footer"><span>ZERO</span><span>Pagos protegidos por Mercado Pago</span></footer>
+</body>
+</html>

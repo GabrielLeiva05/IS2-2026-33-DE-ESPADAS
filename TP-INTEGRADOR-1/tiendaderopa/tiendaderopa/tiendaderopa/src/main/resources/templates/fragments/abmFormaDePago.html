@@ -1,0 +1,109 @@
+<section id="formasdepago" class="section" th:fragment="abmFormaDePago">
+    <div class="header">
+        <h1>Formas de pago</h1>
+        <p>Gestión y administración de formas de pago.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Forma de Pago -->
+        <form th:if="${formaDePago != null}" th:action="@{/admin/abm/forma-de-pago/modificar/{id}(id=${formaDePago.id})}" method="POST">
+            <h3>Modificar forma de pago</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${formaDePago.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoPago-fdp-mod">Tipo de pago</label>
+                <select id="tipoPago-fdp-mod" name="tipoPago" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposPago}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${formaDePago.tipoPago == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="observacion-fdp-mod">Observación</label>
+                <input type="text" id="observacion-fdp-mod" name="observacion" th:value="${formaDePago.observacion}" placeholder="Ej. Cuenta corriente Banco X" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Forma de Pago -->
+        <form th:unless="${formaDePago != null}" th:action="@{/admin/abm/forma-de-pago/registro}" method="POST">
+            <h3>Registrar nueva forma de pago</h3>
+
+            <div class="form-group">
+                <label for="tipoPago-fdp-reg">Tipo de pago</label>
+                <select id="tipoPago-fdp-reg" name="tipoPago" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposPago}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="observacion-fdp-reg">Observación</label>
+                <input type="text" id="observacion-fdp-reg" name="observacion" placeholder="Ej. Cuenta corriente Banco X" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de formas de pago -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de formas de pago</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo de pago</th>
+                    <th>Observación</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${formasDePago != null}" th:each="r : ${formasDePago}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.tipoPago}">Tipo de pago</td>
+                    <td th:text="${r.observacion != null ? r.observacion : '-'}">Observación</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminada</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activa</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/forma-de-pago/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/forma-de-pago/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta forma de pago?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${formasDePago == null or formasDePago.isEmpty()}">
+                    <td colspan="5">No hay formas de pago cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

@@ -1,0 +1,134 @@
+<section id="precios" class="section" th:fragment="abmVigenciaPrecio">
+    <div class="header">
+        <h1>Precios</h1>
+        <p>Gestión de vigencias de precio por producto.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Vigencia de Precio -->
+        <form th:if="${vigencia != null}" th:action="@{/admin/abm/vigencia-precio/modificar/{id}(id=${vigencia.id})}" method="POST">
+            <h3>Modificar vigencia de precio</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${vigencia.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="idProducto-vig-mod">Producto</label>
+                <select id="idProducto-vig-mod" name="idProducto" required>
+                    <option value="" disabled>Seleccione un producto</option>
+                    <option th:each="x : ${productos}"
+                            th:value="${x.id}"
+                            th:text="${x.codigo + ' - ' + x.nombre}"
+                            th:selected="${vigencia.producto != null and vigencia.producto.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fechaDesde-vig-mod">Vigente desde</label>
+                <input type="date" id="fechaDesde-vig-mod" name="fechaDesde" th:value="${vigencia.fechaDesde}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaHasta-vig-mod">Vigente hasta (opcional)</label>
+                <input type="date" id="fechaHasta-vig-mod" name="fechaHasta" th:value="${vigencia.fechaHasta}" />
+            </div>
+
+            <div class="form-group">
+                <label for="precio-vig-mod">Precio</label>
+                <input type="number" id="precio-vig-mod" name="precio" th:value="${vigencia.precio}" placeholder="Ej. 15999.90" step="0.01" min="0.01" required />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Vigencia de Precio -->
+        <form th:unless="${vigencia != null}" th:action="@{/admin/abm/vigencia-precio/registro}" method="POST">
+            <h3>Registrar nueva vigencia de precio</h3>
+
+            <div class="form-group">
+                <label for="idProducto-vig-reg">Producto</label>
+                <select id="idProducto-vig-reg" name="idProducto" required>
+                    <option value="" disabled selected>Seleccione un producto</option>
+                    <option th:each="x : ${productos}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.codigo + ' - ' + x.nombre}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="fechaDesde-vig-reg">Vigente desde</label>
+                <input type="date" id="fechaDesde-vig-reg" name="fechaDesde" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaHasta-vig-reg">Vigente hasta (opcional)</label>
+                <input type="date" id="fechaHasta-vig-reg" name="fechaHasta" />
+            </div>
+
+            <div class="form-group">
+                <label for="precio-vig-reg">Precio</label>
+                <input type="number" id="precio-vig-reg" name="precio" placeholder="Ej. 15999.90" step="0.01" min="0.01" required />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de vigencias de precio -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de vigencias de precio</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Desde</th>
+                    <th>Hasta</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${vigencias != null}" th:each="r : ${vigencias}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.producto != null ? r.producto.nombre : '-'}">Producto</td>
+                    <td th:text="${'$ ' + r.precio}">Precio</td>
+                    <td th:text="${r.fechaDesde}">Desde</td>
+                    <td th:text="${r.fechaHasta != null ? r.fechaHasta : 'Vigente'}">Hasta</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminada</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activa</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/vigencia-precio/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/vigencia-precio/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta vigencia de precio?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${vigencias == null or vigencias.isEmpty()}">
+                    <td colspan="7">No hay vigencias de precio cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

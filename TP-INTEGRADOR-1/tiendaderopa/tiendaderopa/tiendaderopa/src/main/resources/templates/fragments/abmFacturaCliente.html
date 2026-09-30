@@ -1,0 +1,157 @@
+<section id="facturascliente" class="section" th:fragment="abmFacturaCliente">
+    <div class="header">
+        <h1>Facturas de clientes</h1>
+        <p>Gestión y administración de facturas emitidas a clientes.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Factura de Cliente -->
+        <form th:if="${facturaCliente != null}" th:action="@{/admin/abm/factura-cliente/modificar/{id}(id=${facturaCliente.id})}" method="POST">
+            <h3>Modificar factura de cliente</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${facturaCliente.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="numeroFactura-fcl-mod">Número de factura</label>
+                <input type="number" id="numeroFactura-fcl-mod" name="numeroFactura" th:value="${facturaCliente.numeroFactura}" placeholder="Ej. 1001" step="1" min="1" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaFactura-fcl-mod">Fecha de factura</label>
+                <input type="date" id="fechaFactura-fcl-mod" name="fechaFactura" th:value="${#dates.format(facturaCliente.fechaFactura, 'yyyy-MM-dd')}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="totalPagado-fcl-mod">Total pagado</label>
+                <input type="number" id="totalPagado-fcl-mod" name="totalPagado" th:value="${facturaCliente.totalPagado}" placeholder="Ej. 25000.00" step="0.01" min="0" required />
+            </div>
+
+            <div class="form-group">
+                <label for="estadoFactura-fcl-mod">Estado de la factura</label>
+                <select id="estadoFactura-fcl-mod" name="estadoFactura" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${estadosFactura}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${facturaCliente.estadoFactura == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idFormaDePago-fcl-mod">Forma de pago</label>
+                <select id="idFormaDePago-fcl-mod" name="idFormaDePago" required>
+                    <option value="" disabled>Seleccione una forma de pago</option>
+                    <option th:each="x : ${formasDePago}"
+                            th:value="${x.id}"
+                            th:text="${x.tipoPago + (x.observacion != null and !x.observacion.isEmpty() ? ' - ' + x.observacion : '')}"
+                            th:selected="${facturaCliente.formaDePago != null and facturaCliente.formaDePago.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Factura de Cliente -->
+        <form th:unless="${facturaCliente != null}" th:action="@{/admin/abm/factura-cliente/registro}" method="POST">
+            <h3>Registrar nueva factura de cliente</h3>
+
+            <div class="form-group">
+                <label for="numeroFactura-fcl-reg">Número de factura</label>
+                <input type="number" id="numeroFactura-fcl-reg" name="numeroFactura" placeholder="Ej. 1001" step="1" min="1" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaFactura-fcl-reg">Fecha de factura</label>
+                <input type="date" id="fechaFactura-fcl-reg" name="fechaFactura" required />
+            </div>
+
+            <div class="form-group">
+                <label for="totalPagado-fcl-reg">Total pagado</label>
+                <input type="number" id="totalPagado-fcl-reg" name="totalPagado" placeholder="Ej. 25000.00" step="0.01" min="0" required />
+            </div>
+
+            <div class="form-group">
+                <label for="estadoFactura-fcl-reg">Estado de la factura</label>
+                <select id="estadoFactura-fcl-reg" name="estadoFactura" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${estadosFactura}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idFormaDePago-fcl-reg">Forma de pago</label>
+                <select id="idFormaDePago-fcl-reg" name="idFormaDePago" required>
+                    <option value="" disabled selected>Seleccione una forma de pago</option>
+                    <option th:each="x : ${formasDePago}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.tipoPago + (x.observacion != null and !x.observacion.isEmpty() ? ' - ' + x.observacion : '')}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de facturas de clientes -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de facturas de clientes</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Estado factura</th>
+                    <th>Forma de pago</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${facturasCliente != null}" th:each="r : ${facturasCliente}">
+                    <td th:text="${r.numeroFactura}">N°</td>
+                    <td th:text="${#dates.format(r.fechaFactura, 'dd/MM/yyyy')}">Fecha</td>
+                    <td th:text="${'$ ' + r.totalPagado}">Total</td>
+                    <td th:text="${r.estadoFactura}">Estado factura</td>
+                    <td th:text="${r.formaDePago != null ? r.formaDePago.tipoPago : '-'}">Forma de pago</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminada</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activa</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/factura-cliente/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/factura-cliente/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta factura?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${facturasCliente == null or facturasCliente.isEmpty()}">
+                    <td colspan="7">No hay facturas de clientes cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

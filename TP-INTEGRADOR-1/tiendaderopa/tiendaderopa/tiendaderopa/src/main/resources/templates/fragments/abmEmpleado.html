@@ -1,0 +1,190 @@
+<section id="empleados" class="section" th:fragment="abmEmpleado">
+    <div class="header">
+        <h1>Empleados</h1>
+        <p>Gestión y administración de empleados.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Empleado -->
+        <form th:if="${empleado != null}" th:action="@{/admin/abm/empleado/modificar/{id}(id=${empleado.id})}" method="POST">
+            <h3>Modificar empleado</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${empleado.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="nombre-empl-mod">Nombre</label>
+                <input type="text" id="nombre-empl-mod" name="nombre" th:value="${empleado.nombre}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="apellido-empl-mod">Apellido</label>
+                <input type="text" id="apellido-empl-mod" name="apellido" th:value="${empleado.apellido}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaNacimiento-empl-mod">Fecha de nacimiento</label>
+                <input type="date" id="fechaNacimiento-empl-mod" name="fechaNacimiento" th:value="${#dates.format(empleado.fechaNacimiento, 'yyyy-MM-dd')}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoDocumento-empl-mod">Tipo de documento</label>
+                <select id="tipoDocumento-empl-mod" name="tipoDocumento" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposDocumento}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${empleado.tipoDocumento == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="documento-empl-mod">Número de documento</label>
+                <input type="text" id="documento-empl-mod" name="documento" th:value="${empleado.documento}" placeholder="Ej. 30123456" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoEmpleado-empl-mod">Tipo de empleado</label>
+                <select id="tipoEmpleado-empl-mod" name="tipoEmpleado" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposEmpleado}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${empleado.tipoEmpleado == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idEmpresa-empl-mod">Empresa</label>
+                <select id="idEmpresa-empl-mod" name="idEmpresa">
+                    <option value="">Sin empresa</option>
+                    <option th:each="x : ${empresas}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}"
+                            th:selected="${empleado.empresa != null and empleado.empresa.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nuevo Empleado -->
+        <form th:unless="${empleado != null}" th:action="@{/admin/abm/empleado/registro}" method="POST">
+            <h3>Registrar nuevo empleado</h3>
+
+            <div class="form-group">
+                <label for="nombre-empl-reg">Nombre</label>
+                <input type="text" id="nombre-empl-reg" name="nombre" required />
+            </div>
+
+            <div class="form-group">
+                <label for="apellido-empl-reg">Apellido</label>
+                <input type="text" id="apellido-empl-reg" name="apellido" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaNacimiento-empl-reg">Fecha de nacimiento</label>
+                <input type="date" id="fechaNacimiento-empl-reg" name="fechaNacimiento" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoDocumento-empl-reg">Tipo de documento</label>
+                <select id="tipoDocumento-empl-reg" name="tipoDocumento" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposDocumento}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="documento-empl-reg">Número de documento</label>
+                <input type="text" id="documento-empl-reg" name="documento" placeholder="Ej. 30123456" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoEmpleado-empl-reg">Tipo de empleado</label>
+                <select id="tipoEmpleado-empl-reg" name="tipoEmpleado" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposEmpleado}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idEmpresa-empl-reg">Empresa</label>
+                <select id="idEmpresa-empl-reg" name="idEmpresa">
+                    <option value="">Sin empresa</option>
+                    <option th:each="x : ${empresas}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de empleados -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de empleados</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Apellido y nombre</th>
+                    <th>Documento</th>
+                    <th>Tipo</th>
+                    <th>Empresa</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${empleados != null}" th:each="r : ${empleados}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.apellido + ', ' + r.nombre}">Apellido y nombre</td>
+                    <td th:text="${r.tipoDocumento + ' ' + r.documento}">Documento</td>
+                    <td th:text="${r.tipoEmpleado}">Tipo</td>
+                    <td th:text="${r.empresa != null ? r.empresa.razonSocial : '-'}">Empresa</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminado</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activo</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/empleado/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/empleado/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este empleado?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${empleados == null or empleados.isEmpty()}">
+                    <td colspan="7">No hay empleados cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

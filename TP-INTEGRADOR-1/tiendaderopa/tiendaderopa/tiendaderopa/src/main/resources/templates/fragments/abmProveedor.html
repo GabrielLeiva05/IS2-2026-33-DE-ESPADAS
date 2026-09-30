@@ -1,0 +1,99 @@
+<section id="proveedores" class="section" th:fragment="abmProveedor">
+    <div class="header">
+        <h1>Proveedores</h1>
+        <p>Gestión y administración de proveedores.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Proveedor -->
+        <form th:if="${proveedor != null}" th:action="@{/admin/abm/proveedor/modificar/{id}(id=${proveedor.id})}" method="POST">
+            <h3>Modificar proveedor</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${proveedor.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="razonSocial-prov-mod">Razón social</label>
+                <input type="text" id="razonSocial-prov-mod" name="razonSocial" th:value="${proveedor.razonSocial}" placeholder="Ej. Textil del Sur S.R.L." required />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nuevo Proveedor -->
+        <form th:unless="${proveedor != null}" th:action="@{/admin/abm/proveedor/registro}" method="POST">
+            <h3>Registrar nuevo proveedor</h3>
+
+            <div class="form-group">
+                <label for="razonSocial-prov-reg">Razón social</label>
+                <input type="text" id="razonSocial-prov-reg" name="razonSocial" placeholder="Ej. Textil del Sur S.R.L." required />
+            </div>
+
+            <div class="form-group">
+                <label for="email-prov-reg">Correo electrónico (opcional)</label>
+                <input type="email" id="email-prov-reg" name="email" placeholder="Ej. ventas@proveedor.com" />
+            </div>
+
+            <div class="form-group">
+                <label for="telefonoFijo-prov-reg">Teléfono fijo (opcional)</label>
+                <input type="tel" id="telefonoFijo-prov-reg" name="telefonoFijo" />
+            </div>
+
+            <div class="form-group">
+                <label for="telefonoCelular-prov-reg">Teléfono celular (opcional)</label>
+                <input type="tel" id="telefonoCelular-prov-reg" name="telefonoCelular" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de proveedores -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de proveedores</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Razón social</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${proveedores != null}" th:each="r : ${proveedores}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.razonSocial}">Razón social</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminado</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activo</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/proveedor/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/proveedor/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este proveedor?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${proveedores == null or proveedores.isEmpty()}">
+                    <td colspan="4">No hay proveedores cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

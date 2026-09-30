@@ -1,0 +1,114 @@
+<section id="subcategorias" class="section" th:fragment="abmSubCategoria">
+    <div class="header">
+        <h1>Subcategorías</h1>
+        <p>Gestión y administración de subcategorías por categoría.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Subcategoría -->
+        <form th:if="${subcategoria != null}" th:action="@{/admin/abm/subcategoria/modificar/{id}(id=${subcategoria.id})}" method="POST">
+            <h3>Modificar subcategoría</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${subcategoria.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="nombre-sub-mod">Nombre de la subcategoría</label>
+                <input type="text" id="nombre-sub-mod" name="nombre" th:value="${subcategoria.nombre}" placeholder="Ej. Remeras manga corta" required />
+            </div>
+
+            <div class="form-group">
+                <label for="idCategoria-sub-mod">Categoría a la que pertenece</label>
+                <select id="idCategoria-sub-mod" name="idCategoria" required>
+                    <option value="" disabled>Seleccione una categoría</option>
+                    <option th:each="x : ${categorias}"
+                            th:value="${x.id}"
+                            th:text="${x.nombre}"
+                            th:selected="${subcategoria.categoria != null and subcategoria.categoria.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="activo-sub-mod"><input type="checkbox" id="activo-sub-mod" name="activo" value="true" th:checked="${subcategoria.activo}" /> Subcategoría activa</label>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Subcategoría -->
+        <form th:unless="${subcategoria != null}" th:action="@{/admin/abm/subcategoria/registro}" method="POST">
+            <h3>Registrar nueva subcategoría</h3>
+
+            <div class="form-group">
+                <label for="nombre-sub-reg">Nombre de la subcategoría</label>
+                <input type="text" id="nombre-sub-reg" name="nombre" placeholder="Ej. Remeras manga corta" required />
+            </div>
+
+            <div class="form-group">
+                <label for="idCategoria-sub-reg">Categoría a la que pertenece</label>
+                <select id="idCategoria-sub-reg" name="idCategoria" required>
+                    <option value="" disabled selected>Seleccione una categoría</option>
+                    <option th:each="x : ${categorias}"
+                            th:if="${x.activo}"
+                            th:value="${x.id}"
+                            th:text="${x.nombre}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de subcategorías -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de subcategorías</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${subcategorias != null}" th:each="r : ${subcategorias}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.nombre}">Nombre</td>
+                    <td th:text="${r.categoria != null ? r.categoria.nombre : 'Sin categoría'}">Categoría</td>
+                    <td>
+                        <span th:unless="${r.activo}" class="estado estado-eliminado">Inactivo</span>
+                        <span th:if="${r.activo}" class="estado estado-activo">Activo</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/subcategoria/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:if="${r.activo}" th:href="@{/admin/abm/subcategoria/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de desactivar esta subcategoría?');">Desactivar</a>
+                    </td>
+                </tr>
+                <tr th:if="${subcategorias == null or subcategorias.isEmpty()}">
+                    <td colspan="5">No hay subcategorías cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

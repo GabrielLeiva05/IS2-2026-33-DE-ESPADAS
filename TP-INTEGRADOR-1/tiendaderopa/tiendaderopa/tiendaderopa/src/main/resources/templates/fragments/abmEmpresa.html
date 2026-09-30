@@ -1,0 +1,121 @@
+<section id="empresas" class="section" th:fragment="abmEmpresa">
+    <div class="header">
+        <h1>Empresas</h1>
+        <p>Gestión y administración de empresas y sucursales.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Empresa -->
+        <form th:if="${empresa != null}" th:action="@{/admin/abm/empresa/modificar/{id}(id=${empresa.id})}" method="POST">
+            <h3>Modificar empresa</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${empresa.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="razonSocial-emp-mod">Razón social</label>
+                <input type="text" id="razonSocial-emp-mod" name="razonSocial" th:value="${empresa.razonSocial}" placeholder="Ej. Tienda de Ropa S.A." required />
+            </div>
+
+            <div class="form-group">
+                <label for="cuit-emp-mod">CUIT</label>
+                <input type="text" id="cuit-emp-mod" name="cuit" th:value="${empresa.cuit}" placeholder="Ej. 30-12345678-9" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoSucursal-emp-mod">Tipo de sucursal</label>
+                <select id="tipoSucursal-emp-mod" name="tipoSucursal" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${tiposSucursal}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${empresa.tipoSucursal == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Empresa -->
+        <form th:unless="${empresa != null}" th:action="@{/admin/abm/empresa/registro}" method="POST">
+            <h3>Registrar nueva empresa</h3>
+
+            <div class="form-group">
+                <label for="razonSocial-emp-reg">Razón social</label>
+                <input type="text" id="razonSocial-emp-reg" name="razonSocial" placeholder="Ej. Tienda de Ropa S.A." required />
+            </div>
+
+            <div class="form-group">
+                <label for="cuit-emp-reg">CUIT</label>
+                <input type="text" id="cuit-emp-reg" name="cuit" placeholder="Ej. 30-12345678-9" required />
+            </div>
+
+            <div class="form-group">
+                <label for="tipoSucursal-emp-reg">Tipo de sucursal</label>
+                <select id="tipoSucursal-emp-reg" name="tipoSucursal" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${tiposSucursal}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de empresas -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de empresas</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Razón social</th>
+                    <th>CUIT</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${empresas != null}" th:each="r : ${empresas}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.razonSocial}">Razón social</td>
+                    <td th:text="${r.cuit}">CUIT</td>
+                    <td th:text="${r.tipoSucursal}">Tipo</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminada</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activa</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/empresa/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/empresa/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta empresa?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${empresas == null or empresas.isEmpty()}">
+                    <td colspan="6">No hay empresas cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

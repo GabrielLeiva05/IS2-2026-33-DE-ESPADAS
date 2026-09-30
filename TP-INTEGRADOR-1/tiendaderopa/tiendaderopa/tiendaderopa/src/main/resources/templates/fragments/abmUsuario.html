@@ -1,0 +1,145 @@
+<section id="usuarios" class="section" th:fragment="abmUsuario">
+    <div class="header">
+        <h1>Usuarios</h1>
+        <p>Gestión de usuarios de acceso al sistema y sus roles.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Usuario -->
+        <form th:if="${usuario != null}" th:action="@{/admin/abm/usuario/modificar/{id}(id=${usuario.id})}" method="POST">
+            <h3>Modificar usuario</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${usuario.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="idPersona-usu-mod">Persona</label>
+                <select id="idPersona-usu-mod" name="idPersona" required>
+                    <option value="" disabled>Seleccione una persona</option>
+                    <option th:each="x : ${personas}"
+                            th:value="${x.id}"
+                            th:text="${x.apellido + ', ' + x.nombre + ' (' + x.documento + ')'}"
+                            th:selected="${usuario.persona != null and usuario.persona.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="nombreUsuario-usu-mod">Email (nombre de usuario)</label>
+                <input type="email" id="nombreUsuario-usu-mod" name="nombreUsuario" th:value="${usuario.nombreUsuario}" placeholder="Ej. usuario@correo.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="rolUsuario-usu-mod">Rol</label>
+                <select id="rolUsuario-usu-mod" name="rolUsuario" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${rolesUsuario}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${usuario.rolUsuario == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="clave-usu-mod">Contraseña</label>
+                <input type="password" id="clave-usu-mod" name="clave" placeholder="Dejar vacío para no cambiarla" />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nuevo Usuario -->
+        <form th:unless="${usuario != null}" th:action="@{/admin/abm/usuario/registro}" method="POST">
+            <h3>Registrar nuevo usuario</h3>
+
+            <div class="form-group">
+                <label for="idPersona-usu-reg">Persona</label>
+                <select id="idPersona-usu-reg" name="idPersona" required>
+                    <option value="" disabled selected>Seleccione una persona</option>
+                    <option th:each="x : ${personas}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.apellido + ', ' + x.nombre + ' (' + x.documento + ')'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="nombreUsuario-usu-reg">Email (nombre de usuario)</label>
+                <input type="email" id="nombreUsuario-usu-reg" name="nombreUsuario" placeholder="Ej. usuario@correo.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="rolUsuario-usu-reg">Rol</label>
+                <select id="rolUsuario-usu-reg" name="rolUsuario" required>
+                    <option value="" disabled selected>Seleccione una opción</option>
+                    <option th:each="en : ${rolesUsuario}"
+                            th:value="${en}"
+                            th:text="${en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="clave-usu-reg">Contraseña</label>
+                <input type="password" id="clave-usu-reg" name="clave" required />
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de usuarios -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de usuarios</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Persona</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${usuarios != null}" th:each="r : ${usuarios}">
+                    <td th:text="${r.id}">ID</td>
+                    <td th:text="${r.nombreUsuario}">Email</td>
+                    <td th:text="${r.persona != null ? r.persona.apellido + ', ' + r.persona.nombre : '-'}">Persona</td>
+                    <td th:text="${r.rolUsuario}">Rol</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminado</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activo</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/usuario/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/usuario/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este usuario?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${usuarios == null or usuarios.isEmpty()}">
+                    <td colspan="6">No hay usuarios cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>

@@ -1,0 +1,195 @@
+<section id="facturasproveedor" class="section" th:fragment="abmFacturaProveedor">
+    <div class="header">
+        <h1>Facturas de proveedores</h1>
+        <p>Gestión y administración de facturas recibidas de proveedores.</p>
+    </div>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <!-- Formulario (Alta / Modificación) -->
+    <section class="form-container">
+
+        <!-- Modo: Modificar Factura de Proveedor -->
+        <form th:if="${facturaProveedor != null}" th:action="@{/admin/abm/factura-proveedor/modificar/{id}(id=${facturaProveedor.id})}" method="POST">
+            <h3>Modificar factura de proveedor</h3>
+
+            <div class="form-group">
+                <label>ID</label>
+                <input type="text" th:value="${facturaProveedor.id}" disabled />
+            </div>
+
+            <div class="form-group">
+                <label for="numeroFactura-fpr-mod">Número de factura</label>
+                <input type="number" id="numeroFactura-fpr-mod" name="numeroFactura" th:value="${facturaProveedor.numeroFactura}" placeholder="Ej. 1001" step="1" min="1" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaFactura-fpr-mod">Fecha de factura</label>
+                <input type="date" id="fechaFactura-fpr-mod" name="fechaFactura" th:value="${#dates.format(facturaProveedor.fechaFactura, 'yyyy-MM-dd')}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="totalPagado-fpr-mod">Total pagado</label>
+                <input type="number" id="totalPagado-fpr-mod" name="totalPagado" th:value="${facturaProveedor.totalPagado}" placeholder="Ej. 25000.00" step="0.01" min="0" required />
+            </div>
+
+            <div class="form-group">
+                <label for="estadoFactura-fpr-mod">Estado de la factura</label>
+                <select id="estadoFactura-fpr-mod" name="estadoFactura" required>
+                    <option value="" disabled>Seleccione una opción</option>
+                    <option th:each="en : ${estadosFactura}"
+                            th:value="${en}"
+                            th:text="${en}"
+                            th:selected="${facturaProveedor.estadoFactura == en}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idFormaDePago-fpr-mod">Forma de pago</label>
+                <select id="idFormaDePago-fpr-mod" name="idFormaDePago" required>
+                    <option value="" disabled>Seleccione una forma de pago</option>
+                    <option th:each="x : ${formasDePago}"
+                            th:value="${x.id}"
+                            th:text="${x.tipoPago + (x.observacion != null and !x.observacion.isEmpty() ? ' - ' + x.observacion : '')}"
+                            th:selected="${facturaProveedor.formaDePago != null and facturaProveedor.formaDePago.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idProveedor-fpr-mod">Proveedor</label>
+                <select id="idProveedor-fpr-mod" name="idProveedor" required>
+                    <option value="" disabled>Seleccione un proveedor</option>
+                    <option th:each="x : ${proveedores}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}"
+                            th:selected="${facturaProveedor.proveedor != null and facturaProveedor.proveedor.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idOrdenCompraProveedor-fpr-mod">Orden de compra</label>
+                <select id="idOrdenCompraProveedor-fpr-mod" name="idOrdenCompraProveedor" required>
+                    <option value="" disabled>Seleccione una orden de compra</option>
+                    <option th:each="x : ${ordenesCompra}"
+                            th:value="${x.id}"
+                            th:text="${'Orden del ' + #dates.format(x.fecha, 'dd/MM/yyyy') + ' ($' + x.total + ')'}"
+                            th:selected="${facturaProveedor.ordenCompraProveedor != null and facturaProveedor.ordenCompraProveedor.id == x.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Actualizar</button>
+                <a class="btn-cancel" th:href="@{/admin/dashboard}">Cancelar</a>
+            </div>
+        </form>
+
+        <!-- Modo: Registrar Nueva Factura de Proveedor -->
+        <form th:unless="${facturaProveedor != null}" th:action="@{/admin/abm/factura-proveedor/registro}" method="POST">
+            <h3>Registrar nueva factura de proveedor</h3>
+
+            <div class="form-group">
+                <label for="numeroFactura-fpr-reg">Número de factura</label>
+                <input type="number" id="numeroFactura-fpr-reg" name="numeroFactura" placeholder="Ej. 1001" step="1" min="1" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaFactura-fpr-reg">Fecha de factura</label>
+                <input type="date" id="fechaFactura-fpr-reg" name="fechaFactura" required />
+            </div>
+
+            <div class="form-group">
+                <label for="totalPagado-fpr-reg">Total pagado</label>
+                <input type="number" id="totalPagado-fpr-reg" name="totalPagado" placeholder="Ej. 25000.00" step="0.01" min="0" required />
+            </div>
+
+            <div class="form-group">
+                <label for="idFormaDePago-fpr-reg">Forma de pago</label>
+                <select id="idFormaDePago-fpr-reg" name="idFormaDePago" required>
+                    <option value="" disabled selected>Seleccione una forma de pago</option>
+                    <option th:each="x : ${formasDePago}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.tipoPago + (x.observacion != null and !x.observacion.isEmpty() ? ' - ' + x.observacion : '')}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idProveedor-fpr-reg">Proveedor</label>
+                <select id="idProveedor-fpr-reg" name="idProveedor" required>
+                    <option value="" disabled selected>Seleccione un proveedor</option>
+                    <option th:each="x : ${proveedores}"
+                            th:if="${!x.eliminado}"
+                            th:value="${x.id}"
+                            th:text="${x.razonSocial}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="idOrdenCompraProveedor-fpr-reg">Orden de compra</label>
+                <select id="idOrdenCompraProveedor-fpr-reg" name="idOrdenCompraProveedor" required>
+                    <option value="" disabled selected>Seleccione una orden de compra</option>
+                    <option th:each="x : ${ordenesCompra}"
+                            th:value="${x.id}"
+                            th:text="${'Orden del ' + #dates.format(x.fecha, 'dd/MM/yyyy') + ' ($' + x.total + ')'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">Guardar</button>
+            </div>
+        </form>
+
+    </section>
+
+    <!-- Listado de facturas de proveedores -->
+    <section class="table-container">
+        <div class="table-header">
+            <h2>Listado de facturas de proveedores</h2>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr>
+                    <th>N°</th>
+                    <th>Fecha</th>
+                    <th>Proveedor</th>
+                    <th>Total</th>
+                    <th>Estado factura</th>
+                    <th>Forma de pago</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${facturasProveedor != null}" th:each="r : ${facturasProveedor}">
+                    <td th:text="${r.numeroFactura}">N°</td>
+                    <td th:text="${#dates.format(r.fechaFactura, 'dd/MM/yyyy')}">Fecha</td>
+                    <td th:text="${r.proveedor != null ? r.proveedor.razonSocial : '-'}">Proveedor</td>
+                    <td th:text="${'$ ' + r.totalPagado}">Total</td>
+                    <td th:text="${r.estadoFactura}">Estado factura</td>
+                    <td th:text="${r.formaDePago != null ? r.formaDePago.tipoPago : '-'}">Forma de pago</td>
+                    <td>
+                        <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminada</span>
+                        <span th:unless="${r.eliminado}" class="estado estado-activo">Activa</span>
+                    </td>
+                    <td class="row-actions">
+                        <a th:href="@{/admin/abm/factura-proveedor/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <a th:href="@{/admin/abm/factura-proveedor/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar esta factura?');">Eliminar</a>
+                    </td>
+                </tr>
+                <tr th:if="${facturasProveedor == null or facturasProveedor.isEmpty()}">
+                    <td colspan="8">No hay facturas de proveedores cargados en el sistema.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
