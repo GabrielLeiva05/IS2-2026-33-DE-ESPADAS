@@ -13,6 +13,8 @@ import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +25,8 @@ import java.util.Map;
 
 @Service
 public class MercadoPagoCheckoutService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MercadoPagoCheckoutService.class);
 
     private final ServicioOrdenCompra ordenServicio;
     private final PreferenceClient preferenceClient = new PreferenceClient();
@@ -78,7 +82,24 @@ public class MercadoPagoCheckoutService {
                 .customHeaders(Map.of("X-Idempotency-Key", "zero-checkout-" + orden.getId()))
                 .build();
 
-        Preference preference = preferenceClient.create(request, options);
+        Preference preference;
+        try {
+            preference = preferenceClient.create(request, options);
+        } catch (MPApiException ex) {
+            var apiResponse = ex.getApiResponse();
+            String responseBody = apiResponse == null ? "(sin cuerpo)" : apiResponse.getContent();
+            if (responseBody != null) {
+                responseBody = responseBody.replaceAll("\\s+", " ");
+                if (responseBody.length() > 2000) {
+                    responseBody = responseBody.substring(0, 2000);
+                }
+            }
+            logger.error("Mercado Pago rechazó la preferencia. HTTP {}. Respuesta: {}",
+                    ex.getStatusCode(), responseBody);
+            throw new IllegalStateException(
+                    "Mercado Pago rechazó la solicitud (HTTP " + ex.getStatusCode()
+                            + "). Consultá el log del servidor.", ex);
+        }
         String checkoutUrl = sandbox ? preference.getSandboxInitPoint() : preference.getInitPoint();
         if (preference.getId() == null || checkoutUrl == null || checkoutUrl.isBlank()) {
             throw new IllegalStateException("Mercado Pago no devolvió una URL de checkout válida");
