@@ -119,4 +119,4 @@ public class AdminControlador {
         modelo.addAttribute("facturaProveedor", null);
         return "panel.html";
     }
-}
+}

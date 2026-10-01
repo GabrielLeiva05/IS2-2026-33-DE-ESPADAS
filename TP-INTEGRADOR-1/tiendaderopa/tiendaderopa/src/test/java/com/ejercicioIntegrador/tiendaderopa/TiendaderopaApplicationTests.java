@@ -1,5 +1,7 @@
 package com.ejercicioIntegrador.tiendaderopa;
 
+import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
+import com.ejercicioIntegrador.tiendaderopa.service.UsuarioServicio;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -19,6 +21,9 @@ class TiendaderopaApplicationTests {
 
 	@Autowired
 	private MockMvc mockMvc;
+
+	@Autowired
+	private UsuarioServicio usuarioServicio;
 
 	@Test
 	void contextLoads() {
@@ -79,5 +84,20 @@ class TiendaderopaApplicationTests {
 		mockMvc.perform(get("/admin/nacionalidades"))
 				.andExpect(status().isOk())
 				.andExpect(content().contentTypeCompatibleWith("text/html"));
+	}
+
+	@Test
+	@WithMockUser(roles = "ADMINISTRATIVO")
+	void modificarUsuarioDesdeElMenuAdminCargaElFormulario() throws Exception {
+		Usuario usuario = usuarioServicio.listarTodos().stream().findFirst().orElseThrow();
+		String rutaEdicion = "/admin/usuarios/" + usuario.getId() + "/editar";
+
+		mockMvc.perform(get("/admin/dashboard").sessionAttr("usuariosession", usuario))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString(rutaEdicion)));
+
+		mockMvc.perform(get(rutaEdicion).sessionAttr("usuariosession", usuario))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Editar registro")));
 	}
 }

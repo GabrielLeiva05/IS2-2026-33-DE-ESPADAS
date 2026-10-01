@@ -489,3 +489,99 @@ td {
     overflow-y: auto;
     min-height: 0;
 }
+
+* {
+    font-family: var(--font-body);
+}
+
+body {
+    background-color: var(--brand-paper);
+}
+
+.sidebar {
+    background-color: var(--brand-ink);
+}
+
+.sidebar h2 {
+    color: var(--brand-accent);
+}
+
+.menu a {
+    color: #c5ccc5;
+}
+
+.menu a:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--brand-white);
+}
+
+.menu a.active {
+    background-color: var(--brand-accent);
+    color: var(--brand-ink);
+    font-weight: 700;
+}
+
+.main {
+    min-height: 100vh;
+}
+
+.header h1 {
+    color: var(--brand-ink);
+}
+
+.card,
+.table-container,
+.form-container {
+    border: 1px solid var(--brand-line);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(32, 38, 34, 0.045);
+}
+
+.card p {
+    color: var(--brand-ink);
+}
+
+.btn-primary,
+.btn-submit {
+    border-radius: 4px;
+    background-color: var(--brand-ink);
+}
+
+.btn-primary:hover,
+.btn-submit:hover {
+    background-color: var(--brand-accent);
+    color: var(--brand-ink);
+}
+
+.btn-mod {
+    background-color: var(--brand-accent);
+    color: var(--brand-ink);
+}
+
+.btn-mod:hover {
+    background-color: var(--brand-accent-strong);
+}
+
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus,
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--brand-accent-strong);
+    box-shadow: 0 0 0 3px rgba(169, 220, 67, 0.2);
+}
+
+th {
+    background-color: var(--brand-paper);
+}
+
+.btn-edit {
+    border-radius: 4px;
+    background-color: var(--brand-warm);
+}
+
+.btn-logout,
+.btn-delete {
+    border-radius: 4px;
+    background-color: var(--brand-danger);
+}

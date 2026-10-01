@@ -1,12 +1,11 @@
 :root {
-    color-scheme: light;
-    --ink: #171a18;
-    --muted: #6f7771;
-    --paper: #f5f6f1;
-    --white: #ffffff;
-    --line: #dfe3dc;
-    --lime: #c7f36b;
-    --coral: #f26d4f;
+    --ink: var(--brand-ink);
+    --muted: var(--brand-muted);
+    --paper: var(--brand-paper);
+    --white: var(--brand-white);
+    --line: var(--brand-line);
+    --lime: var(--brand-accent);
+    --coral: var(--brand-warm);
 }
 
 body.storefront {
@@ -14,7 +13,7 @@ body.storefront {
     min-height: 100vh;
     background: var(--paper);
     color: var(--ink);
-    font-family: "Trebuchet MS", sans-serif;
+    font-family: var(--font-body);
 }
 
 .store-header {
@@ -139,6 +138,7 @@ body.storefront {
     overflow: hidden;
     border: 1px solid var(--line);
     background: var(--white);
+    border-radius: 8px;
 }
 
 .product-photo {
@@ -220,6 +220,7 @@ body.storefront {
     cursor: pointer;
     font: inherit;
     font-size: 12px;
+    border-radius: 4px;
 }
 
 .sign-in-link {

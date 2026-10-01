@@ -1,8 +1,8 @@
 .inventory-main {
-    --inventory-ink: #183b45;
-    --inventory-teal: #087e78;
-    --inventory-line: #d8e1e3;
-    --inventory-muted: #647579;
+    --inventory-ink: var(--brand-ink);
+    --inventory-teal: var(--brand-ink);
+    --inventory-line: var(--brand-line);
+    --inventory-muted: var(--brand-muted);
 }
 
 .inventory-header {
@@ -189,11 +189,11 @@
 
 .btn-save-target:hover,
 .btn-set-principal:hover {
-    background: #06645f;
+    background: #39443c;
 }
 
 .inventory-table a {
-    color: #087e78;
+    color: var(--brand-ink);
     font-weight: 700;
 }
 

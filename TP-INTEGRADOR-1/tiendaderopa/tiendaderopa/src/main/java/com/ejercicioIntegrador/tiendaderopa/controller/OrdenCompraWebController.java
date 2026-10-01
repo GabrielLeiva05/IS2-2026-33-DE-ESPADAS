@@ -21,6 +21,13 @@ import java.util.List;
 public class OrdenCompraWebController {
 
     private static final String RUTA = "/admin/ordenes-compra";
+    private static final List<EstadoOrdenCompra> ESTADOS_DISPONIBLES = List.of(
+            EstadoOrdenCompra.PENDIENTE_DE_PAGO,
+            EstadoOrdenCompra.PAGO_REALIZADO,
+            EstadoOrdenCompra.PENDIENTE_DE_ENTREGA,
+            EstadoOrdenCompra.PENDIENTE_DE_ENVIO,
+            EstadoOrdenCompra.ENTREGADO,
+            EstadoOrdenCompra.ANULADA);
 
     private final ServicioOrdenCompra servicio;
 
@@ -71,7 +78,7 @@ public class OrdenCompraWebController {
         model.addAttribute("permitirCambiarEstado", true);
         model.addAttribute("permitirFiltrarEstado", true);
         model.addAttribute("estadoSeleccionado", estado == null ? "" : estado.name());
-        model.addAttribute("estadosOrden", List.of(EstadoOrdenCompra.values()));
+        model.addAttribute("estadosOrden", ESTADOS_DISPONIBLES);
         return "admin/registros";
     }
 }
