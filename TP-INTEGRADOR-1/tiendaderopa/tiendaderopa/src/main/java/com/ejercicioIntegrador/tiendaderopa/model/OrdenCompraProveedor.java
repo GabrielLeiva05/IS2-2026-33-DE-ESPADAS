@@ -34,4 +34,8 @@ public class OrdenCompraProveedor {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "fk_proveedor", nullable = false)
     private Proveedor proveedor;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sucursal_id")
+    private Sucursal sucursal;
 }

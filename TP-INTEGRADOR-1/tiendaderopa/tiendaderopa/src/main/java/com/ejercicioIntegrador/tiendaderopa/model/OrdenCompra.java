@@ -52,6 +52,10 @@ public class OrdenCompra {
     @JsonIgnore
     private Usuario usuario;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sucursal_id")
+    private Sucursal sucursal;
+
     @Column(name = "mercado_pago_preference_id", length = 100)
     private String mercadoPagoPreferenceId;
 

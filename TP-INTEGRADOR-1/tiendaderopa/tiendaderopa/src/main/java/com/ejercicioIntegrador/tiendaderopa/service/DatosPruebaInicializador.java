@@ -16,12 +16,14 @@ import com.ejercicioIntegrador.tiendaderopa.model.FacturaProveedor;
 import com.ejercicioIntegrador.tiendaderopa.model.FormaDePago;
 import com.ejercicioIntegrador.tiendaderopa.model.Localidad;
 import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompraProveedor;
+import com.ejercicioIntegrador.tiendaderopa.model.ObjetivoReposicion;
 import com.ejercicioIntegrador.tiendaderopa.model.Pais;
 import com.ejercicioIntegrador.tiendaderopa.model.Persona;
 import com.ejercicioIntegrador.tiendaderopa.model.Producto;
 import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
 import com.ejercicioIntegrador.tiendaderopa.model.Provincia;
 import com.ejercicioIntegrador.tiendaderopa.model.Stock;
+import com.ejercicioIntegrador.tiendaderopa.model.Sucursal;
 import com.ejercicioIntegrador.tiendaderopa.model.SubCategoria;
 import com.ejercicioIntegrador.tiendaderopa.model.TipoPago;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
@@ -29,6 +31,7 @@ import com.ejercicioIntegrador.tiendaderopa.model.VigenciaPrecio;
 import com.ejercicioIntegrador.tiendaderopa.repository.DepartamentoRepositorio;
 import com.ejercicioIntegrador.tiendaderopa.repository.DireccionRepositorio;
 import com.ejercicioIntegrador.tiendaderopa.repository.LocalidadRepositorio;
+import com.ejercicioIntegrador.tiendaderopa.repository.ObjetivoReposicionRepositorio;
 import com.ejercicioIntegrador.tiendaderopa.repository.PaisRepositorio;
 import com.ejercicioIntegrador.tiendaderopa.repository.PersonaRepositorio;
 import com.ejercicioIntegrador.tiendaderopa.repository.ProvinciaRepositorio;
@@ -44,10 +47,12 @@ import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioProveedor;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioStock;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioSubCategoria;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioVigenciaPrecio;
+import com.ejercicioIntegrador.tiendaderopa.repository.SucursalRepositorio;
 import com.ejercicioIntegrador.tiendaderopa.repository.UsuarioRepositorio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -89,6 +94,12 @@ public class DatosPruebaInicializador implements ApplicationRunner {
     private final RepositorioStock stockRepositorio;
     private final PasswordEncoder passwordEncoder;
     private final String claveDemo;
+
+    @Autowired
+    private SucursalRepositorio sucursalRepositorio;
+
+    @Autowired
+    private ObjetivoReposicionRepositorio objetivoReposicionRepositorio;
 
     public DatosPruebaInicializador(PaisRepositorio paisRepositorio,
             ProvinciaRepositorio provinciaRepositorio,
@@ -137,6 +148,8 @@ public class DatosPruebaInicializador implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        Sucursal sucursalPrincipal = asegurarSucursalPrincipal();
+        asegurarObjetivosExistentes(sucursalPrincipal);
         if (usuarioRepositorio.count() > 0) {
             log.info("Se encontraron datos existentes; se omite la carga de datos demo");
             return;
@@ -149,13 +162,43 @@ public class DatosPruebaInicializador implements ApplicationRunner {
                 "2615550102", RolUsuario.CLIENTE, localidad);
 
         Map<String, Categoria> categorias = crearCategorias();
-        List<Producto> productos = crearProductos(categorias);
+        List<Producto> productos = crearProductos(categorias, sucursalPrincipal);
         Proveedor proveedor = crearProveedor();
         FormaDePago formaDePago = crearFormaDePago();
-        crearCompraProveedorYStock(productos, proveedor, formaDePago);
+        crearCompraProveedorYStock(productos, proveedor, formaDePago, sucursalPrincipal);
 
         log.info("Datos demo listos: admin@zero.local, cliente@zero.local y {} productos. "
                 + "La clave demo se obtiene de APP_DEMO_PASSWORD.", productos.size());
+    }
+
+    private Sucursal asegurarSucursalPrincipal() {
+        return sucursalRepositorio.findFirstByActivaTrueAndPrincipalTrueOrderByNombreAsc()
+                .orElseGet(() -> {
+                    Sucursal sucursal = new Sucursal();
+                    sucursal.setNombre("Casa Central");
+                    sucursal.setDireccion("Dirección pendiente");
+                    sucursal.setActiva(true);
+                    sucursal.setPrincipal(true);
+                    return sucursalRepositorio.save(sucursal);
+                });
+    }
+
+    private void asegurarObjetivosExistentes(Sucursal sucursal) {
+        for (Producto producto : productoRepositorio.findAll()) {
+            if (objetivoReposicionRepositorio.findBySucursal_IdAndProducto_Id(sucursal.getId(), producto.getId())
+                    .isPresent()) {
+                continue;
+            }
+            ObjetivoReposicion objetivo = new ObjetivoReposicion();
+            objetivo.setSucursal(sucursal);
+            objetivo.setProducto(producto);
+            objetivo.setCantidadObjetivo(Math.max(producto.getStockMaximo(), 0));
+            objetivo.setCantidadActual(stockRepositorio
+                    .findTopByDetalleFactura_Producto_IdAndEliminadoFalseOrderByFechaMovimientoDesc(producto.getId())
+                    .map(Stock::getCantActual)
+                    .orElse(0));
+            objetivoReposicionRepositorio.save(objetivo);
+        }
     }
 
     private Localidad crearUbicacion() {
@@ -223,7 +266,7 @@ public class DatosPruebaInicializador implements ApplicationRunner {
         return resultado;
     }
 
-    private List<Producto> crearProductos(Map<String, Categoria> categorias) {
+    private List<Producto> crearProductos(Map<String, Categoria> categorias, Sucursal sucursal) {
         List<ProductSeed> semillas = List.of(
                 new ProductSeed("Niños", "Ropa", "Remera Training", "Remera liviana para entrenar", "10", 18500, true),
                 new ProductSeed("Niños", "Calzado", "Zapatilla Sprint", "Zapatilla urbana deportiva", "32", 42900, false),
@@ -257,6 +300,13 @@ public class DatosPruebaInicializador implements ApplicationRunner {
             producto.setSubCategoria(subCategoria);
             productoRepositorio.save(producto);
 
+            ObjetivoReposicion objetivo = new ObjetivoReposicion();
+            objetivo.setSucursal(sucursal);
+            objetivo.setProducto(producto);
+            objetivo.setCantidadObjetivo(producto.getStockMaximo());
+            objetivo.setCantidadActual(0);
+            objetivoReposicionRepositorio.save(objetivo);
+
             VigenciaPrecio precio = new VigenciaPrecio();
             precio.setFechaDesde(LocalDate.now().minusDays(1));
             precio.setPrecio(semilla.precio());
@@ -288,12 +338,13 @@ public class DatosPruebaInicializador implements ApplicationRunner {
         return formaDePagoRepositorio.save(formaDePago);
     }
 
-    private void crearCompraProveedorYStock(List<Producto> productos, Proveedor proveedor,
-            FormaDePago formaDePago) {
+        private void crearCompraProveedorYStock(List<Producto> productos, Proveedor proveedor,
+            FormaDePago formaDePago, Sucursal sucursal) {
         OrdenCompraProveedor orden = new OrdenCompraProveedor();
         orden.setFecha(new Date());
         orden.setEstado(EstadoOrdenCompraProveedor.ENTREGADA);
         orden.setProveedor(proveedor);
+        orden.setSucursal(sucursal);
         orden.setEliminado(false);
             orden.setTotal(0);
         ordenProveedorRepositorio.save(orden);
@@ -341,6 +392,12 @@ public class DatosPruebaInicializador implements ApplicationRunner {
             stock.setEliminado(false);
             stock.setObservacion("Stock inicial demo");
             stockRepositorio.save(stock);
+
+                ObjetivoReposicion objetivo = objetivoReposicionRepositorio
+                    .findBySucursal_IdAndProducto_Id(sucursal.getId(), producto.getId())
+                    .orElseThrow();
+                objetivo.setCantidadActual(20);
+                objetivoReposicionRepositorio.save(objetivo);
 
             DetalleOrdenCompraProveedor detalleProveedor = new DetalleOrdenCompraProveedor();
             detalleProveedor.setCantidad(20);

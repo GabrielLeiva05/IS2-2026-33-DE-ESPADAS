@@ -34,6 +34,10 @@ public class ServicioOrdenCompraProveedor {
     private ServicioProveedor svcProveedor;
     @Autowired
     private ServicioDetalleOrdenCompraProveedor svcDetalleOrdenCompraProveedor;
+    @Autowired
+    private ServicioSucursal servicioSucursal;
+    @Autowired
+    private ServicioStock servicioStock;
 
     public void validar(String idProveedor, List<ItemCompraDTO> items) throws Exception {
         if (items == null || items.isEmpty()) {
@@ -58,6 +62,7 @@ public class ServicioOrdenCompraProveedor {
 
         OrdenCompraProveedor orden = new OrdenCompraProveedor();
         orden.setProveedor(proveedor);
+        orden.setSucursal(servicioSucursal.obtenerPrincipal());
         orden.setFecha(new Date());
         orden.setEstado(EstadoOrdenCompraProveedor.PENDIENTE);
         orden.setEliminado(false);
@@ -79,6 +84,7 @@ public class ServicioOrdenCompraProveedor {
         if (orden.getEstado() != EstadoOrdenCompraProveedor.PENDIENTE) {
             throw new Exception("Solo una orden PENDIENTE puede marcarse como entregada");
         }
+        servicioStock.registrarRecepcion(orden);
         orden.setEstado(EstadoOrdenCompraProveedor.ENTREGADA);
         repositorio.save(orden);
     }

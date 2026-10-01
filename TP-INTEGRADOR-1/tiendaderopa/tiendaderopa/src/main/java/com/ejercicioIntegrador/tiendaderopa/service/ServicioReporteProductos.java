@@ -4,6 +4,7 @@ import com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoStock;
 import com.ejercicioIntegrador.tiendaderopa.dto.reportes.ProductoStockDTO;
 import com.ejercicioIntegrador.tiendaderopa.dto.reportes.ReporteProductosDTO;
 import com.ejercicioIntegrador.tiendaderopa.model.Producto;
+import com.ejercicioIntegrador.tiendaderopa.model.Sucursal;
 import com.ejercicioIntegrador.tiendaderopa.model.Stock;
 import com.ejercicioIntegrador.tiendaderopa.model.SubCategoria;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,12 @@ public class ServicioReporteProductos {
     private ServicioStock svcStock;
 
     @Autowired
+    private ServicioSucursal svcSucursal;
+
+    @Autowired
+    private ServicioObjetivoReposicion svcObjetivoReposicion;
+
+    @Autowired
     private ServicioReporteProveedores svcReporteProveedores;
 
     @Autowired
@@ -33,9 +40,10 @@ public class ServicioReporteProductos {
 
     public ReporteProductosDTO generarReporte() {
         Collection<Producto> productos = svcProducto.listarProductoActivo();
+        Sucursal sucursal = svcSucursal.obtenerPrincipal();
 
         List<ProductoStockDTO> items = productos.stream()
-                .map(this::aDTO)
+            .map(producto -> aDTO(producto, sucursal))
                 .collect(Collectors.toList());
 
         ReporteProductosDTO reporte = new ReporteProductosDTO();
@@ -49,10 +57,10 @@ public class ServicioReporteProductos {
         return reporte;
     }
 
-    private ProductoStockDTO aDTO(Producto producto) {
-        Stock stockActual = svcStock.buscarStockActual(producto.getId());
-        int cantidadActual = stockActual != null ? stockActual.getCantActual() : 0;
-        int stockMaximo = producto.getStockMaximo();
+    private ProductoStockDTO aDTO(Producto producto, Sucursal sucursal) {
+        int cantidadActual = svcStock.cantidadActual(producto.getId(), sucursal.getId());
+        int stockMaximo = svcObjetivoReposicion.obtenerCantidadObjetivo(
+                sucursal.getId(), producto.getId(), producto.getStockMaximo());
         SubCategoria subCategoria = producto.getSubCategoria();
 
         ProductoStockDTO dto = new ProductoStockDTO();
@@ -63,6 +71,7 @@ public class ServicioReporteProductos {
         dto.setCategoria(subCategoria != null && subCategoria.getCategoria() != null
                 ? subCategoria.getCategoria().getNombre()
                 : null);
+        dto.setSucursal(sucursal.getNombre());
         dto.setStockActual(cantidadActual);
         dto.setStockMaximo(stockMaximo);
 
@@ -78,16 +87,16 @@ public class ServicioReporteProductos {
         dto.setEstado(clasificar(proporcion));
 
         if (dto.getEstado() == EstadoStock.MALO) {
-            completarSugerenciaDeReposicion(dto, producto, stockMaximo, cantidadActual);
+            completarSugerenciaDeReposicion(dto, producto, sucursal.getId(), cantidadActual);
         }
 
         return dto;
     }
 
-    private void completarSugerenciaDeReposicion(ProductoStockDTO dto, Producto producto,
-            int stockMaximo, int cantidadActual) {
-        int cantidadParaLlegarAlCincuenta = (int) Math.ceil(stockMaximo * UMBRAL_BUENO) - cantidadActual;
-        int cantidadSugerida = Math.max(cantidadParaLlegarAlCincuenta, 0);
+        private void completarSugerenciaDeReposicion(ProductoStockDTO dto, Producto producto, String sucursalId,
+            int cantidadActual) {
+        int cantidadSugerida = svcObjetivoReposicion.cantidadAReponer(
+                sucursalId, producto.getId());
         dto.setCantidadSugeridaCompra(cantidadSugerida);
 
         svcReporteProveedores.buscarProveedorMasEconomico(producto.getId())

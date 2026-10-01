@@ -18,6 +18,7 @@ public class ProductoStockDTO {
     private String nombre;
     private String categoria;
     private String subCategoria;
+    private String sucursal;
     private int stockActual;
     private int stockMaximo;
 

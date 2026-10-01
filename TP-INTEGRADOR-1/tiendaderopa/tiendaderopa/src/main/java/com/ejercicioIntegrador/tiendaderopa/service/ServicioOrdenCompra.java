@@ -4,6 +4,7 @@ import com.ejercicioIntegrador.tiendaderopa.model.DetalleCompra;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoOrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.model.Producto;
+import com.ejercicioIntegrador.tiendaderopa.model.Sucursal;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioOrdenCompra;
 import java.math.BigDecimal;
@@ -37,6 +38,8 @@ public class ServicioOrdenCompra {
 
     @Autowired
     private ServicioStock servicioStock;
+    @Autowired
+    private ServicioSucursal servicioSucursal;
 
     @Transactional(readOnly = true)
     public List<OrdenCompra> listarTodas() {
@@ -71,8 +74,13 @@ public class ServicioOrdenCompra {
                     nueva.setTotal(0.0);
                     nueva.setEliminado(false);
                     nueva.setUsuario(usuario);
+                    nueva.setSucursal(servicioSucursal.obtenerPrincipal());
                     return repositorioOrdenCompra.save(nueva);
                 });
+        if (carrito.getSucursal() == null) {
+            carrito.setSucursal(servicioSucursal.obtenerPrincipal());
+            repositorioOrdenCompra.save(carrito);
+        }
         if (actualizarPreciosVigentes(carrito)) {
             recalcularTotal(carrito);
             repositorioOrdenCompra.save(carrito);
@@ -109,6 +117,7 @@ public class ServicioOrdenCompra {
         orden.setTotal(0.0);
         orden.setEliminado(false);
         orden.setUsuario(usuario);
+        orden.setSucursal(servicioSucursal.obtenerPrincipal());
 
         return repositorioOrdenCompra.save(orden);
     }
@@ -134,8 +143,7 @@ public class ServicioOrdenCompra {
             throw new IllegalStateException("El producto no tiene un precio vigente");
         }
 
-        var stock = servicioStock.buscarStockActual(productoId);
-        int stockDisponible = stock == null ? 0 : stock.getCantActual();
+        int stockDisponible = servicioStock.cantidadActual(productoId, orden.getSucursal().getId());
         int cantidadEnCarrito = orden.getDetalles().stream()
                 .filter(detalle -> !detalle.isEliminado() && detalle.getProducto().getId().equals(productoId))
                 .mapToInt(DetalleCompra::getCantidad)
@@ -210,8 +218,10 @@ public class ServicioOrdenCompra {
             throw new IllegalStateException("El precio de " + detalle.getProducto().getNombre()
                 + " cambió. Revisá el carrito antes de pagar");
             }
-            var stock = servicioStock.buscarStockActual(detalle.getProducto().getId());
-            int disponible = stock == null ? 0 : stock.getCantActual();
+            Sucursal sucursal = orden.getSucursal() == null
+                    ? servicioSucursal.obtenerPrincipal()
+                    : orden.getSucursal();
+            int disponible = servicioStock.cantidadActual(detalle.getProducto().getId(), sucursal.getId());
             if (detalle.getCantidad() > disponible) {
                 throw new IllegalStateException("El stock de " + detalle.getProducto().getNombre()
                         + " cambió. Actualizá el carrito antes de pagar");
@@ -249,6 +259,7 @@ public class ServicioOrdenCompra {
         orden.setMercadoPagoPaymentId(paymentId);
         orden.setMercadoPagoStatus(paymentStatus);
         if ("approved".equalsIgnoreCase(paymentStatus)) {
+            servicioStock.registrarVenta(orden);
             orden.setEstadoOrdenCompra(EstadoOrdenCompra.PAGO_REALIZADO);
         }
         return repositorioOrdenCompra.save(orden);
@@ -259,6 +270,10 @@ public class ServicioOrdenCompra {
         OrdenCompra orden = buscarPorId(id);
         if (!transicionPermitida(orden.getEstadoOrdenCompra(), nuevoEstado)) {
             throw new IllegalStateException("La transición de estado solicitada no está permitida");
+        }
+        if (orden.getEstadoOrdenCompra() == EstadoOrdenCompra.PENDIENTE_DE_PAGO
+                && nuevoEstado == EstadoOrdenCompra.PAGO_REALIZADO) {
+            servicioStock.registrarVenta(orden);
         }
         orden.setEstadoOrdenCompra(nuevoEstado);
         return repositorioOrdenCompra.save(orden);
