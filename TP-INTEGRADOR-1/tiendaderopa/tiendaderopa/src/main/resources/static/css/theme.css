@@ -1,0 +1,31 @@
+:root {
+    color-scheme: light;
+    --brand-ink: #202622;
+    --brand-muted: #68716a;
+    --brand-paper: #f4f5f0;
+    --brand-white: #ffffff;
+    --brand-line: #e1e5dd;
+    --brand-accent: #c7f36b;
+    --brand-accent-strong: #a9dc43;
+    --brand-warm: #e86f52;
+    --brand-success: #27845a;
+    --brand-danger: #b8493d;
+    --font-body: "Aptos", "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+body {
+    color: var(--brand-ink);
+    font-family: var(--font-body);
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}
+
+:focus-visible {
+    outline: 3px solid var(--brand-accent-strong);
+    outline-offset: 2px;
+}
