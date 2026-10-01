@@ -5,23 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="049f7cae-958a-417e-b875-4a02ffc01b20" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioGestionOrdenCompraProveedor.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/controller/ControladorOrdenCompraProveedor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/controller/ControladorOrdenCompraProveedor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/repository/RepositorioFactura.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/repository/RepositorioFactura.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/repository/RepositorioFormaDePago.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/repository/RepositorioFormaDePago.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/AdminPageSupport.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/AdminPageSupport.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/MercadoPagoCheckoutService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/MercadoPagoCheckoutService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioDetalleFactura.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioDetalleFactura.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFactura.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFactura.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFacturaCliente.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFacturaCliente.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFacturaProveedor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFacturaProveedor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFormaDePago.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFormaDePago.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioOrdenCompra.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioOrdenCompra.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioOrdenCompraProveedor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioOrdenCompraProveedor.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/admin/registros.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/admin/registros.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/fragments/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/fragments/sidebar.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,7 +66,7 @@
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;Spring Boot.TiendaderopaApplication.executor&quot;: &quot;Run&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;generarfacturas&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;/home/juanpi/Downloads/tiendaderopa-abms-integrados&quot;,
     &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,

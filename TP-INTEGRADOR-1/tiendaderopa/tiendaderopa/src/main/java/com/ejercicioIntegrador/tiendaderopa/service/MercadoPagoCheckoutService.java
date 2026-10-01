@@ -49,8 +49,9 @@ public class MercadoPagoCheckoutService {
     @Value("${mercadopago.sandbox:false}")
     private boolean sandbox;
 
-    public MercadoPagoCheckoutService(ServicioOrdenCompra ordenServicio) {
+    public MercadoPagoCheckoutService(ServicioOrdenCompra ordenServicio, ServicioFacturaCliente svcFacturaCliente) {
         this.ordenServicio = ordenServicio;
+        this.svcFacturaCliente = svcFacturaCliente;
     }
 
     public String iniciarCheckout(String ordenId, String email) throws Exception {
