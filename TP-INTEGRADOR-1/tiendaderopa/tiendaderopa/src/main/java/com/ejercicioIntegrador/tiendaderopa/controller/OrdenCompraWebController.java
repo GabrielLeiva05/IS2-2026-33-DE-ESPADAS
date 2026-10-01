@@ -69,11 +69,22 @@ public class OrdenCompraWebController {
         return "redirect:" + RUTA;
     }
 
+    @PostMapping(RUTA + "/{id}/eliminar")
+    public String eliminar(@PathVariable String id, RedirectAttributes redirect) {
+        try {
+            servicio.eliminarOrdenCompra(id);
+            redirect.addFlashAttribute("mensaje", "Compra eliminada correctamente.");
+        } catch (RuntimeException ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:" + RUTA;
+    }
+
     private String mostrar(Model model, List<OrdenCompra> ordenes, EstadoOrdenCompra estado) {
         AdminPageSupport.cargar(model, "Órdenes de compra", RUTA, OrdenCompra.class, ordenes, List.of(), null);
         model.addAttribute("permitirCrear", false);
         model.addAttribute("permitirEditar", false);
-        model.addAttribute("permitirEliminar", false);
+        model.addAttribute("permitirEliminar", true);
         model.addAttribute("permitirVerDetalle", true);
         model.addAttribute("permitirCambiarEstado", true);
         model.addAttribute("permitirFiltrarEstado", true);

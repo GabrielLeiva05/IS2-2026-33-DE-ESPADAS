@@ -25,13 +25,13 @@
         <div class="section-heading">
             <div>
                 <p class="eyebrow">SELECCIÓN ZERO</p>
-                <h2>Productos disponibles</h2>
+                <h2>Productos</h2>
             </div>
             <span th:text="${#lists.size(productos)} + ' productos'"></span>
         </div>
 
         <p class="empty-state" th:if="${#lists.isEmpty(productos)}">
-            No hay productos con precio vigente y stock disponible en este momento.
+            No hay productos publicados en este momento.
         </p>
 
         <div class="product-grid" th:if="${!#lists.isEmpty(productos)}">
@@ -51,15 +51,17 @@
                     <p class="product-size" th:if="${item.producto.talle != null}"
                               th:text="${'Talle ' + item.producto.talle}"></p>
                     <div class="product-buy-row">
-                        <strong th:text="${'$ ' + #numbers.formatDecimal(item.precio, 1, 2, 'COMMA')}"></strong>
-                        <form sec:authorize="hasRole('CLIENTE')" th:action="@{/carrito/items}" method="post" class="cart-add-form">
+                        <strong th:if="${item.precio > 0}" th:text="${'$ ' + #numbers.formatDecimal(item.precio, 1, 2, 'COMMA')}"></strong>
+                        <strong th:unless="${item.precio > 0}">Precio pendiente</strong>
+                        <form sec:authorize="hasRole('CLIENTE')" th:if="${item.precio > 0 and item.stockDisponible > 0}" th:action="@{/carrito/items}" method="post" class="cart-add-form">
                             <input type="hidden" name="productoId" th:value="${item.producto.id}">
                             <input type="hidden" name="cantidad" value="1">
                             <button type="submit" aria-label="Agregar al carrito">Agregar</button>
                         </form>
-                        <a sec:authorize="isAnonymous()" th:href="@{/login}" class="sign-in-link">Ingresar para comprar</a>
+                        <a sec:authorize="isAnonymous()" th:if="${item.precio > 0 and item.stockDisponible > 0}" th:href="@{/login}" class="sign-in-link">Ingresar para comprar</a>
                     </div>
-                    <p class="stock-note" th:text="${item.stockDisponible} + ' disponibles'"></p>
+                    <p class="stock-note" th:if="${item.stockDisponible > 0}" th:text="${item.stockDisponible} + ' disponibles'"></p>
+                    <p class="stock-note" th:unless="${item.stockDisponible > 0}">Sin stock</p>
                 </div>
             </article>
         </div>

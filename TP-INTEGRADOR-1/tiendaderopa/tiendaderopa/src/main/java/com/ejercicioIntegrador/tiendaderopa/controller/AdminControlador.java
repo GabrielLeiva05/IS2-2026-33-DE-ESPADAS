@@ -32,7 +32,6 @@ public class AdminControlador {
     private final ServicioContactoCorreoElectronico servicioContactoCorreo;
     private final ServicioProveedor servicioProveedor;
     private final ServicioFacturaCliente servicioFacturaCliente;
-    private final ServicioFacturaProveedor servicioFacturaProveedor;
     private final ServicioOrdenCompraProveedor servicioOrdenCompra;
     public AdminControlador(PaisServicio paisServicio, ProvinciaServicio provinciaServicio, ServicioNewsletter servicioNewsletter,
                             ServicioCategoria servicioCategoria,
@@ -49,7 +48,6 @@ public class AdminControlador {
                             ServicioContactoCorreoElectronico servicioContactoCorreo,
                             ServicioProveedor servicioProveedor,
                             ServicioFacturaCliente servicioFacturaCliente,
-                            ServicioFacturaProveedor servicioFacturaProveedor,
                             ServicioOrdenCompraProveedor servicioOrdenCompra) {
         this.paisServicio = paisServicio;
         this.provinciaServicio = provinciaServicio;
@@ -68,7 +66,6 @@ public class AdminControlador {
         this.servicioContactoCorreo = servicioContactoCorreo;
         this.servicioProveedor = servicioProveedor;
         this.servicioFacturaCliente = servicioFacturaCliente;
-        this.servicioFacturaProveedor = servicioFacturaProveedor;
         this.servicioOrdenCompra = servicioOrdenCompra;
     }
     @GetMapping("/dashboard")
@@ -115,8 +112,6 @@ public class AdminControlador {
         modelo.addAttribute("ordenesCompra", servicioOrdenCompra.listarOrdenCompraProveedor());
         modelo.addAttribute("facturasCliente", servicioFacturaCliente.listarTodas());
         modelo.addAttribute("facturaCliente", null);
-        modelo.addAttribute("facturasProveedor", servicioFacturaProveedor.listarTodas());
-        modelo.addAttribute("facturaProveedor", null);
         return "panel.html";
     }
 }

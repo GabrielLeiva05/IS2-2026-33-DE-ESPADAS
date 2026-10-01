@@ -15,11 +15,6 @@
             <h3>Modificar subcategoría</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${subcategoria.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="nombre-sub-mod">Nombre de la subcategoría</label>
                 <input type="text" id="nombre-sub-mod" name="nombre" th:value="${subcategoria.nombre}" placeholder="Ej. Remeras manga corta" required />
             </div>
@@ -83,7 +78,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
                     <th>Estado</th>
@@ -92,7 +86,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${subcategorias != null}" th:each="r : ${subcategorias}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.nombre}">Nombre</td>
                     <td th:text="${r.categoria != null ? r.categoria.nombre : 'Sin categoría'}">Categoría</td>
                     <td>
@@ -105,7 +98,7 @@
                     </td>
                 </tr>
                 <tr th:if="${subcategorias == null or subcategorias.isEmpty()}">
-                    <td colspan="5">No hay subcategorías cargados en el sistema.</td>
+                    <td colspan="4">No hay subcategorías cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

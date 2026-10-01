@@ -118,9 +118,12 @@
                     <td th:each="columna : ${columnas}" th:text="${fila[columna.clave]}"></td>
                     <td class="row-actions">
                         <a class="btn-cancel" th:if="${permitirVerDetalle}" th:href="${detallePath + '/' + fila['id']}">Ver</a>
-                        <a class="btn-edit" th:if="${permitirEditar}" th:href="${basePath + '/' + fila['id'] + '/editar'}">Editar</a>
-                        <form method="post" th:if="${permitirEliminar}" th:action="${basePath + '/' + fila['id'] + '/eliminar'}">
+                        <a class="btn-edit" th:if="${permitirEditar and (!permitirRestaurar or !fila['eliminado'])}" th:href="${basePath + '/' + fila['id'] + '/editar'}">Editar</a>
+                        <form method="post" th:if="${permitirEliminar and (!permitirRestaurar or !fila['eliminado'])}" th:action="${basePath + '/' + fila['id'] + '/eliminar'}" onsubmit="return confirm('¿Eliminar este registro?');">
                             <button class="btn-delete" type="submit">Eliminar</button>
+                        </form>
+                        <form method="post" th:if="${permitirRestaurar and fila['eliminado']}" th:action="${basePath + '/' + fila['id'] + '/restaurar'}">
+                            <button class="btn-submit" type="submit">Recuperar</button>
                         </form>
                         <form method="post" th:if="${asociacionUsuarios}" th:action="${basePath + '/' + fila['id'] + '/usuario'}">
                             <label class="visually-hidden" th:for="${'usuario-' + fila['id']}">Usuario</label>

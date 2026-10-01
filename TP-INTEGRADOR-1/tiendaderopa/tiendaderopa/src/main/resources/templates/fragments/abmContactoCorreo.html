@@ -15,11 +15,6 @@
             <h3>Modificar contacto de correo</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${contactoCorreo.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label>Asociado a</label>
                 <input type="text" th:value="${contactoCorreo.persona != null ? contactoCorreo.persona.apellido + ', ' + contactoCorreo.persona.nombre : (contactoCorreo.proveedor != null ? contactoCorreo.proveedor.razonSocial : '-')}" disabled />
             </div>
@@ -117,7 +112,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Asociado a</th>
                     <th>Correo</th>
                     <th>Contacto</th>
@@ -127,7 +121,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${contactosCorreo != null}" th:each="r : ${contactosCorreo}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.persona != null ? r.persona.apellido + ', ' + r.persona.nombre : (r.proveedor != null ? r.proveedor.razonSocial : '-')}">Asociado a</td>
                     <td th:text="${r.email}">Correo</td>
                     <td th:text="${r.tipoContacto}">Contacto</td>
@@ -141,7 +134,7 @@
                     </td>
                 </tr>
                 <tr th:if="${contactosCorreo == null or contactosCorreo.isEmpty()}">
-                    <td colspan="6">No hay contactos de correo cargados en el sistema.</td>
+                    <td colspan="5">No hay contactos de correo cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

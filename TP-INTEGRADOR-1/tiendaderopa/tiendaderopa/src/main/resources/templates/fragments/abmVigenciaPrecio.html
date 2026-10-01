@@ -15,11 +15,6 @@
             <h3>Modificar vigencia de precio</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${vigencia.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="idProducto-vig-mod">Producto</label>
                 <select id="idProducto-vig-mod" name="idProducto" required>
                     <option value="" disabled>Seleccione un producto</option>
@@ -99,7 +94,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Producto</th>
                     <th>Precio</th>
                     <th>Desde</th>
@@ -110,7 +104,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${vigencias != null}" th:each="r : ${vigencias}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.producto != null ? r.producto.nombre : '-'}">Producto</td>
                     <td th:text="${'$ ' + r.precio}">Precio</td>
                     <td th:text="${r.fechaDesde}">Desde</td>
@@ -125,7 +118,7 @@
                     </td>
                 </tr>
                 <tr th:if="${vigencias == null or vigencias.isEmpty()}">
-                    <td colspan="7">No hay vigencias de precio cargados en el sistema.</td>
+                    <td colspan="6">No hay vigencias de precio cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

@@ -25,6 +25,7 @@ public final class AdminPageSupport {
             Collection<?> registros, List<Map<String, Object>> campos, Object seleccionado) {
         List<PropertyDescriptor> propiedades = propiedadesSimples(tipo);
         List<Map<String, String>> columnas = propiedades.stream()
+            .filter(propiedad -> columnaVisible(propiedad.getName()))
                 .map(propiedad -> Map.of("clave", propiedad.getName(), "etiqueta", etiqueta(propiedad.getName())))
                 .toList();
         List<Map<String, Object>> filas = registros.stream()
@@ -43,6 +44,7 @@ public final class AdminPageSupport {
         model.addAttribute("permitirCrear", true);
         model.addAttribute("permitirEditar", true);
         model.addAttribute("permitirEliminar", true);
+        model.addAttribute("permitirRestaurar", false);
         model.addAttribute("asociacionUsuarios", false);
         model.addAttribute("desasociarUsuarios", false);
         model.addAttribute("permitirVerDetalle", false);
@@ -120,6 +122,11 @@ public final class AdminPageSupport {
         } catch (Exception ex) {
             throw new IllegalStateException("No se pudieron inspeccionar las propiedades de " + tipo.getSimpleName(), ex);
         }
+    }
+
+    private static boolean columnaVisible(String nombre) {
+        return !"id".equals(nombre) && !"eliminado".equals(nombre)
+                && !nombre.startsWith("mercadoPago");
     }
 
     private static Map<String, Object> fila(Object entidad, List<PropertyDescriptor> propiedades) {

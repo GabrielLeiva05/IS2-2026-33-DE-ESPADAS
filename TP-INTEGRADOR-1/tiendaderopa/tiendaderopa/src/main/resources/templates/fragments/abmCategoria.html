@@ -15,11 +15,6 @@
             <h3>Modificar categoría</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${categoria.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="nombre-cat-mod">Nombre de la categoría</label>
                 <input type="text" id="nombre-cat-mod" name="nombre" th:value="${categoria.nombre}" placeholder="Ej. Remeras" required />
             </div>
@@ -59,7 +54,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nombre</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -67,7 +61,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${categorias != null}" th:each="r : ${categorias}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.nombre}">Nombre</td>
                     <td>
                         <span th:unless="${r.activo}" class="estado estado-eliminado">Inactivo</span>
@@ -79,7 +72,7 @@
                     </td>
                 </tr>
                 <tr th:if="${categorias == null or categorias.isEmpty()}">
-                    <td colspan="4">No hay categorías cargados en el sistema.</td>
+                    <td colspan="3">No hay categorías cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

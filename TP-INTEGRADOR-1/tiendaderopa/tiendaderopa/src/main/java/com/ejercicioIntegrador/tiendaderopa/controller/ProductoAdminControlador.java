@@ -86,6 +86,17 @@ public class ProductoAdminControlador {
         return "redirect:/admin/productos";
     }
 
+    @PostMapping("/{id}/restaurar")
+    public String restaurar(@PathVariable String id, RedirectAttributes redirect) {
+        try {
+            servicio.restaurarProducto(id);
+            redirect.addFlashAttribute("mensaje", "Producto recuperado correctamente.");
+        } catch (Exception e) {
+            redirect.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/productos";
+    }
+
     private String mostrar(Model model, Producto seleccionado) throws Exception {
         AdminPageSupport.cargar(model, "Productos", "/admin/productos", Producto.class,
                 servicio.listarProducto(), java.util.List.of(
@@ -99,6 +110,7 @@ public class ProductoAdminControlador {
                         AdminPageSupport.campoRelacion("idImagen", false, AdminPageSupport.mapaOpciones(
                                 imagenServicio.listar(), Imagen::getId, Imagen::getNombre))),
                 seleccionado);
+            model.addAttribute("permitirRestaurar", true);
         return "admin/registros";
     }
 }

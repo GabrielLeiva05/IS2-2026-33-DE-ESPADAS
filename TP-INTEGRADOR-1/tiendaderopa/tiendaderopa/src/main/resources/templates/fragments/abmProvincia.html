@@ -15,11 +15,6 @@
             <h3>Modificar provincia</h3>
 
             <div class="form-group">
-                <label for="id-prov-mod">ID</label>
-                <input type="text" id="id-prov-mod" th:value="${provincia.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="nombre-prov-mod">Nombre de la provincia</label>
                 <input type="text" id="nombre-prov-mod" name="nombre" th:value="${provincia.nombre}" placeholder="Ej. Mendoza" required />
             </div>
@@ -79,7 +74,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nombre</th>
                     <th>País</th>
                     <th>Estado</th>
@@ -88,7 +82,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${provincias != null}" th:each="pr : ${provincias}">
-                    <td th:text="${pr.id}">ID</td>
                     <td th:text="${pr.nombre}">Nombre</td>
                     <td th:text="${pr.pais != null ? pr.pais.nombre : 'Sin país'}">País</td>
                     <td>
@@ -101,7 +94,7 @@
                     </td>
                 </tr>
                 <tr th:if="${provincias == null or #lists.isEmpty(provincias)}">
-                    <td colspan="5">No hay provincias cargadas en el sistema.</td>
+                    <td colspan="4">No hay provincias cargadas en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

@@ -15,11 +15,6 @@
             <h3>Modificar producto</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${producto.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label>Código</label>
                 <input type="text" th:value="${producto.codigo}" disabled />
             </div>
@@ -158,8 +153,13 @@
                         <span th:unless="${r.eliminado}" class="estado estado-activo">Activo</span>
                     </td>
                     <td class="row-actions">
-                        <a th:href="@{/admin/abm/producto/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
-                        <a th:href="@{/admin/abm/producto/eliminar/{id}(id=${r.id})}" class="btn-delete" onclick="return confirm('¿Estás seguro de eliminar este producto?');">Eliminar</a>
+                        <a th:unless="${r.eliminado}" th:href="@{/admin/abm/producto/modificar/{id}(id=${r.id})}" class="btn-edit">Editar</a>
+                        <form th:if="${r.eliminado}" method="post" th:action="@{/admin/abm/producto/restaurar/{id}(id=${r.id})}">
+                            <button type="submit" class="btn-submit">Recuperar</button>
+                        </form>
+                        <form th:unless="${r.eliminado}" method="post" th:action="@{/admin/abm/producto/eliminar/{id}(id=${r.id})}" onsubmit="return confirm('¿Estás seguro de eliminar este producto?');">
+                            <button type="submit" class="btn-delete">Eliminar</button>
+                        </form>
                     </td>
                 </tr>
                 <tr th:if="${productos == null or productos.isEmpty()}">

@@ -78,6 +78,14 @@ public class ServicioProducto {
         repositorio.save(producto);
     }
 
+    @Transactional
+    public void restaurarProducto(String id) throws Exception {
+        Producto producto = repositorio.findById(id)
+                .orElseThrow(() -> new Exception("No existe el producto con id " + id));
+        producto.setEliminado(false);
+        repositorio.save(producto);
+    }
+
     public Collection<Producto> listarProducto() {
         return repositorio.findAll();
     }

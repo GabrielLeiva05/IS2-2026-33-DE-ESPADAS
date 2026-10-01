@@ -15,11 +15,6 @@
             <h3>Modificar empleado</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${empleado.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="nombre-empl-mod">Nombre</label>
                 <input type="text" id="nombre-empl-mod" name="nombre" th:value="${empleado.nombre}" required />
             </div>
@@ -155,7 +150,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Apellido y nombre</th>
                     <th>Documento</th>
                     <th>Tipo</th>
@@ -166,7 +160,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${empleados != null}" th:each="r : ${empleados}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.apellido + ', ' + r.nombre}">Apellido y nombre</td>
                     <td th:text="${r.tipoDocumento + ' ' + r.documento}">Documento</td>
                     <td th:text="${r.tipoEmpleado}">Tipo</td>
@@ -181,7 +174,7 @@
                     </td>
                 </tr>
                 <tr th:if="${empleados == null or empleados.isEmpty()}">
-                    <td colspan="7">No hay empleados cargados en el sistema.</td>
+                    <td colspan="6">No hay empleados cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

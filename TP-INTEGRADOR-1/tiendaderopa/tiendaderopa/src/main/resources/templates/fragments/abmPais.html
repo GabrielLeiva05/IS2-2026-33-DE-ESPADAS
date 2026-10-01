@@ -15,11 +15,6 @@
             <h3>Modificar país</h3>
 
             <div class="form-group">
-                <label for="id-pais-mod">ID</label>
-                <input type="text" id="id-pais-mod" th:value="${pais.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="nombre-mod">Nombre del país</label>
                 <input type="text" id="nombre-mod" name="nombre" th:value="${pais.nombre}" placeholder="Ej. Argentina" required />
             </div>
@@ -55,7 +50,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nombre</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -63,7 +57,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${paises != null}" th:each="p : ${paises}">
-                    <td th:text="${p.id}">ID</td>
                     <td th:text="${p.nombre}">Nombre</td>
                     <td>
                         <span th:if="${p.eliminado}" class="estado estado-eliminado">Eliminado</span>
@@ -75,7 +68,7 @@
                     </td>
                 </tr>
                 <tr th:if="${paises == null or #lists.isEmpty(paises)}">
-                    <td colspan="4">No hay países cargados en el sistema.</td>
+                    <td colspan="3">No hay países cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

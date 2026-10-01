@@ -15,11 +15,6 @@
             <h3>Modificar forma de pago</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${formaDePago.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="tipoPago-fdp-mod">Tipo de pago</label>
                 <select id="tipoPago-fdp-mod" name="tipoPago" required>
                     <option value="" disabled>Seleccione una opción</option>
@@ -78,7 +73,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Tipo de pago</th>
                     <th>Observación</th>
                     <th>Estado</th>
@@ -87,7 +81,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${formasDePago != null}" th:each="r : ${formasDePago}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.tipoPago}">Tipo de pago</td>
                     <td th:text="${r.observacion != null ? r.observacion : '-'}">Observación</td>
                     <td>
@@ -100,7 +93,7 @@
                     </td>
                 </tr>
                 <tr th:if="${formasDePago == null or formasDePago.isEmpty()}">
-                    <td colspan="5">No hay formas de pago cargados en el sistema.</td>
+                    <td colspan="4">No hay formas de pago cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

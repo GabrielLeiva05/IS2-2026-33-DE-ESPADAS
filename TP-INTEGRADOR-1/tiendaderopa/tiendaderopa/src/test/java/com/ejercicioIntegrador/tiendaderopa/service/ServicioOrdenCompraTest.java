@@ -2,6 +2,7 @@ package com.ejercicioIntegrador.tiendaderopa.service;
 
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoOrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.RolUsuario;
+import com.ejercicioIntegrador.tiendaderopa.model.DetalleCompra;
 import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.model.Sucursal;
 import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
@@ -101,6 +102,23 @@ class ServicioOrdenCompraTest {
 
         assertEquals(EstadoOrdenCompra.PAGO_REALIZADO, orden.getEstadoOrdenCompra());
         verify(servicioStock, times(1)).registrarVenta(orden);
+    }
+
+    @Test
+    void eliminarOrdenAplicaBajaLogicaAOrdenYDetalles() {
+        OrdenCompra orden = ordenDe("cliente-a@example.com", EstadoOrdenCompra.PAGO_REALIZADO);
+        DetalleCompra detalle = new DetalleCompra();
+        detalle.setId("detalle-1");
+        orden.getDetalles().add(detalle);
+        ServicioDetalleCompra servicioDetalle = mock(ServicioDetalleCompra.class);
+        ReflectionTestUtils.setField(servicio, "servicioDetalleCompra", servicioDetalle);
+        when(repositorio.findById("orden-1")).thenReturn(Optional.of(orden));
+
+        servicio.eliminarOrdenCompra("orden-1");
+
+        assertEquals(true, orden.isEliminado());
+        verify(servicioDetalle).eliminarDetalleCompra("detalle-1");
+        verify(repositorio).save(orden);
     }
 
     private OrdenCompra ordenDe(String email, EstadoOrdenCompra estado) {

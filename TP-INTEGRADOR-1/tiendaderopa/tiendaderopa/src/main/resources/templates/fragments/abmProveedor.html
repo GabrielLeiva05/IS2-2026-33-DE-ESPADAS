@@ -15,11 +15,6 @@
             <h3>Modificar proveedor</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${proveedor.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="razonSocial-prov-mod">Razón social</label>
                 <input type="text" id="razonSocial-prov-mod" name="razonSocial" th:value="${proveedor.razonSocial}" placeholder="Ej. Textil del Sur S.R.L." required />
             </div>
@@ -70,7 +65,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Razón social</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -78,7 +72,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${proveedores != null}" th:each="r : ${proveedores}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.razonSocial}">Razón social</td>
                     <td>
                         <span th:if="${r.eliminado}" class="estado estado-eliminado">Eliminado</span>
@@ -90,7 +83,7 @@
                     </td>
                 </tr>
                 <tr th:if="${proveedores == null or proveedores.isEmpty()}">
-                    <td colspan="4">No hay proveedores cargados en el sistema.</td>
+                    <td colspan="3">No hay proveedores cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

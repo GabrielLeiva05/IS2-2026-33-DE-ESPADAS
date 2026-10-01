@@ -98,12 +98,23 @@ public class ProductoAbmControlador {
         return "redirect:/admin/dashboard";
     }
 
-    // 4. ELIMINAR (GET)
-    @GetMapping("/eliminar/{id}")
+    // 4. ELIMINAR (POST)
+    @PostMapping("/eliminar/{id}")
     public String eliminar(@PathVariable String id, RedirectAttributes redirectAttributes) {
         try {
             servicioProducto.eliminarProducto(id);
             redirectAttributes.addFlashAttribute("exito", "Producto eliminado correctamente.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    @PostMapping("/restaurar/{id}")
+    public String restaurar(@PathVariable String id, RedirectAttributes redirectAttributes) {
+        try {
+            servicioProducto.restaurarProducto(id);
+            redirectAttributes.addFlashAttribute("exito", "Producto recuperado correctamente.");
         } catch (Exception ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }

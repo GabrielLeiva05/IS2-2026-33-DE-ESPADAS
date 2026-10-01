@@ -15,11 +15,6 @@
             <h3>Modificar configuración de correo</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${configuracionCorreo.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="idEmpresa-cfg-mod">Empresa</label>
                 <select id="idEmpresa-cfg-mod" name="idEmpresa" required>
                     <option value="" disabled>Seleccione una empresa</option>
@@ -117,7 +112,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Empresa</th>
                     <th>Correo</th>
                     <th>SMTP</th>
@@ -128,7 +122,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${configuracionesCorreo != null}" th:each="r : ${configuracionesCorreo}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.empresa != null ? r.empresa.razonSocial : '-'}">Empresa</td>
                     <td th:text="${r.correo}">Correo</td>
                     <td th:text="${r.smtp + ':' + r.puerto}">SMTP</td>
@@ -143,7 +136,7 @@
                     </td>
                 </tr>
                 <tr th:if="${configuracionesCorreo == null or configuracionesCorreo.isEmpty()}">
-                    <td colspan="7">No hay configuraciones de correo cargados en el sistema.</td>
+                    <td colspan="6">No hay configuraciones de correo cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>

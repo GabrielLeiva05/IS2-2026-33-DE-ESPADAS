@@ -15,11 +15,6 @@
             <h3>Modificar empresa</h3>
 
             <div class="form-group">
-                <label>ID</label>
-                <input type="text" th:value="${empresa.id}" disabled />
-            </div>
-
-            <div class="form-group">
                 <label for="razonSocial-emp-mod">Razón social</label>
                 <input type="text" id="razonSocial-emp-mod" name="razonSocial" th:value="${empresa.razonSocial}" placeholder="Ej. Tienda de Ropa S.A." required />
             </div>
@@ -88,7 +83,6 @@
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Razón social</th>
                     <th>CUIT</th>
                     <th>Tipo</th>
@@ -98,7 +92,6 @@
                 </thead>
                 <tbody>
                 <tr th:if="${empresas != null}" th:each="r : ${empresas}">
-                    <td th:text="${r.id}">ID</td>
                     <td th:text="${r.razonSocial}">Razón social</td>
                     <td th:text="${r.cuit}">CUIT</td>
                     <td th:text="${r.tipoSucursal}">Tipo</td>
@@ -112,7 +105,7 @@
                     </td>
                 </tr>
                 <tr th:if="${empresas == null or empresas.isEmpty()}">
-                    <td colspan="6">No hay empresas cargados en el sistema.</td>
+                    <td colspan="5">No hay empresas cargados en el sistema.</td>
                 </tr>
                 </tbody>
             </table>
