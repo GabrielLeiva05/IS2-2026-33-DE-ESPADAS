@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sucursales e inventario | 33 de Espadas</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/inventario.css}">
+</head>
+<body>
+<aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+
+<main class="main inventory-main">
+    <header class="header inventory-header">
+        <div>
+            <p class="inventory-eyebrow">Operaciones</p>
+            <h1>Sucursales e inventario</h1>
+            <p>Administrá los objetivos de reposición y revisá las existencias por sucursal.</p>
+        </div>
+        <form class="inventory-filter" method="get" th:action="@{/admin/inventario}">
+            <label for="sucursal-filtro">Sucursal</label>
+            <select id="sucursal-filtro" name="sucursalId">
+                <option th:each="sucursal : ${sucursales}"
+                        th:value="${sucursal.id}"
+                        th:text="${sucursal.nombre}"
+                        th:selected="${sucursal.id == sucursalSeleccionada.id}"></option>
+            </select>
+            <button type="submit" class="btn-primary">Ver inventario</button>
+        </form>
+    </header>
+
+    <p class="notice success" th:if="${exito != null}" th:text="${exito}"></p>
+    <p class="notice error" th:if="${error != null}" th:text="${error}"></p>
+
+    <section class="inventory-metrics" aria-label="Resumen de inventario">
+        <div class="inventory-metric">
+            <span>Productos</span>
+            <strong th:text="${reporte.cantidadProductos}">0</strong>
+        </div>
+        <div class="inventory-metric">
+            <span>Unidades disponibles</span>
+            <strong th:text="${reporte.stockTotal}">0</strong>
+        </div>
+        <div class="inventory-metric metric-alert">
+            <span>Stock bajo</span>
+            <strong th:text="${reporte.cantidadMalo}">0</strong>
+        </div>
+        <div class="inventory-metric metric-undefined">
+            <span>Sin objetivo</span>
+            <strong th:text="${reporte.cantidadSinDefinir}">0</strong>
+        </div>
+    </section>
+
+    <section class="inventory-section">
+        <div class="inventory-section-heading">
+            <div>
+                <h2>Existencias y objetivos</h2>
+                <p th:text="|Sucursal: ${sucursalSeleccionada.nombre}|">Sucursal</p>
+            </div>
+            <div class="inventory-legend" aria-label="Estados de stock">
+                <span class="status status-bueno">Bueno</span>
+                <span class="status status-regular">Regular</span>
+                <span class="status status-malo">Bajo</span>
+                <span class="status status-sin_definir">Sin objetivo</span>
+            </div>
+        </div>
+
+        <div class="table-container inventory-table-container">
+            <div class="table-scroll">
+                <table class="inventory-table">
+                    <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Stock actual</th>
+                        <th>Estado</th>
+                        <th>Objetivo</th>
+                        <th>Reposición sugerida</th>
+                        <th>Proveedor</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${reporte.productos}">
+                        <td>
+                            <strong th:text="${item.nombre}">Producto</strong>
+                            <small th:text="${item.codigo}">Código</small>
+                        </td>
+                        <td th:text="${item.stockActual}">0</td>
+                        <td>
+                            <span class="status"
+                                  th:classappend="${'status-' + #strings.toLowerCase(item.estado.name())}"
+                                  th:text="${item.estado == T(com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoStock).BUENO ? 'Bueno' : item.estado == T(com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoStock).REGULAR ? 'Regular' : item.estado == T(com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoStock).MALO ? 'Bajo' : 'Sin objetivo'}">Estado</span>
+                            <small th:if="${item.porcentaje != null}"
+                                   th:text="${#numbers.formatDecimal(item.porcentaje, 1, 1) + '%'}">0%</small>
+                        </td>
+                        <td>
+                            <form class="target-form" method="post" th:action="@{/admin/inventario/objetivos}">
+                                <input type="hidden" name="sucursalId" th:value="${sucursalSeleccionada.id}">
+                                <input type="hidden" name="productoId" th:value="${item.idProducto}">
+                                <label class="visually-hidden" th:for="${'objetivo-' + item.idProducto}"
+                                       th:text="${'Objetivo para ' + item.nombre}">Objetivo</label>
+                                <input type="number" min="0" required name="cantidadObjetivo"
+                                       th:id="${'objetivo-' + item.idProducto}" th:value="${item.stockMaximo}">
+                                <button type="submit" class="btn-save-target">Guardar</button>
+                            </form>
+                        </td>
+                        <td th:text="${item.cantidadSugeridaCompra != null ? item.cantidadSugeridaCompra : '—'}">—</td>
+                        <td>
+                            <a th:if="${item.sugerenciaProveedorWhatsappLink != null}"
+                               th:href="${item.sugerenciaProveedorWhatsappLink}"
+                               target="_blank" rel="noopener noreferrer"
+                               th:text="${item.sugerenciaProveedorRazonSocial}">Contactar proveedor</a>
+                            <span th:unless="${item.sugerenciaProveedorWhatsappLink != null}">—</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${reporte.productos == null or reporte.productos.isEmpty()}">
+                        <td colspan="6" class="empty-row">No hay productos activos para mostrar.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section class="inventory-section branch-section">
+        <div class="inventory-section-heading">
+            <div>
+                <h2>Sucursales</h2>
+                <p>La sucursal principal se usa como destino predeterminado para las operaciones actuales.</p>
+            </div>
+        </div>
+
+        <div class="branch-layout">
+            <form class="form-container branch-form" method="post" th:action="@{/admin/inventario/sucursales}">
+                <h3>Agregar sucursal</h3>
+                <div class="form-group">
+                    <label for="nombre-sucursal">Nombre</label>
+                    <input id="nombre-sucursal" name="nombre" type="text" maxlength="120" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccion-sucursal">Dirección</label>
+                    <input id="direccion-sucursal" name="direccion" type="text" maxlength="255">
+                </div>
+                <label class="principal-option">
+                    <input name="principal" type="checkbox" value="true">
+                    <span>Establecer como principal</span>
+                </label>
+                <button type="submit" class="btn-submit">Guardar sucursal</button>
+            </form>
+
+            <div class="table-container branch-table-container">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Sucursal</th>
+                            <th>Dirección</th>
+                            <th>Principal</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="sucursal : ${sucursales}">
+                            <td th:text="${sucursal.nombre}">Nombre</td>
+                            <td th:text="${sucursal.direccion != null ? sucursal.direccion : '—'}">Dirección</td>
+                            <td>
+                                <span th:if="${sucursal.principal}" class="status status-principal">Principal</span>
+                                <span th:unless="${sucursal.principal}">Secundaria</span>
+                            </td>
+                            <td>
+                                <form th:if="${!sucursal.principal}" method="post"
+                                      th:action="@{/admin/inventario/sucursales/principal}">
+                                    <input type="hidden" name="sucursalId" th:value="${sucursal.id}">
+                                    <button class="btn-set-principal" type="submit">Hacer principal</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${sucursales == null or sucursales.isEmpty()}">
+                            <td colspan="4" class="empty-row">No hay sucursales activas.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

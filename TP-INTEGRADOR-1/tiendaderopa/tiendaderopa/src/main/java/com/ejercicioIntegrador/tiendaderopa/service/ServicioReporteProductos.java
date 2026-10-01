@@ -5,7 +5,6 @@ import com.ejercicioIntegrador.tiendaderopa.dto.reportes.ProductoStockDTO;
 import com.ejercicioIntegrador.tiendaderopa.dto.reportes.ReporteProductosDTO;
 import com.ejercicioIntegrador.tiendaderopa.model.Producto;
 import com.ejercicioIntegrador.tiendaderopa.model.Sucursal;
-import com.ejercicioIntegrador.tiendaderopa.model.Stock;
 import com.ejercicioIntegrador.tiendaderopa.model.SubCategoria;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,8 +38,15 @@ public class ServicioReporteProductos {
     private ServicioWhatsapp svcWhatsapp;
 
     public ReporteProductosDTO generarReporte() {
+        return generarReporte(svcSucursal.obtenerPrincipal());
+    }
+
+    public ReporteProductosDTO generarReporte(String sucursalId) {
+        return generarReporte(svcSucursal.buscarActiva(sucursalId));
+    }
+
+    private ReporteProductosDTO generarReporte(Sucursal sucursal) {
         Collection<Producto> productos = svcProducto.listarProductoActivo();
-        Sucursal sucursal = svcSucursal.obtenerPrincipal();
 
         List<ProductoStockDTO> items = productos.stream()
             .map(producto -> aDTO(producto, sucursal))
@@ -93,7 +99,7 @@ public class ServicioReporteProductos {
         return dto;
     }
 
-        private void completarSugerenciaDeReposicion(ProductoStockDTO dto, Producto producto, String sucursalId,
+    private void completarSugerenciaDeReposicion(ProductoStockDTO dto, Producto producto, String sucursalId,
             int cantidadActual) {
         int cantidadSugerida = svcObjetivoReposicion.cantidadAReponer(
                 sucursalId, producto.getId());

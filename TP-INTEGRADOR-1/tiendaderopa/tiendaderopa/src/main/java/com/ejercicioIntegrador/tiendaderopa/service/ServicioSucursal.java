@@ -5,6 +5,7 @@ import com.ejercicioIntegrador.tiendaderopa.repository.SucursalRepositorio;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -29,6 +30,11 @@ public class ServicioSucursal {
                 .orElseThrow(() -> new IllegalArgumentException("No existe una sucursal activa con ese ID"));
     }
 
+    @Transactional(readOnly = true)
+    public List<Sucursal> listarActivas() {
+        return repositorio.findByActivaTrueOrderByNombreAsc();
+    }
+
     @Transactional
     public Sucursal crear(String nombre, String direccion, boolean principal) {
         if (nombre == null || nombre.isBlank()) {
@@ -48,5 +54,15 @@ public class ServicioSucursal {
                     .ifPresent(actual -> actual.setPrincipal(false));
         }
         return repositorio.save(sucursal);
+    }
+
+    @Transactional
+    public Sucursal establecerPrincipal(String id) {
+        Sucursal nuevaPrincipal = buscarActiva(id);
+        repositorio.findFirstByActivaTrueAndPrincipalTrueOrderByNombreAsc()
+                .filter(actual -> !actual.getId().equals(id))
+                .ifPresent(actual -> actual.setPrincipal(false));
+        nuevaPrincipal.setPrincipal(true);
+        return repositorio.save(nuevaPrincipal);
     }
 }
