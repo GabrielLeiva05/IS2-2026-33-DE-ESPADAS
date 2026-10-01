@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
@@ -51,6 +52,7 @@ public class ServicioFacturaProveedor {
         factura.setFormaDePago(formaDePago);
         factura.setProveedor(proveedor);
         factura.setOrdenCompraProveedor(orden);
+        factura.setDetalleFactura(new ArrayList<>()); // NUEVO: evita el ConstraintViolationException por @NotNull
         factura.setEliminado(false);
 
         return repositorio.save(factura);

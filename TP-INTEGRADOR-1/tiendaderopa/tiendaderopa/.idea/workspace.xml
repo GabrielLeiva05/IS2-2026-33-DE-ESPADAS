@@ -4,7 +4,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="049f7cae-958a-417e-b875-4a02ffc01b20" name="Changes" comment="" />
+    <list default="true" id="049f7cae-958a-417e-b875-4a02ffc01b20" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioGestionOrdenCompraProveedor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/controller/ControladorOrdenCompraProveedor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/controller/ControladorOrdenCompraProveedor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/repository/RepositorioFactura.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/repository/RepositorioFactura.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/repository/RepositorioFormaDePago.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/repository/RepositorioFormaDePago.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/AdminPageSupport.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/AdminPageSupport.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/MercadoPagoCheckoutService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/MercadoPagoCheckoutService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioDetalleFactura.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioDetalleFactura.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFactura.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFactura.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFacturaCliente.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFacturaCliente.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFacturaProveedor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFacturaProveedor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFormaDePago.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioFormaDePago.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioOrdenCompra.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioOrdenCompra.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioOrdenCompraProveedor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/ServicioOrdenCompraProveedor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/admin/registros.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/admin/registros.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/fragments/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/fragments/sidebar.html" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -46,36 +64,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Tiendaderopa.executor": "Run",
-    "Application.TiendaderopaApplication.executor": "Run",
-    "DefaultHtmlFileTemplate": "HTML File",
-    "JavaScript Debug.panel.html.executor": "Run",
-    "JavaScript Debug.register.html.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "Spring Boot.TiendaderopaApplication.executor": "Run",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "master",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/juanpi/Downloads/tiendaderopa-abms-integrados",
-    "node.js.detected.package.jshint": "true",
-    "node.js.selected.package.jshint": "",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "build.tools"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Tiendaderopa.executor&quot;: &quot;Run&quot;,
+    &quot;Application.TiendaderopaApplication.executor&quot;: &quot;Run&quot;,
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;JavaScript Debug.panel.html.executor&quot;: &quot;Run&quot;,
+    &quot;JavaScript Debug.register.html.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;Spring Boot.TiendaderopaApplication.executor&quot;: &quot;Run&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;generarfacturas&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/juanpi/Downloads/tiendaderopa-abms-integrados&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;build.tools&quot;
   }
-}]]></component>
-  <component name="RunManager">
+}</component>
+  <component name="RunManager" selected="Application.Tiendaderopa">
     <configuration name="Tiendaderopa" type="Application" factoryName="Application">
       <envs>
         <env name="DB_PASSWORD" value="$DB_PASSWORD$" />
@@ -97,8 +115,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-a203e0a19954-intellij.indexing.shared.core-IU-262.10315.125" />
-        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.10315.125" />
+        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.25134.95" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.25134.95" />
       </set>
     </attachedChunks>
   </component>

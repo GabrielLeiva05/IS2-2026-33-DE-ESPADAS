@@ -3,6 +3,7 @@ package com.ejercicioIntegrador.tiendaderopa.service;
 import com.ejercicioIntegrador.tiendaderopa.model.DetalleFactura;
 import com.ejercicioIntegrador.tiendaderopa.model.EstadoFactura;
 import com.ejercicioIntegrador.tiendaderopa.model.Factura;
+import com.ejercicioIntegrador.tiendaderopa.model.Producto;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioFactura;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,16 +61,32 @@ public class ServicioFactura {
                 .orElseThrow(() -> new Exception("No existe la factura con id " + id));
     }
 
+    /** NUEVO: lo usan ServicioFacturaCliente y el controller de Proveedor. */
+    public Long generarNumeroFacturaUnico() throws Exception {
+        java.util.concurrent.ThreadLocalRandom random = java.util.concurrent.ThreadLocalRandom.current();
+        for (int intento = 0; intento < 20; intento++) {
+            long candidato = random.nextLong(10_000_000L, 99_999_999L);
+            if (!repositorio.existsByNumeroFactura(candidato)) {
+                return candidato;
+            }
+        }
+        throw new Exception("No se pudo generar un número de factura único, reintentá");
+    }
+
+    /**
+     * ARREGLADO: antes creaba un DetalleFactura vacío (sin producto,
+     * sin cantidad, sin subtotal) — nunca usaba idDetalleCompra. Ahora
+     * recibe directamente los datos ya resueltos por quien llama
+     * (la Factura ya sabe qué producto/cantidad/subtotal copiar, sea
+     * desde un DetalleCompra o desde un DetalleOrdenCompraProveedor).
+     */
     @Transactional
-    public DetalleFactura crearDetalleFactura(String idFactura, String idDetalleCompra) throws Exception {
-        Factura factura = buscarFactura(idFactura);
-        DetalleFactura detalleFactura = svcDetalleFactura.crearDetalleFactura(factura); // Delega al Servicio
-        repositorio.save(factura);
-        return detalleFactura;
+    public DetalleFactura crearDetalleFactura(Factura factura, Producto producto, int cantidad, double subtotal) {
+        return svcDetalleFactura.crearDetalleFactura(factura, producto, cantidad, subtotal);
     }
 
     public DetalleFactura buscarDetalleFactura(String id) throws Exception {
-        return svcDetalleFactura.buscarPorId(id); // Delega al Servicio
+        return svcDetalleFactura.buscarPorId(id);
     }
 
     @Transactional

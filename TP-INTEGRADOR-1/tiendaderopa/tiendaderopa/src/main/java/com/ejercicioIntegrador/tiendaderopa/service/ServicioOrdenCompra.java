@@ -1,11 +1,7 @@
 package com.ejercicioIntegrador.tiendaderopa.service;
 
-import com.ejercicioIntegrador.tiendaderopa.model.DetalleCompra;
+import com.ejercicioIntegrador.tiendaderopa.model.*;
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoOrdenCompra;
-import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompra;
-import com.ejercicioIntegrador.tiendaderopa.model.Producto;
-import com.ejercicioIntegrador.tiendaderopa.model.Sucursal;
-import com.ejercicioIntegrador.tiendaderopa.model.Usuario;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioOrdenCompra;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -355,5 +351,12 @@ public class ServicioOrdenCompra {
             case PENDIENTE_DE_ENVIO -> nueva == EstadoOrdenCompra.ENTREGADO;
             default -> false;
         };
+    }
+
+    @Transactional
+    public void asociarFacturaCliente(String ordenId, FacturaCliente factura) {
+        OrdenCompra orden = buscarPorId(ordenId);
+        orden.setFacturaCliente(factura);
+        repositorioOrdenCompra.save(orden);
     }
 }

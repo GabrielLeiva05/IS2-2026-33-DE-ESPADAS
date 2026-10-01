@@ -12,7 +12,7 @@
     <p class="notice success" th:if="${mensaje}" th:text="${mensaje}"></p>
     <p class="notice error" th:if="${error}" th:text="${error}"></p>
 
-    <div class="form-actions" th:if="${permitirFiltrarEstado or permitirCrearOrden or permitirFiltroId or permitirBuscarNombre or permitirMostrarActivos}">
+    <div class="form-actions" th:if="${permitirFiltrarEstado or permitirIrANuevo or permitirCrearOrden or permitirFiltroId or permitirBuscarNombre or permitirMostrarActivos}">
         <form class="inline-form" th:if="${permitirFiltrarEstado}" method="get" th:action="${basePath}">
             <label for="estadoFiltro">Estado</label>
             <select id="estadoFiltro" name="estado">
@@ -35,6 +35,8 @@
             <button class="btn-submit" type="submit">Buscar</button>
         </form>
         <a class="btn-cancel" th:if="${permitirMostrarActivos}" th:href="${basePath + '/activas'}">Ver activos</a>
+        <!-- Dentro del div.form-actions existente, junto al resto: -->
+        <a class="btn-primary" th:if="${permitirIrANuevo}" th:href="${basePath + '/nuevo'}">Generar nueva orden</a>
     </div>
 
     <section class="form-container" th:if="${permitirCrear or modoEdicion}">
@@ -71,7 +73,26 @@
                 </select>
             </div>
             <div class="form-group"><label for="cantidad">Cantidad</label><input id="cantidad" name="cantidad" type="number" min="1" value="1" required></div>
+            <!-- Dentro de la sección "Agregar producto" existente, un campo más: -->
+            <div class="form-group" th:if="${permitirPrecioCompra}">
+                <label for="precioCompra">Precio de compra</label>
+                <input id="precioCompra" name="precioCompra" type="number" step="0.01" min="0.01" required>
+            </div>
             <button class="btn-submit" type="submit">Agregar</button>
+        </form>
+    </section>
+    <!-- Sección nueva, junto a la de "Agregar producto": -->
+    <section class="form-container" th:if="${permitirConfirmarOrden}">
+        <h2>Confirmar orden de compra</h2>
+        <form method="post" th:action="${basePath + '/' + ordenId + '/confirmar'}">
+            <div class="form-group">
+                <label for="idFormaDePago">Forma de pago</label>
+                <select id="idFormaDePago" name="idFormaDePago" required>
+                    <option value="">Seleccionar</option>
+                    <option th:each="opcion : ${formasDePagoDisponibles}" th:value="${opcion.key}" th:text="${opcion.value}"></option>
+                </select>
+            </div>
+            <button class="btn-primary" type="submit">Aceptar</button>
         </form>
     </section>
 

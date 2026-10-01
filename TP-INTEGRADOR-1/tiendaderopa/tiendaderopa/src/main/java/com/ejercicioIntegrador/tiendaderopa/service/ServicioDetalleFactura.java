@@ -29,12 +29,16 @@ public class ServicioDetalleFactura {
     }
 
     @Transactional
-    public DetalleFactura crearDetalleFactura(Factura factura) {
-        DetalleFactura detalleFactura = new DetalleFactura();
-        detalleFactura.setFactura(factura);
-        detalleFactura.setEliminado(false);
-        return repositorio.save(detalleFactura);
+    public DetalleFactura crearDetalleFactura(Factura factura, Producto producto, int cantidad, double subtotal) {
+        DetalleFactura detalle = new DetalleFactura();
+        detalle.setFactura(factura);
+        detalle.setProducto(producto);
+        detalle.setCantidad(cantidad);
+        detalle.setSubtotal(subtotal);
+        detalle.setEliminado(false);
+        return repositorio.save(detalle);
     }
+// buscarPorId, listarTodos, modificarDetalleFactura, eliminarDetalleFactura, listarPorFactura: SIN CAMBIOS
 
     @Transactional
     public DetalleFactura modificarDetalleFactura(String idDetalleFactura, String codigoProducto) throws Exception {

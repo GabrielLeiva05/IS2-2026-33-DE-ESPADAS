@@ -1,7 +1,9 @@
 package com.ejercicioIntegrador.tiendaderopa.service;
 
 import com.ejercicioIntegrador.tiendaderopa.model.DetalleCompra;
+import com.ejercicioIntegrador.tiendaderopa.model.FacturaCliente;
 import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompra;
+import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompraProveedor;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceClient;
@@ -15,6 +17,7 @@ import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +34,8 @@ public class MercadoPagoCheckoutService {
     private final ServicioOrdenCompra ordenServicio;
     private final PreferenceClient preferenceClient = new PreferenceClient();
     private final PaymentClient paymentClient = new PaymentClient();
+
+    private ServicioFacturaCliente svcFacturaCliente; // NUEVO
 
     @Value("${mercadopago.access-token:}")
     private String accessToken;
@@ -147,8 +152,13 @@ public class MercadoPagoCheckoutService {
             throw new IllegalArgumentException("El importe del pago no coincide con el total de la orden");
         }
 
-        return ordenServicio.registrarResultadoMercadoPago(
+        OrdenCompra actualizada =  ordenServicio.registrarResultadoMercadoPago(
                 orden.getId(), paymentId, payment.getStatus());
+        if ("approved".equalsIgnoreCase(payment.getStatus()) && actualizada.getFacturaCliente() == null) {
+            FacturaCliente factura = svcFacturaCliente.crearFacturaDesdeOrden(actualizada);
+            ordenServicio.asociarFacturaCliente(actualizada.getId(), factura);
+        }
+        return actualizada;
     }
 
     private Payment obtenerPago(String paymentId) throws MPException, MPApiException {

@@ -12,4 +12,5 @@ public interface RepositorioFactura extends JpaRepository<Factura, String> {
     List<Factura> findByEliminadoFalse();
 
     List<Factura> findByEstadoFactura(EstadoFactura estado);
+    boolean existsByNumeroFactura(Long numeroFactura); // NUEVO
 }

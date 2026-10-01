@@ -126,4 +126,35 @@ public class ServicioOrdenCompraProveedor {
     public List<DetalleOrdenCompraProveedor> buscarDetallePorProductoOrdenadoPorPrecio(String idProducto) {
         return svcDetalleOrdenCompraProveedor.buscarPorProductoOrdenadoPorPrecio(idProducto);
     }
+
+    @Transactional
+    public OrdenCompraProveedor iniciarOrden(String idProveedor) throws Exception {
+        Proveedor proveedor = svcProveedor.buscarProveedor(idProveedor);
+        OrdenCompraProveedor orden = new OrdenCompraProveedor();
+        orden.setProveedor(proveedor);
+        orden.setSucursal(servicioSucursal.obtenerPrincipal());
+        orden.setFecha(new Date());
+        orden.setEstado(EstadoOrdenCompraProveedor.PENDIENTE);
+        orden.setTotal(0.0);
+        orden.setEliminado(false);
+        return repositorio.save(orden);
+    }
+
+    @Transactional
+    public OrdenCompraProveedor agregarDetalle(String idOrden, String idProducto, int cantidad, double precioCompra) throws Exception {
+        OrdenCompraProveedor orden = buscarOrdenCompraProveedor(idOrden);
+        if (orden.getEstado() != EstadoOrdenCompraProveedor.PENDIENTE) {
+            throw new Exception("Solo se pueden agregar productos a una orden pendiente");
+        }
+        if (cantidad <= 0) throw new Exception("La cantidad debe ser mayor a cero");
+        if (precioCompra <= 0) throw new Exception("El precio de compra debe ser mayor a cero");
+
+        svcDetalleOrdenCompraProveedor.crear(orden, idProducto, cantidad, precioCompra);
+        double total = svcDetalleOrdenCompraProveedor.listarPorOrden(idOrden).stream()
+                .filter(d -> !d.isEliminado())
+                .mapToDouble(d -> d.getCantidad() * d.getPrecioCompra())
+                .sum();
+        orden.setTotal(total);
+        return repositorio.save(orden);
+    }
 }

@@ -1,12 +1,12 @@
 package com.ejercicioIntegrador.tiendaderopa.service;
 
-import com.ejercicioIntegrador.tiendaderopa.model.EstadoFactura;
-import com.ejercicioIntegrador.tiendaderopa.model.FacturaCliente;
-import com.ejercicioIntegrador.tiendaderopa.model.FormaDePago;
+import com.ejercicioIntegrador.tiendaderopa.model.*;
 import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioFacturaCliente;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
@@ -19,7 +19,12 @@ public class ServicioFacturaCliente {
     @Autowired
     private ServicioFormaDePago svcFormaDePago; // Servicio a Servicio
 
-    public void crearFactura(Long numeroFactura, Date fechaFactura, double totalPago, EstadoFactura estado, String idFormaDePago) throws Exception {
+    @Autowired private ServicioFactura svcFactura;           // NUEVO: Service -> Service
+    @Autowired private ServicioDetalleFactura svcDetalleFactura; // NUEVO
+
+    @Transactional
+    public FacturaCliente crearFactura(Long numeroFactura, Date fechaFactura, double totalPago,
+                                       EstadoFactura estado, String idFormaDePago) throws Exception {
         validar(numeroFactura, fechaFactura, totalPago, estado);
         FormaDePago formaDePago = svcFormaDePago.buscarFormaDePago(idFormaDePago);
 
@@ -29,8 +34,33 @@ public class ServicioFacturaCliente {
         factura.setEstadoFactura(estado);
         factura.setFormaDePago(formaDePago);
         factura.setTotalPagado(totalPago);
+        factura.setDetalleFactura(new ArrayList<>()); // NUEVO: evita el ConstraintViolationException por @NotNull
+        factura.setEliminado(false);
 
-        repositorio.save(factura);
+        return repositorio.save(factura); // antes: solo guardaba, no devolvía nada
+    }
+
+    /**
+     * NUEVO. Se llama desde MercadoPagoCheckoutService justo cuando el
+     * pago queda aprobado. numeroFactura: aleatorio pero único (lo pediste
+     * así). estado: PAGADA directo, porque Mercado Pago ya confirmó el
+     * pago — acá no corresponde el camino SIN_DEFINIR que usamos para
+     * efectivo/transferencia.
+     */
+    @Transactional
+    public FacturaCliente crearFacturaDesdeOrden(OrdenCompra orden) throws Exception {
+        FormaDePago formaDePago = svcFormaDePago.buscarPorTipo(TipoPago.MERCADO_PAGO);
+        Long numeroFactura = svcFactura.generarNumeroFacturaUnico();
+
+        FacturaCliente factura = crearFactura(numeroFactura, new Date(), orden.getTotal(),
+                EstadoFactura.PAGADA, formaDePago.getId());
+
+        for (DetalleCompra detalle : orden.getDetalles()) {
+            if (detalle.isEliminado()) continue;
+            svcDetalleFactura.crearDetalleFactura(factura, detalle.getProducto(),
+                    detalle.getCantidad(), detalle.getSubtotal());
+        }
+        return factura;
     }
 
     public void validar(Long numeroFactura, Date fechaFactura, double totalPago, EstadoFactura estado) throws Exception {

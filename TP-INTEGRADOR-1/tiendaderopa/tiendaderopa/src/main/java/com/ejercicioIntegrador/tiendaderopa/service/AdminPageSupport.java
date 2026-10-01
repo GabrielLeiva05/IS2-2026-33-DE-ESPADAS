@@ -60,6 +60,10 @@ public final class AdminPageSupport {
         model.addAttribute("nombreFiltroId", "id");
         model.addAttribute("permitirBuscarNombre", false);
         model.addAttribute("permitirMostrarActivos", false);
+        model.addAttribute("permitirIrANuevo", false);
+        model.addAttribute("permitirPrecioCompra", false);
+        model.addAttribute("permitirConfirmarOrden", false);
+        model.addAttribute("formasDePagoDisponibles", Map.of());
         model.addAttribute("usuariosDisponibles", Map.of());
         model.addAttribute("productosDisponibles", Map.of());
     }

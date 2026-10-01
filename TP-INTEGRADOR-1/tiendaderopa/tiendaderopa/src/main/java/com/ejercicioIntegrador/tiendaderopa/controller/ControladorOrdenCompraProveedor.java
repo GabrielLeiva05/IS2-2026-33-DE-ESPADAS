@@ -1,99 +1,86 @@
 package com.ejercicioIntegrador.tiendaderopa.controller;
 
-import com.ejercicioIntegrador.tiendaderopa.dto.ItemCompraDTO;
-import com.ejercicioIntegrador.tiendaderopa.model.FacturaProveedor;
-import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompraProveedor;
-import com.ejercicioIntegrador.tiendaderopa.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.ejercicioIntegrador.tiendaderopa.model.EstadoOrdenCompraProveedor;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioGestionOrdenCompraProveedor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Date;
-import java.util.List;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
+@PreAuthorize("hasRole('ADMINISTRATIVO')")
 public class ControladorOrdenCompraProveedor {
 
-    @Autowired private ServicioOrdenCompraProveedor svcOrdenCompraProveedor;
-    @Autowired private ServicioFacturaProveedor svcFacturaProveedor;
-    @Autowired private ServicioFactura svcFactura;
-    @Autowired private ServicioProveedor svcProveedor;
-    @Autowired private ServicioProducto svcProducto;
+    private static final String RUTA = "/admin/ordenes-compra-proveedor";
 
-    @GetMapping("/ordenesCompraProveedor")
+    private final ServicioGestionOrdenCompraProveedor servicio;
+
+    public ControladorOrdenCompraProveedor(ServicioGestionOrdenCompraProveedor servicio) {
+        this.servicio = servicio;
+    }
+
+    @GetMapping(RUTA)
     public String listar(Model model) {
+        servicio.cargarListado(model);
+        return "admin/registros";
+    }
+
+    @GetMapping(RUTA + "/nuevo")
+    public String nuevo(Model model) {
+        servicio.cargarFormularioNuevo(model);
+        return "admin/registros";
+    }
+
+    @PostMapping(RUTA + "/iniciar")
+    public String iniciar(@RequestParam String idProveedor, RedirectAttributes redirect) {
         try {
-            model.addAttribute("ordenes", svcOrdenCompraProveedor.listarOrdenCompraProveedor());
-            return "views/ordenesCompraProveedor/lista";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
+            return "redirect:" + RUTA + "/" + servicio.iniciarOrden(idProveedor);
+        } catch (Exception ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:" + RUTA + "/nuevo";
         }
     }
 
-    @GetMapping("/ordenesCompraProveedor/generar")
-    public String formulario(Model model) {
-        model.addAttribute("proveedores", svcProveedor.listarProveedorActivo());
-        model.addAttribute("productos", svcProducto.listarProductoActivo());
-        return "views/ordenesCompraProveedor/formulario";
+    @GetMapping(RUTA + "/{id}")
+    public String ver(@PathVariable String id, Model model) throws Exception {
+        servicio.cargarDetalle(model, id);
+        return "admin/registros";
     }
 
-    /**
-     * items llega armado desde un formulario Thymeleaf con inputs
-     * indexados (items[0].idProducto, items[0].cantidad, etc.) — Spring
-     * los junta solo en el List<ItemCompraDTO> gracias al binding por
-     * índice, sin necesidad de JSON ni JS extra.
-     */
-    @PostMapping("/ordenesCompraProveedor/generar")
-    public String generar(
-            @RequestParam String idProveedor,
-            @ModelAttribute List<ItemCompraDTO> items,
-            @RequestParam Long numeroFactura,
-            @RequestParam String idFormaDePago,
-            Model model) {
+    @PostMapping(RUTA + "/{id}/detalles")
+    public String agregarDetalle(@PathVariable String id, @RequestParam String productoId,
+                                 @RequestParam int cantidad, @RequestParam double precioCompra, RedirectAttributes redirect) {
         try {
-            // Paso 1: la orden (con sus DetalleOrdenCompraProveedor)
-            OrdenCompraProveedor orden = svcOrdenCompraProveedor.crearOrdenCompraProveedor(idProveedor, items);
+            servicio.agregarDetalle(id, productoId, cantidad, precioCompra);
+            redirect.addFlashAttribute("mensaje", "Producto agregado a la orden.");
+        } catch (Exception ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:" + RUTA + "/" + id;
+    }
 
-            // Paso 2: la factura, apoyada en la orden recién creada.
-            // Esta secuencia vive ACÁ (no en ningún Service) para evitar
-            // el ciclo ServicioOrdenCompraProveedor <-> ServicioFacturaProveedor.
-            svcFacturaProveedor.crearFactura(numeroFactura, new Date(), orden.getTotal(),
-                    idFormaDePago, idProveedor, orden.getId());
-
-            return "redirect:/ordenesCompraProveedor";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
+    @PostMapping(RUTA + "/{id}/confirmar")
+    public String confirmar(@PathVariable String id, @RequestParam String idFormaDePago, RedirectAttributes redirect) {
+        try {
+            servicio.confirmarOrden(id, idFormaDePago);
+            redirect.addFlashAttribute("mensaje", "Orden confirmada y factura generada.");
+            return "redirect:" + RUTA;
+        } catch (Exception ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
+            return "redirect:" + RUTA + "/" + id;
         }
     }
 
-    @PostMapping("/ordenesCompraProveedor/entregar/{id}")
-    public String marcarEntregada(@PathVariable String id, Model model) {
+    @PostMapping(RUTA + "/{id}/estado")
+    public String cambiarEstado(@PathVariable String id, @RequestParam EstadoOrdenCompraProveedor estado,
+                                RedirectAttributes redirect) {
         try {
-            svcOrdenCompraProveedor.marcarComoEntregada(id);
-            // A partir de acá, factura.puedeGenerarStock() empieza a
-            // devolver true para esta orden. Generar los movimientos de
-            // Stock (recorriendo el detalle de la Factura asociada) se
-            // conecta en el flujo de Factura/Stock, no en este método.
-            return "redirect:/ordenesCompraProveedor";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
+            servicio.cambiarEstado(id, estado);
+            redirect.addFlashAttribute("mensaje", "Estado actualizado.");
+        } catch (Exception ex) {
+            redirect.addFlashAttribute("error", ex.getMessage());
         }
-    }
-
-    @PostMapping("/ordenesCompraProveedor/anular/{id}")
-    public String anular(@PathVariable String id, Model model) {
-        try {
-            FacturaProveedor factura = svcFacturaProveedor.buscarPorOrdenCompra(id);
-            svcFactura.anularFactura(factura.getId()); // valida que no esté pagada
-            svcOrdenCompraProveedor.anularOrdenCompraProveedor(id);
-            return "redirect:/ordenesCompraProveedor";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
-        }
+        return "redirect:" + RUTA;
     }
 }

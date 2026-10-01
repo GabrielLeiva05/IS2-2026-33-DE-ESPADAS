@@ -76,6 +76,12 @@ public class ServicioFormaDePago {
             throw new Exception("Forma de pago no encontrada");
         }
     }
+    // en ServicioFormaDePago, método nuevo:
+    public FormaDePago buscarPorTipo(TipoPago tipoPago) throws Exception {
+        return formaDePagoRepository.findByTipoPagoAndEliminadoFalse(tipoPago)
+                .orElseThrow(() -> new Exception(
+                        "No hay una Forma de Pago de tipo " + tipoPago + " cargada. Creala desde /admin/formasdepago"));
+    }
     }
 
 
