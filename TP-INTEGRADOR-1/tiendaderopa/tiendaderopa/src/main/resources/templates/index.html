@@ -9,19 +9,7 @@
     <link rel="stylesheet" th:href="@{/css/store.css}">
 </head>
 <body class="storefront">
-<header class="store-header">
-    <a class="brand" th:href="@{/}">ZERO<span>.</span></a>
-    <nav aria-label="Navegación principal">
-        <a href="#productos">Productos</a>
-        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/carrito}">Mi carrito</a>
-        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/mis-ordenes}">Mis compras</a>
-        <a sec:authorize="isAnonymous()" th:href="@{/login}">Ingresar</a>
-        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/perfil}">Mi perfil</a>
-        <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
-            <button class="nav-logout" type="submit">Salir</button>
-        </form>
-    </nav>
-</header>
+<header th:replace="~{fragments/store-header :: storeHeader}"></header>
 
 <main>
     <section class="store-intro">
@@ -64,7 +52,7 @@
                               th:text="${'Talle ' + item.producto.talle}"></p>
                     <div class="product-buy-row">
                         <strong th:text="${'$ ' + #numbers.formatDecimal(item.precio, 1, 2, 'COMMA')}"></strong>
-                        <form sec:authorize="hasRole('CLIENTE')" th:action="@{/carrito/items}" method="post">
+                        <form sec:authorize="hasRole('CLIENTE')" th:action="@{/carrito/items}" method="post" class="cart-add-form">
                             <input type="hidden" name="productoId" th:value="${item.producto.id}">
                             <input type="hidden" name="cantidad" value="1">
                             <button type="submit" aria-label="Agregar al carrito">Agregar</button>
@@ -78,6 +66,9 @@
     </section>
 </main>
 
+<div sec:authorize="hasRole('CLIENTE')" th:replace="~{fragments/cart-drawer-shell :: shell}"></div>
+
 <footer class="store-footer"><span>ZERO</span><span>Ropa deportiva unisex</span></footer>
+<script th:src="@{/js/store.js}" defer></script>
 </body>
 </html>

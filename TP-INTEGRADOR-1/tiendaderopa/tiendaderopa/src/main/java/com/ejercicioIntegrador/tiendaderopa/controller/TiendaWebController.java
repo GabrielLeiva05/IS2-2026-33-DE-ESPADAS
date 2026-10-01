@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -28,36 +29,72 @@ public class TiendaWebController {
 
     @GetMapping("/carrito")
     public String carrito(@AuthenticationPrincipal UserDetails usuario, Model model) throws Exception {
-        OrdenCompra carrito = ordenServicio.obtenerCarrito(usuario.getUsername());
-        model.addAttribute("carrito", carrito);
-        model.addAttribute("lineas", carrito.getDetalles().stream()
-                .filter(detalle -> !detalle.isEliminado())
-                .toList());
+        cargarCarrito(usuario.getUsername(), model);
         return "carrito";
+    }
+
+    @GetMapping("/carrito/panel")
+    public String panelCarrito(@AuthenticationPrincipal UserDetails usuario, Model model) throws Exception {
+        cargarCarrito(usuario.getUsername(), model);
+        return "fragments/cart-drawer :: content";
     }
 
     @PostMapping("/carrito/items")
     public String agregar(@AuthenticationPrincipal UserDetails usuario,
             @RequestParam String productoId, @RequestParam(defaultValue = "1") int cantidad,
-            RedirectAttributes redirect) {
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Model model, RedirectAttributes redirect) throws Exception {
         try {
             ordenServicio.agregarAlCarrito(productoId, cantidad, usuario.getUsername());
-            redirect.addFlashAttribute("mensaje", "Producto agregado al carrito");
+            if (esAjax(requestedWith)) {
+                model.addAttribute("mensaje", "Producto agregado al carrito");
+            } else {
+                redirect.addFlashAttribute("mensaje", "Producto agregado al carrito");
+            }
         } catch (Exception ex) {
-            redirect.addFlashAttribute("error", ex.getMessage());
+            if (esAjax(requestedWith)) {
+                model.addAttribute("error", ex.getMessage());
+            } else {
+                redirect.addFlashAttribute("error", ex.getMessage());
+            }
+        }
+        if (esAjax(requestedWith)) {
+            cargarCarrito(usuario.getUsername(), model);
+            return "fragments/cart-drawer :: content";
         }
         return "redirect:/carrito";
     }
 
     @PostMapping("/carrito/items/{detalleId}/eliminar")
     public String eliminar(@AuthenticationPrincipal UserDetails usuario, @PathVariable String detalleId,
-            RedirectAttributes redirect) {
+            @RequestHeader(name = "X-Requested-With", required = false) String requestedWith,
+            Model model, RedirectAttributes redirect) throws Exception {
         try {
             ordenServicio.eliminarDelCarrito(detalleId, usuario.getUsername());
         } catch (Exception ex) {
-            redirect.addFlashAttribute("error", ex.getMessage());
+            if (esAjax(requestedWith)) {
+                model.addAttribute("error", ex.getMessage());
+            } else {
+                redirect.addFlashAttribute("error", ex.getMessage());
+            }
+        }
+        if (esAjax(requestedWith)) {
+            cargarCarrito(usuario.getUsername(), model);
+            return "fragments/cart-drawer :: content";
         }
         return "redirect:/carrito";
+    }
+
+    private void cargarCarrito(String email, Model model) throws Exception {
+        OrdenCompra carrito = ordenServicio.obtenerCarrito(email);
+        model.addAttribute("carrito", carrito);
+        model.addAttribute("lineas", carrito.getDetalles().stream()
+                .filter(detalle -> !detalle.isEliminado())
+                .toList());
+    }
+
+    private boolean esAjax(String requestedWith) {
+        return "XMLHttpRequest".equalsIgnoreCase(requestedWith);
     }
 
     @PostMapping("/carrito/pagar")

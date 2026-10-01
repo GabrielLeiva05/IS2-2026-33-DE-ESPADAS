@@ -62,7 +62,7 @@ public class MisOrdenesController {
         model.addAttribute("ordenId", id);
         model.addAttribute("productosDisponibles", AdminPageSupport.mapaOpciones(servicioProducto.listarProductoActivo(),
                 Producto::getId, Producto::getNombre));
-        return "admin/registros";
+        return "mis-ordenes";
     }
 
     @PostMapping("/mis-ordenes/crear")
@@ -105,6 +105,6 @@ public class MisOrdenesController {
         model.addAttribute("permitirCrearOrden", true);
         model.addAttribute("estadoSeleccionado", estado == null ? "" : estado.name());
         model.addAttribute("estadosOrden", List.of(EstadoOrdenCompra.values()));
-        return "admin/registros";
+        return "mis-ordenes";
     }
 }

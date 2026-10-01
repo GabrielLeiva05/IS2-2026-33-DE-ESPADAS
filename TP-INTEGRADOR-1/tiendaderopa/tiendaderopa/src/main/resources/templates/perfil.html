@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/headauth :: headauth}"></head>
-<body>
-<main class="auth-container register">
+<body class="storefront">
+<header th:replace="~{fragments/store-header :: storeHeader}"></header>
+<main class="profile-main auth-container register">
     <h1>Mi perfil</h1>
 
     <div th:if="${exito != null}" class="alert-success">
@@ -79,5 +80,7 @@
         </div>
     </form>
 </main>
+<div th:replace="~{fragments/cart-drawer-shell :: shell}"></div>
+<script th:src="@{/js/store.js}" defer></script>
 </body>
 </html>

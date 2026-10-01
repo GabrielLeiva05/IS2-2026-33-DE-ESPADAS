@@ -12,23 +12,39 @@ document.addEventListener("DOMContentLoaded", () => {
     // son enlaces normales a otras páginas del panel y deben navegar.
     const links = document.querySelectorAll(".menu-link[data-section]");
     const sections = document.querySelectorAll(".section");
+    const sidebarMenu = document.querySelector(".sidebar-top");
+
+    if (sidebarMenu) {
+        const savedScroll = sessionStorage.getItem("adminSidebarScroll");
+        if (savedScroll !== null) {
+            sidebarMenu.scrollTop = Number(savedScroll);
+        }
+        sidebarMenu.addEventListener("scroll", () => {
+            sessionStorage.setItem("adminSidebarScroll", String(sidebarMenu.scrollTop));
+        });
+    }
 
     if (links.length === 0) {
         return;
     }
 
     function activarSeccion(sectionId) {
+        const targetSection = document.getElementById(sectionId);
+        if (!targetSection) {
+            sectionId = "inicio";
+        }
+
         // 1. Quitar 'active' de todos los enlaces y secciones
         links.forEach(l => l.classList.remove("active"));
         sections.forEach(s => s.classList.remove("active"));
 
         // 2. Localizar elementos por id / data-section
-        const targetSection = document.getElementById(sectionId);
+        const activeSection = document.getElementById(sectionId);
         const targetLink = document.querySelector(`.menu-link[data-section="${sectionId}"]`);
 
         // 3. Activar sección y enlace correspondiente
-        if (targetSection) {
-            targetSection.classList.add("active");
+        if (activeSection) {
+            activeSection.classList.add("active");
         }
         if (targetLink) {
             targetLink.classList.add("active");

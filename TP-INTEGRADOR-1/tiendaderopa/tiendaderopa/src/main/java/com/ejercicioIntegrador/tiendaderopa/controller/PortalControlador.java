@@ -1,7 +1,9 @@
 package com.ejercicioIntegrador.tiendaderopa.controller;
 
 import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoDocumento;
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.RolUsuario;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioCatalogo;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioOrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
 import com.ejercicioIntegrador.tiendaderopa.model.Departamento;
 import com.ejercicioIntegrador.tiendaderopa.model.Direccion;
@@ -15,6 +17,9 @@ import com.ejercicioIntegrador.tiendaderopa.service.PaisServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.ProvinciaServicio;
 import com.ejercicioIntegrador.tiendaderopa.service.UsuarioServicio;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +39,7 @@ public class PortalControlador {
     private final DepartamentoServicio departamentoServicio;
     private final LocalidadServicio localidadServicio;
     private final ServicioCatalogo catalogoServicio;
+    private final ServicioOrdenCompra ordenServicio;
 
     public PortalControlador(UsuarioServicio usuarioServicio,
                              DireccionServicio direccionServicio,
@@ -41,7 +47,8 @@ public class PortalControlador {
                              ProvinciaServicio provinciaServicio,
                              DepartamentoServicio departamentoServicio,
                              LocalidadServicio localidadServicio,
-                             ServicioCatalogo catalogoServicio) {
+                             ServicioCatalogo catalogoServicio,
+                             ServicioOrdenCompra ordenServicio) {
         this.usuarioServicio = usuarioServicio;
         this.direccionServicio = direccionServicio;
         this.paisServicio = paisServicio;
@@ -49,11 +56,19 @@ public class PortalControlador {
         this.departamentoServicio = departamentoServicio;
         this.localidadServicio = localidadServicio;
         this.catalogoServicio = catalogoServicio;
+        this.ordenServicio = ordenServicio;
     }
 
     @GetMapping("/")
-    public String index(ModelMap modelo) {
+    public String index(ModelMap modelo, @AuthenticationPrincipal UserDetails usuario) throws Exception {
         modelo.addAttribute("productos", catalogoServicio.listarDisponibles());
+        if (usuario != null && usuario.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + RolUsuario.CLIENTE))) {
+            var carrito = ordenServicio.obtenerCarrito(usuario.getUsername());
+            modelo.addAttribute("carrito", carrito);
+            modelo.addAttribute("lineas", carrito.getDetalles().stream()
+                    .filter(detalle -> !detalle.isEliminado())
+                    .toList());
+        }
         return "index.html";
     }
 

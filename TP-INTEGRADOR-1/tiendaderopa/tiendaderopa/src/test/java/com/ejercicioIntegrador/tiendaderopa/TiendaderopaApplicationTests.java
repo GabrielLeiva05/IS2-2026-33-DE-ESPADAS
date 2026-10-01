@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
@@ -27,6 +28,17 @@ class TiendaderopaApplicationTests {
 
 	@Test
 	void contextLoads() {
+	}
+
+	@Test
+	void pantallasDeAccesoPermitenVolverAlCatalogo() throws Exception {
+		mockMvc.perform(get("/login"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Volver a la tienda")));
+
+		mockMvc.perform(get("/registrar"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Volver a la tienda")));
 	}
 
 	@Test
@@ -64,6 +76,25 @@ class TiendaderopaApplicationTests {
 	void rutaMvcDeEscrituraRequiereTokenCsrf() throws Exception {
 		mockMvc.perform(post("/mis-ordenes/crear"))
 				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void clienteVeSusComprasSinOpcionesDelPanelAdministrativo() throws Exception {
+		mockMvc.perform(get("/mis-ordenes").with(user("cliente@zero.local").roles("CLIENTE")))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Mis compras")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Salir")))
+				.andExpect(content().string(org.hamcrest.Matchers.not(
+						org.hamcrest.Matchers.containsString("Panel de Control"))))
+				.andExpect(content().string(org.hamcrest.Matchers.not(
+						org.hamcrest.Matchers.containsString("Facturas de proveedores"))));
+	}
+
+	@Test
+	void panelDeCarritoSeRenderizaParaElCliente() throws Exception {
+		mockMvc.perform(get("/carrito/panel").with(user("cliente@zero.local").roles("CLIENTE")))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Subtotal")));
 	}
 
 

@@ -1,0 +1,19 @@
+<header class="store-header" xmlns:th="http://www.thymeleaf.org"
+        xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="storeHeader">
+    <a class="brand" th:href="@{/}" aria-label="ZERO, inicio">ZERO<span>.</span></a>
+    <nav aria-label="Navegación principal">
+        <a th:href="@{/#productos}">Productos</a>
+        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/carrito}" class="cart-trigger"
+           aria-controls="cart-drawer" aria-label="Abrir carrito">
+            Carrito <span class="cart-count" th:if="${lineas != null}"
+                          th:text="${#lists.size(lineas)}">0</span>
+        </a>
+        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/mis-ordenes}">Mis compras</a>
+        <a sec:authorize="hasRole('CLIENTE')" th:href="@{/perfil}">Mi perfil</a>
+        <a sec:authorize="isAnonymous()" th:href="@{/login}">Ingresar</a>
+        <a sec:authorize="isAnonymous()" th:href="@{/registrar}">Crear cuenta</a>
+        <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
+            <button class="nav-logout" type="submit">Salir</button>
+        </form>
+    </nav>
+</header>

@@ -55,6 +55,25 @@ body.storefront {
     margin: 0;
 }
 
+.store-header nav a:hover,
+.nav-logout:hover {
+    color: var(--brand-success);
+}
+
+.cart-count {
+    display: inline-grid;
+    min-width: 21px;
+    height: 21px;
+    place-items: center;
+    margin-left: 4px;
+    padding: 0 5px;
+    border-radius: 50%;
+    background: var(--lime);
+    color: var(--ink);
+    font-size: 11px;
+    font-weight: 700;
+}
+
 .nav-logout {
     padding: 0;
     border: 0;
@@ -259,6 +278,121 @@ body.storefront {
     padding: 48px 28px 72px;
 }
 
+.order-actions,
+.order-filter,
+.order-row-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.order-actions {
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.order-filter label {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.order-filter select,
+.order-filter input {
+    min-height: 40px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--ink);
+    font: inherit;
+}
+
+.order-button {
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+}
+
+.order-button.primary {
+    background: var(--ink);
+    color: var(--white);
+}
+
+.order-detail-form {
+    margin-bottom: 28px;
+    padding: 20px;
+    border: 1px solid var(--line);
+    background: var(--white);
+}
+
+.order-detail-form h2 {
+    margin: 0 0 16px;
+    font-size: 18px;
+}
+
+.orders-table-wrap {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+}
+
+.orders-table-scroll {
+    overflow-x: auto;
+}
+
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.orders-table th,
+.orders-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.orders-table th {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.orders-table td {
+    font-size: 13px;
+}
+
+.order-row-actions form {
+    margin: 0;
+}
+
+.order-link {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    text-decoration: underline;
+}
+
+.order-link.cancel {
+    color: #a13c2a;
+}
+
+.orders-table .orders-empty {
+    padding: 28px 12px;
+    color: var(--muted);
+    text-align: center;
+}
+
 .cart-heading {
     display: flex;
     align-items: end;
@@ -415,6 +549,167 @@ body.storefront {
     color: #812f21;
 }
 
+.cart-backdrop {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    background: rgba(20, 26, 22, 0.48);
+}
+
+.cart-backdrop[hidden] {
+    display: none;
+}
+
+.cart-drawer {
+    position: fixed;
+    z-index: 21;
+    inset: 0 0 0 auto;
+    display: flex;
+    width: min(460px, 100vw);
+    flex-direction: column;
+    padding: 26px;
+    background: var(--paper);
+    box-shadow: -18px 0 50px rgba(20, 26, 22, 0.18);
+    transform: translateX(105%);
+    transition: transform 220ms ease;
+}
+
+.cart-drawer.is-open {
+    transform: translateX(0);
+}
+
+.drawer-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+.drawer-heading .eyebrow {
+    margin-bottom: 4px;
+}
+
+.drawer-heading h2 {
+    margin: 0;
+    font-size: 25px;
+}
+
+.drawer-close {
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid var(--line);
+    background: var(--white);
+    color: var(--ink);
+    cursor: pointer;
+    font-size: 26px;
+    line-height: 1;
+}
+
+.cart-drawer-content {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+.drawer-empty {
+    padding: 28px 0;
+    color: var(--muted);
+}
+
+.drawer-lines {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.drawer-line {
+    display: grid;
+    grid-template-columns: 68px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.drawer-product-image {
+    display: grid;
+    width: 68px;
+    aspect-ratio: 1;
+    place-items: center;
+    overflow: hidden;
+    background: #e8ebe4;
+    color: #7b837b;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.drawer-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.drawer-product-info h3 {
+    margin: 0 0 5px;
+    font-size: 14px;
+}
+
+.drawer-product-info p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.drawer-line > strong {
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.drawer-summary {
+    margin-top: auto;
+    padding-top: 16px;
+    background: var(--paper);
+}
+
+.drawer-summary .summary-total {
+    font-size: 15px;
+}
+
+.drawer-checkout {
+    display: flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 16px;
+    background: var(--ink);
+    color: var(--white);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.drawer-checkout:hover {
+    background: var(--brand-success);
+}
+
+.profile-main {
+    max-width: 760px;
+    margin: 36px auto;
+}
+
+.auth-home-link {
+    margin: 0 0 20px;
+    text-align: left;
+}
+
+body.cart-open {
+    overflow: hidden;
+}
+
 .payment-result {
     display: flex;
     min-height: calc(100vh - 145px);
@@ -471,11 +766,16 @@ body.storefront {
 
 @media (max-width: 650px) {
     .store-header {
-        padding: 0 18px;
+        min-height: 64px;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px 18px;
     }
 
     .store-header nav {
-        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px 12px;
     }
 
     .store-header nav a,
@@ -519,6 +819,14 @@ body.storefront {
 
     .cart-main {
         padding: 32px 18px 48px;
+    }
+
+    .cart-drawer {
+        padding: 20px 18px;
+    }
+
+    .profile-main {
+        margin: 20px 14px;
     }
 
     .cart-layout {

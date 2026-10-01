@@ -17,7 +17,7 @@ body {
 
 .sidebar {
     width: 250px;
-    background-color: #1f2937;
+    background-color: var(--brand-ink);
     color: white;
     padding: 20px 0;
     position: fixed;
@@ -48,7 +48,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #6b7280;
+    color: #a8b2aa;
 }
 
 .menu li:first-child.menu-title,
@@ -59,20 +59,21 @@ body {
 .menu a {
     display: block;
     padding: 12px 25px;
-    color: #d1d5db;
+    color: #e0e5df;
     text-decoration: none;
     font-size: 14px;
     transition: 0.2s;
 }
 
 .menu a:hover {
-    background-color: #374151;
-    color: white;
+    background-color: #303a33;
+    color: var(--brand-white);
 }
 
 .menu a.active {
-    background-color: #2563eb;
-    color: white;
+    background-color: var(--brand-accent);
+    color: var(--brand-ink);
+    font-weight: 700;
 }
 
 /* =========================
@@ -93,7 +94,7 @@ body {
 
 .btn-logout {
     width: 100%;
-    background-color: #ef4444;
+    background-color: var(--brand-danger);
     color: white;
     padding: 12px;
     border-radius: 6px;
@@ -115,8 +116,8 @@ body {
 ========================= */
 .btn-mod {
     width: 100%;
-    background-color: #1ece76;
-    color: white;
+    background-color: var(--brand-success);
+    color: var(--brand-white);
     padding: 12px;
     border-radius: 6px;
     font-size: 14px;
@@ -184,7 +185,8 @@ body {
 .card {
     background-color: white;
     padding: 25px;
-    border-radius: 10px;
+    border: 1px solid var(--brand-line);
+    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -206,7 +208,8 @@ body {
 .table-container {
     background-color: white;
     padding: 25px;
-    border-radius: 10px;
+    border: 1px solid var(--brand-line);
+    border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -230,7 +233,7 @@ button {
 }
 
 .btn-primary {
-    background-color: #2563eb;
+    background-color: var(--brand-success);
     color: white;
 }
 
@@ -488,6 +491,8 @@ td {
 .sidebar-top {
     overflow-y: auto;
     min-height: 0;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
 }
 
 * {
@@ -496,6 +501,22 @@ td {
 
 body {
     background-color: var(--brand-paper);
+}
+
+.form-container,
+.table-container {
+    border-color: var(--brand-line);
+    border-radius: 8px;
+}
+
+.sidebar-footer {
+    border-color: #3a443d;
+}
+
+.btn-primary:hover,
+.btn-submit:hover {
+    background-color: var(--brand-accent-strong);
+    color: var(--brand-ink);
 }
 
 .sidebar {

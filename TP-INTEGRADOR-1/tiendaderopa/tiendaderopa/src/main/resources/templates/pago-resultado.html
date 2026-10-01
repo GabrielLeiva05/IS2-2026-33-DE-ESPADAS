@@ -8,13 +8,7 @@
     <link rel="stylesheet" th:href="@{/css/store.css}">
 </head>
 <body class="storefront">
-<header class="store-header">
-    <a class="brand" th:href="@{/}">ZERO<span>.</span></a>
-    <nav aria-label="Navegación principal">
-        <a th:href="@{/carrito}">Mi carrito</a>
-        <a th:href="@{/}">Catálogo</a>
-    </nav>
-</header>
+<header th:replace="~{fragments/store-header :: storeHeader}"></header>
 
 <main class="payment-result">
     <p class="eyebrow">MERCADO PAGO</p>
@@ -33,6 +27,8 @@
     </div>
 </main>
 
+<div th:replace="~{fragments/cart-drawer-shell :: shell}"></div>
 <footer class="store-footer"><span>ZERO</span><span>Ropa deportiva unisex</span></footer>
+<script th:src="@{/js/store.js}" defer></script>
 </body>
 </html>
