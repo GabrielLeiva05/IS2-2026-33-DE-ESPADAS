@@ -4,6 +4,8 @@ import com.ejercicioIntegrador.tiendaderopa.enumeraciones.EstadoOrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.model.OrdenCompra;
 import com.ejercicioIntegrador.tiendaderopa.service.MercadoPagoCheckoutService;
 import com.ejercicioIntegrador.tiendaderopa.service.ServicioOrdenCompra;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -17,6 +19,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class TiendaWebController {
+
+    private static final Logger logger = LoggerFactory.getLogger(TiendaWebController.class);
 
     private final ServicioOrdenCompra ordenServicio;
     private final MercadoPagoCheckoutService checkoutService;
@@ -113,17 +117,27 @@ public class TiendaWebController {
             @AuthenticationPrincipal UserDetails usuario,
             @RequestParam(name = "external_reference", required = false) String ordenId,
             @RequestParam(name = "payment_id", required = false) String paymentId,
+            @RequestParam(name = "collection_id", required = false) String collectionId,
             @RequestParam(name = "status", required = false) String estadoInformado,
+            @RequestParam(name = "collection_status", required = false) String collectionStatus,
             Model model) {
         model.addAttribute("orden", null);
-        model.addAttribute("estadoInformado", estadoInformado);
+        String idPago = paymentId;
+        if (idPago == null || idPago.isBlank() || "null".equalsIgnoreCase(idPago)) {
+            idPago = collectionId;
+        }
+        String estadoPago = estadoInformado;
+        if (estadoPago == null || estadoPago.isBlank()) {
+            estadoPago = collectionStatus;
+        }
+        model.addAttribute("estadoInformado", estadoPago);
         if (ordenId == null || ordenId.isBlank()) {
             model.addAttribute("mensaje", "No recibimos una referencia de orden desde Mercado Pago.");
             return "pago-resultado";
         }
 
         try {
-            OrdenCompra orden = checkoutService.procesarRetorno(ordenId, paymentId, usuario.getUsername());
+            OrdenCompra orden = checkoutService.procesarRetorno(ordenId, idPago, usuario.getUsername());
             model.addAttribute("orden", orden);
             if (orden.getEstadoOrdenCompra() == EstadoOrdenCompra.PAGO_REALIZADO) {
                 model.addAttribute("mensaje", "El pago fue aprobado. Tu compra quedó registrada.");
@@ -136,6 +150,7 @@ public class TiendaWebController {
                 model.addAttribute("mensaje", "El pago no fue aprobado. Podés volver al carrito e intentarlo otra vez.");
             }
         } catch (Exception ex) {
+            logger.error("No se pudo verificar el retorno del pago de la orden {}", ordenId, ex);
             model.addAttribute("mensaje", "No pudimos verificar el pago. Revisá el estado desde tu carrito.");
         }
         return "pago-resultado";

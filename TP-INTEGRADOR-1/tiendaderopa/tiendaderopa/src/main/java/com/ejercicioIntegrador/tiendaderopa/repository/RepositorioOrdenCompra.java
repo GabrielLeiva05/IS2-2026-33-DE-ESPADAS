@@ -18,5 +18,8 @@ public interface RepositorioOrdenCompra extends JpaRepository<OrdenCompra, Strin
         Optional<OrdenCompra> findFirstByUsuario_IdAndEstadoOrdenCompraAndEliminadoFalseOrderByFechaDesc(
             String usuarioId, EstadoOrdenCompra estadoOrdenCompra);
 
-    List<OrdenCompra> findByEstadoOrdenCompraAndEliminadoFalse(EstadoOrdenCompra estado);
+        List<OrdenCompra> findByUsuario_IdAndEstadoOrdenCompraAndEliminadoFalseOrderByFechaDesc(
+                String usuarioId, EstadoOrdenCompra estadoOrdenCompra);
+
+        List<OrdenCompra> findByEstadoOrdenCompraAndEliminadoFalse(EstadoOrdenCompra estado);
 }

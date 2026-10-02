@@ -47,10 +47,12 @@ public class ServicioOrdenCompra {
         return repositorioOrdenCompra.findByEliminadoFalse();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<OrdenCompra> listarActivasDeUsuario(String email) throws Exception {
         Usuario usuario = usuarioServicio.buscarActivoPorNombreUsuario(email);
-        return repositorioOrdenCompra.findByUsuario_IdAndEliminadoFalse(usuario.getId());
+        List<OrdenCompra> ordenes = repositorioOrdenCompra.findByUsuario_IdAndEliminadoFalse(usuario.getId());
+        eliminarCarritosVacios(ordenes);
+        return ordenes.stream().filter(orden -> !esCarritoVacio(orden)).toList();
     }
 
     @Transactional
@@ -59,23 +61,19 @@ public class ServicioOrdenCompra {
         if (usuario.getRolUsuario() != com.ejercicioIntegrador.tiendaderopa.enumeraciones.RolUsuario.CLIENTE) {
             throw new AccessDeniedException("Solo un cliente puede usar el carrito");
         }
-        OrdenCompra carrito = repositorioOrdenCompra
-                .findFirstByUsuario_IdAndEstadoOrdenCompraAndEliminadoFalseOrderByFechaDesc(
-                        usuario.getId(), EstadoOrdenCompra.PENDIENTE_DE_PAGO)
-                .orElseGet(() -> {
-                    OrdenCompra nueva = new OrdenCompra();
-                    nueva.setIdentificadorCompra("ORD-" + UUID.randomUUID());
-                    nueva.setFecha(new Date());
-                    nueva.setEstadoOrdenCompra(EstadoOrdenCompra.PENDIENTE_DE_PAGO);
-                    nueva.setTotal(0.0);
-                    nueva.setEliminado(false);
-                    nueva.setUsuario(usuario);
-                    nueva.setSucursal(servicioSucursal.obtenerPrincipal());
-                    return repositorioOrdenCompra.save(nueva);
-                });
+        List<OrdenCompra> carritos = repositorioOrdenCompra
+                .findByUsuario_IdAndEstadoOrdenCompraAndEliminadoFalseOrderByFechaDesc(
+                        usuario.getId(), EstadoOrdenCompra.PENDIENTE_DE_PAGO);
+        eliminarCarritosVacios(carritos);
+        OrdenCompra carrito = carritos.stream()
+                .filter(orden -> !esCarritoVacio(orden))
+                .findFirst()
+                .orElseGet(() -> nuevoCarrito(usuario));
         if (carrito.getSucursal() == null) {
             carrito.setSucursal(servicioSucursal.obtenerPrincipal());
-            repositorioOrdenCompra.save(carrito);
+            if (carrito.getId() != null) {
+                repositorioOrdenCompra.save(carrito);
+            }
         }
         if (actualizarPreciosVigentes(carrito)) {
             recalcularTotal(carrito);
@@ -106,6 +104,10 @@ public class ServicioOrdenCompra {
             throw new AccessDeniedException("Solo un cliente puede crear una orden de compra");
         }
 
+        return nuevoCarrito(usuario);
+    }
+
+    private OrdenCompra nuevoCarrito(Usuario usuario) {
         OrdenCompra orden = new OrdenCompra();
         orden.setIdentificadorCompra("ORD-" + UUID.randomUUID());
         orden.setFecha(new Date());
@@ -114,14 +116,23 @@ public class ServicioOrdenCompra {
         orden.setEliminado(false);
         orden.setUsuario(usuario);
         orden.setSucursal(servicioSucursal.obtenerPrincipal());
-
-        return repositorioOrdenCompra.save(orden);
+        return orden;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public OrdenCompra agregarDetalleAOrden(String ordenId, String productoId, int cantidad,
                                              String email, boolean administrativo) throws Exception {
         OrdenCompra orden = buscarAccesible(ordenId, email, administrativo);
+        return agregarDetalle(orden, productoId, cantidad);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public OrdenCompra agregarAlCarrito(String productoId, int cantidad, String email) throws Exception {
+        OrdenCompra carrito = obtenerCarrito(email);
+        return agregarDetalle(carrito, productoId, cantidad);
+    }
+
+    private OrdenCompra agregarDetalle(OrdenCompra orden, String productoId, int cantidad) throws Exception {
         if (orden.getEstadoOrdenCompra() != EstadoOrdenCompra.PENDIENTE_DE_PAGO
                 || orden.getMercadoPagoPreferenceId() != null) {
             throw new IllegalStateException("Solo se pueden editar órdenes pendientes de pago");
@@ -167,12 +178,6 @@ public class ServicioOrdenCompra {
     }
 
     @Transactional
-    public OrdenCompra agregarAlCarrito(String productoId, int cantidad, String email) throws Exception {
-        OrdenCompra carrito = obtenerCarrito(email);
-        return agregarDetalleAOrden(carrito.getId(), productoId, cantidad, email, false);
-    }
-
-    @Transactional
     public OrdenCompra eliminarDelCarrito(String detalleId, String email) throws Exception {
         OrdenCompra carrito = obtenerCarrito(email);
         if (carrito.getMercadoPagoPreferenceId() != null) {
@@ -184,6 +189,10 @@ public class ServicioOrdenCompra {
                 .orElseThrow(() -> new AccessDeniedException("El producto no pertenece a tu carrito"));
         detalle.setEliminado(true);
         recalcularTotal(carrito);
+        if (carrito.getDetalles().stream().noneMatch(actual -> !actual.isEliminado())) {
+            repositorioOrdenCompra.delete(carrito);
+            return carrito;
+        }
         return repositorioOrdenCompra.save(carrito);
     }
 
@@ -233,6 +242,7 @@ public class ServicioOrdenCompra {
         if (orden.getMercadoPagoPreferenceId() != null) {
             throw new IllegalStateException("La orden ya tiene un pago iniciado");
         }
+        recalcularTotal(orden);
         orden.setMercadoPagoPreferenceId(preferenceId);
         orden.setMercadoPagoInitPoint(initPoint);
         orden.setMercadoPagoStatus("preference_created");
@@ -306,6 +316,19 @@ public class ServicioOrdenCompra {
                 .mapToDouble(DetalleCompra::getSubtotal)
                 .sum();
         orden.setTotal(total);
+    }
+
+    private void eliminarCarritosVacios(List<OrdenCompra> ordenes) {
+        List<OrdenCompra> vacios = ordenes.stream().filter(this::esCarritoVacio).toList();
+        if (!vacios.isEmpty()) {
+            repositorioOrdenCompra.deleteAll(vacios);
+        }
+    }
+
+    private boolean esCarritoVacio(OrdenCompra orden) {
+        return orden.getEstadoOrdenCompra() == EstadoOrdenCompra.PENDIENTE_DE_PAGO
+                && orden.getMercadoPagoPreferenceId() == null
+                && orden.getDetalles().stream().noneMatch(detalle -> !detalle.isEliminado());
     }
 
     private boolean actualizarPreciosVigentes(OrdenCompra carrito) {
