@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="049f7cae-958a-417e-b875-4a02ffc01b20" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/MercadoPagoCheckoutService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/ejercicioIntegrador/tiendaderopa/service/MercadoPagoCheckoutService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -78,7 +77,7 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;build.tools&quot;
   }
 }</component>
-  <component name="RunManager" selected="Application.Tiendaderopa">
+  <component name="RunManager">
     <configuration name="Tiendaderopa" type="Application" factoryName="Application">
       <envs>
         <env name="DB_PASSWORD" value="$DB_PASSWORD$" />
@@ -100,8 +99,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-37e91769500f-intellij.indexing.shared.core-IU-261.25134.95" />
-        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-IU-261.25134.95" />
+        <option value="bundled-jdk-30f59d01ecdd-34e2839f716b-intellij.indexing.shared.core-IU-262.9437.185" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.9437.185" />
       </set>
     </attachedChunks>
   </component>
