@@ -82,6 +82,11 @@
                 <h3>Facturas de clientes</h3>
                 <p th:text="${facturasCliente != null ? facturasCliente.size() : 0}">0</p>
             </div>
+            <div class="card">
+                <h3>Facturas de proveedores</h3>
+                <p th:text="${facturasProveedor != null ? facturasProveedor.size() : 0}">0</p>
+                <a class="btn-primary" th:href="@{/admin/facturasproveedor}">Abrir facturas</a>
+            </div>
         </div>
     </section>
     <!-- =========================
@@ -104,6 +109,7 @@
     <section th:replace="~{fragments/abmProveedor :: abmProveedor}"></section>
     <section th:replace="~{fragments/abmFacturaCliente :: abmFacturaCliente}"></section>
     <section th:replace="~{fragments/newsletter :: newsletter}"></section>
+    <section th:replace="~{fragments/abmFacturaProveedor :: abmFacturaProveedor}"></section>
 
 </main>
 

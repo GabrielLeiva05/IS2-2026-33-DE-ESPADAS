@@ -33,6 +33,7 @@ public class AdminControlador {
     private final ServicioProveedor servicioProveedor;
     private final ServicioFacturaCliente servicioFacturaCliente;
     private final ServicioOrdenCompraProveedor servicioOrdenCompra;
+    private final ServicioFacturaProveedor servicioFacturaProveedor;
     public AdminControlador(PaisServicio paisServicio, ProvinciaServicio provinciaServicio, ServicioNewsletter servicioNewsletter,
                             ServicioCategoria servicioCategoria,
                             ServicioSubCategoria servicioSubCategoria,
@@ -48,7 +49,8 @@ public class AdminControlador {
                             ServicioContactoCorreoElectronico servicioContactoCorreo,
                             ServicioProveedor servicioProveedor,
                             ServicioFacturaCliente servicioFacturaCliente,
-                            ServicioOrdenCompraProveedor servicioOrdenCompra) {
+                            ServicioOrdenCompraProveedor servicioOrdenCompra,
+                            ServicioFacturaProveedor servicioFacturaProveedor) {
         this.paisServicio = paisServicio;
         this.provinciaServicio = provinciaServicio;
         this.servicioNewsletter = servicioNewsletter;
@@ -67,6 +69,7 @@ public class AdminControlador {
         this.servicioProveedor = servicioProveedor;
         this.servicioFacturaCliente = servicioFacturaCliente;
         this.servicioOrdenCompra = servicioOrdenCompra;
+        this.servicioFacturaProveedor = servicioFacturaProveedor;
     }
     @GetMapping("/dashboard")
     public String dashboard(ModelMap modelo) throws Exception {
@@ -112,6 +115,8 @@ public class AdminControlador {
         modelo.addAttribute("ordenesCompra", servicioOrdenCompra.listarOrdenCompraProveedor());
         modelo.addAttribute("facturasCliente", servicioFacturaCliente.listarTodas());
         modelo.addAttribute("facturaCliente", null);
+        modelo.addAttribute("facturasProveedor", servicioFacturaProveedor.listarTodas());
+        modelo.addAttribute("facturaProveedor", null);
         return "panel.html";
     }
 }
