@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera('Error')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('')}"></header>
+
+<main class="container contenido">
+    <div class="encabezado">
+        <div>
+            <h1>No se pudo completar la operación</h1>
+            <p th:if="${estado}" th:text="'Código de estado: ' + ${estado}">Código de estado: 500</p>
+        </div>
+    </div>
+    <div class="alert alert-danger" role="alert"
+         th:text="${mensaje ?: 'Ocurrió un error inesperado en la aplicación.'}">Mensaje de error</div>
+    <a class="btn btn-outline-primary" th:href="@{/}">Volver al inicio</a>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

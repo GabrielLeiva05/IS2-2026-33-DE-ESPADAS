@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera((${libro.id == null} ? 'Nuevo libro' : 'Editar libro'))}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('personas')}"></header>
+
+<main class="container contenido">
+    <div class="encabezado">
+        <div>
+            <h1 th:text="${libro.id == null} ? 'Nuevo libro' : 'Editar libro'">Libro</h1>
+            <p>Libro de <a th:href="@{/personas/{id}(id=${persona.id})}" th:text="${persona.nombre + ' ' + persona.apellido}">Persona</a></p>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <form class="formulario" th:object="${libro}" method="post" novalidate
+          th:action="${libro.id == null} ? @{/personas/{p}/libros(p=${persona.id})} : @{/personas/{p}/libros/{l}(p=${persona.id}, l=${libro.id})}">
+
+        <fieldset>
+            <legend>Datos del libro</legend>
+            <div class="row g-3 mb-3">
+                <div class="col-12">
+                    <label class="form-label" for="titulo">Título</label>
+                    <input type="text" class="form-control" id="titulo" th:field="*{titulo}"
+                           th:classappend="${#fields.hasErrors('titulo')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{titulo}">Error</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="genero">Género</label>
+                    <input type="text" class="form-control" id="genero" th:field="*{genero}"
+                           th:classappend="${#fields.hasErrors('genero')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{genero}">Error</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="fecha">Año de publicación</label>
+                    <input type="text" inputmode="numeric" class="form-control" id="fecha" th:field="*{fecha}"
+                           th:classappend="${#fields.hasErrors('fecha')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{fecha}">Error</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" for="paginas">Páginas</label>
+                    <input type="text" inputmode="numeric" class="form-control" id="paginas" th:field="*{paginas}"
+                           th:classappend="${#fields.hasErrors('paginas')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{paginas}">Error</div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend>Autores</legend>
+            <div class="mb-3">
+                <p class="form-text mb-2">Tilde uno o más autores existentes (relación muchos a muchos).</p>
+                <div class="lista-autores" th:if="${!autores.isEmpty()}">
+                    <div class="form-check" th:each="a : ${autores}">
+                        <input class="form-check-input" type="checkbox" th:field="*{autoresIds}" th:value="${a.id}">
+                        <label class="form-check-label" th:for="${#ids.prev('autoresIds')}" th:text="${a.nombreCompleto}">Autor</label>
+                    </div>
+                </div>
+                <p class="form-text" th:if="${autores.isEmpty()}">
+                    No hay autores cargados. <a th:href="@{/autores/nuevo}">Cree un autor</a> primero.
+                </p>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="autor">Autor (texto)</label>
+                <input type="text" class="form-control" id="autor" th:field="*{autor}"
+                       th:classappend="${#fields.hasErrors('autor')} ? 'is-invalid'">
+                <div class="invalid-feedback" th:errors="*{autor}">Error</div>
+                <div class="form-text">Opcional. Si lo deja vacío se completa con los nombres de los autores tildados.</div>
+            </div>
+        </fieldset>
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-link" th:href="@{/personas/{id}(id=${persona.id})}">Cancelar</a>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera((${autor.id == null} ? 'Nuevo autor' : 'Editar autor'))}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('autores')}"></header>
+
+<main class="container contenido">
+    <div class="encabezado">
+        <div><h1 th:text="${autor.id == null} ? 'Nuevo autor' : 'Editar autor'">Autor</h1></div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <form class="formulario" th:object="${autor}" method="post" novalidate
+          th:action="${autor.id == null} ? @{/autores} : @{/autores/{id}(id=${autor.id})}">
+        <fieldset>
+            <legend>Datos del autor</legend>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="nombre">Nombre</label>
+                    <input type="text" class="form-control" id="nombre" th:field="*{nombre}"
+                           th:classappend="${#fields.hasErrors('nombre')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{nombre}">Error</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="apellido">Apellido</label>
+                    <input type="text" class="form-control" id="apellido" th:field="*{apellido}"
+                           th:classappend="${#fields.hasErrors('apellido')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:errors="*{apellido}">Error</div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label" for="biografia">Biografía</label>
+                    <textarea class="form-control" id="biografia" rows="5" th:field="*{biografia}"
+                              th:classappend="${#fields.hasErrors('biografia')} ? 'is-invalid'"></textarea>
+                    <div class="invalid-feedback" th:errors="*{biografia}">Error</div>
+                </div>
+            </div>
+        </fieldset>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a class="btn btn-link" th:href="@{/autores}">Cancelar</a>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>
