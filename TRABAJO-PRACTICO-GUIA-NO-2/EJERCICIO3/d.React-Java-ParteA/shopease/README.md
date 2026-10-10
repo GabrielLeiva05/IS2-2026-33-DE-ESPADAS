@@ -68,3 +68,86 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+# ShopEase
+
+ShopEase es una interfaz web de una tienda de ropa desarrollada con **React**. El proyecto está enfocado en la presentación de productos y en la organización de la interfaz mediante componentes reutilizables.
+
+Está basado en el prototipo de figma: https://www.figma.com/design/LuA9ntb3NuubhmPxpx5htn/ShopEase?node-id=109-257
+
+## ¿Cómo funciona?
+
+La aplicación comienza en `index.js`, donde se renderiza el componente principal `Shop`.
+
+La página principal está formada por diferentes componentes:
+
+- **Navigation:** muestra el logo, enlaces de navegación, buscador e íconos de favoritos, cuenta y carrito.
+- **HeroSection:** presenta la imagen principal de la tienda y un botón de compra.
+- **NewArrivals:** muestra los productos nuevos mediante un carrusel responsive.
+- **Category:** genera las categorías de productos a partir de la información de `content.json`.
+- **Card:** es un componente reutilizable utilizado para mostrar cada producto o categoría con su imagen, título y descripción.
+- **Footer:** muestra información de ayuda, empresa, políticas, ubicación, redes sociales y copyright.
+
+## Datos
+
+La información de las categorías y del footer se encuentra en:
+
+```text
+src/data/content.json
+```
+
+Esto permite separar los datos de la estructura visual. El componente `Shop` lee las categorías del JSON y genera dinámicamente cada sección.
+
+Los productos de **New Arrivals** están definidos actualmente dentro de `NewArrivals.jsx`.
+
+## Tecnologías utilizadas
+
+- **React 19**
+- **JavaScript**
+- **Tailwind CSS**
+- **React Multi Carousel**
+- **Create React App**
+- **HTML / CSS**
+
+## Estructura principal
+
+```text
+src/
+├── components/
+│   ├── Navigation/
+│   ├── HeroSection/
+│   ├── Card/
+│   ├── Footer/
+│   └── Sections/
+├── assets/
+│   ├── img/
+│   └── fonts/
+├── data/
+│   └── content.json
+├── utils/
+│   └── Section.constants.js
+├── Shop.jsx
+└── index.js
+```
+
+## Ejecutar el proyecto
+
+Instalar las dependencias:
+
+```bash
+npm install
+```
+
+Iniciar el proyecto:
+
+```bash
+npm start
+```
+
+Luego se puede acceder desde:
+
+```text
+http://localhost:3000
+```
+
+La idea central del proyecto es **dividir la interfaz en componentes reutilizables**. Por ejemplo, `Card` se utiliza tanto para mostrar productos de "New Arrivals" como para mostrar las diferentes categorías. Además, parte del contenido se obtiene desde un archivo JSON, evitando escribir manualmente cada sección en el componente principal.
