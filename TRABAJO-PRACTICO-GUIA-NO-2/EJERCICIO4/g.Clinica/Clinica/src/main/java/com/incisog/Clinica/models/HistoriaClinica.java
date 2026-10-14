@@ -8,14 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class HistoriaClinica{
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
-
-    private boolean eliminado = false;
-
+public class HistoriaClinica extends BaseEntity{
     // Diagrama: HistoriaClinica *..1 Paciente
     @ManyToOne
     private Paciente paciente;

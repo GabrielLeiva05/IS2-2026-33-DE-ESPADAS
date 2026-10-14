@@ -7,16 +7,16 @@ import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
-public abstract class BaseEntity<ID> {
+public abstract class BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     protected String id;
 
     @Column(nullable = false)
-    protected Boolean eliminado = false;
+    protected boolean eliminado = false;
 
-    public abstract ID getId();
-    public abstract void setId(ID id);
-    public abstract Boolean isEliminado();
-    public abstract void setEliminado(Boolean eliminado);
+    public abstract String getId();
+    public abstract void setId(String id);
+    public abstract boolean isEliminado();
+    public abstract void setEliminado(boolean eliminado);
 }

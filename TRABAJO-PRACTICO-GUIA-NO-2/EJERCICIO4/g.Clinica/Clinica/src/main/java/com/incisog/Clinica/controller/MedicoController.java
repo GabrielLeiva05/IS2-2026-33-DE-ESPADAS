@@ -37,8 +37,8 @@ public class MedicoController {
     }
 
     @PutMapping("/{id}")
-    public void modificar(@PathVariable String id, @RequestBody Medico medico) throws ErrorServiceException {
-        service.modificar(id, medico);
+    public ResponseEntity<Medico> modificar(@PathVariable String id, @RequestBody Medico medico) throws ErrorServiceException {
+        return ResponseEntity.ok(service.modificar(id, medico));
     }
 
     @DeleteMapping("/{id}")

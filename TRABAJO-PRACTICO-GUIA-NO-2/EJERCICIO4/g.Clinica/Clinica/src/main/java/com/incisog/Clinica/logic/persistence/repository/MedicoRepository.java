@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface MedicoRepository extends JpaRepository<Medico, String> {
+public interface MedicoRepository extends BaseRepositoryTemplate<Medico> {
 
     public List<Medico> findByEliminadoFalse();
     public boolean existsByDocumentoAndEliminadoFalse(String documento);

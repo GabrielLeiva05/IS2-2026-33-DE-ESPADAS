@@ -6,11 +6,7 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 
 @Entity
-public class Usuario {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+public class Usuario extends BaseEntity {
 
     private String nombreUsuario;
 
@@ -20,9 +16,6 @@ public class Usuario {
     // Nota: se guarda en texto plano; aceptable para el TP, no para un sistema real.
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String clave;
-
-    @Column(nullable = false)
-    private boolean eliminado;
 
     public Usuario() {
     }

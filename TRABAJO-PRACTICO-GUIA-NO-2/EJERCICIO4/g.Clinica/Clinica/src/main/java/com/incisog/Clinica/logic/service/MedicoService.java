@@ -5,30 +5,19 @@ import com.incisog.Clinica.logic.persistence.repository.MedicoRepository;
 import com.incisog.Clinica.models.Medico;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
 
 @Service
-public class MedicoService {
-    private final MedicoRepository repository;
+public class MedicoService extends BaseServiceTemplate<Medico> {
+
+    private final MedicoRepository medicoRepository;
 
     public MedicoService(MedicoRepository repository){
-        this.repository = repository;
+        super(repository);
+        this.medicoRepository = repository; // vos lo guardás como MedicoRepository
     }
 
-    public List<Medico> listar(){
-        return repository.findByEliminadoFalse();
-    }
-
-    public Medico buscarPorId(String id) throws ErrorServiceException {
-        return repository.findById(id)
-                .filter(medico -> !(medico.isEliminado()))
-                .orElseThrow(() ->
-                        new ErrorServiceException("Médico no encontrado o eliminado.")
-                );
-    }
-
-    private void validar(Medico medico) throws ErrorServiceException{
+    @Override
+    protected void validar(Medico medico) throws ErrorServiceException{
 
         if (medico == null) {
             throw new ErrorServiceException("Debe indicar el medico");
@@ -49,38 +38,31 @@ public class MedicoService {
     }
 
     private void chequearDocumento(Medico medico) throws ErrorServiceException {
-        if (repository.existsByDocumentoAndEliminadoFalse(medico.getDocumento())){
+        if (medicoRepository.existsByDocumentoAndEliminadoFalse(medico.getDocumento())){
             throw new ErrorServiceException("El documento dado ya esta usado");
         }
     }
 
-    public void crear(Medico medico) throws ErrorServiceException {
-        validar(medico);
+    @Override
+    protected void antesDeCrear(Medico medico) throws ErrorServiceException {
         chequearDocumento(medico);
-        medico.setId(null);
-        medico.setEliminado(false);
-        repository.save(medico);
+    }
+
+
+
+    @Override
+    protected void copiarDatos(Medico existente, Medico datos) {
+        existente.setNombre(datos.getNombre());
+        existente.setApellido(datos.getApellido());
+        existente.setDocumento(datos.getDocumento());
 
     }
 
-    public void modificar(String id, Medico datos) throws ErrorServiceException {
-        validar(datos);
-
-        Medico medico = buscarPorId(id);
-
-        if (!medico.getDocumento().equals(datos.getDocumento())) {
+    @Override
+    public void antesDeModificar(Medico existente, Medico datos) throws ErrorServiceException{
+        //Se revisa que el documento nuevo no exista en la BD
+        if (!existente.getDocumento().equals(datos.getDocumento())) {
             chequearDocumento(datos);
         }
-
-        medico.setNombre(datos.getNombre());
-        medico.setApellido(datos.getApellido());
-        medico.setDocumento(datos.getDocumento());
-        repository.save(medico);
-    }
-
-    public void eliminar(String id) throws ErrorServiceException {
-        Medico medico = buscarPorId(id);
-        medico.setEliminado(true);
-        repository.save(medico);
     }
 }

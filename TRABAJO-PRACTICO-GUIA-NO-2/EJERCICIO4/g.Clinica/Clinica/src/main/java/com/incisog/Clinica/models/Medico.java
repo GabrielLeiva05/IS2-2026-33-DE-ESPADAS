@@ -9,14 +9,9 @@ import lombok.Setter;
 import java.io.Serializable;
 
 @Entity
-public class Medico  {
+public class Medico extends BaseEntity  {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
 
-    @Column(nullable = false)
-    private boolean eliminado;
 
     private String nombre;
     private String apellido;
@@ -28,8 +23,8 @@ public class Medico  {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
-    public Boolean isEliminado() { return eliminado; }
-    public void setEliminado(Boolean eliminado) { this.eliminado = eliminado; }
+    public boolean isEliminado() { return eliminado; }
+    public void setEliminado(boolean eliminado) { this.eliminado = eliminado; }
 
     public String getNombre() {
         return nombre;

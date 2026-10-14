@@ -10,16 +10,11 @@ import lombok.Setter;
 import java.io.Serializable;
 
 @Entity
-public class Paciente {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+public class Paciente extends BaseEntity{
 
     private String nombre;
     private String apellido;
     private String documento;
-    private boolean eliminado = false;
 
     // Diagrama: Paciente *..1 FotoPaciente.
     // @JsonIgnore: la foto (byte[]) NO viaja en el JSON del paciente; se pide aparte
