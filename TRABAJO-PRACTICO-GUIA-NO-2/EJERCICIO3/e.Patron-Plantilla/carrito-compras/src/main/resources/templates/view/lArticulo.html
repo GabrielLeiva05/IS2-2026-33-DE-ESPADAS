@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${titleList})}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/menubody :: menu-principal}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<section class="py-5">
+    <div class="container px-4 px-lg-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bolder m-0" th:text="${titleList}">Listado</h2>
+            <a class="btn btn-dark" th:href="@{${basePath} + '/alta'}"><i class="bi-plus-lg"></i> Nuevo artículo</a>
+        </div>
+        <p th:if="${#lists.isEmpty(items)}" class="text-muted">No hay registros cargados.</p>
+        <div class="table-responsive" th:unless="${#lists.isEmpty(items)}">
+            <table class="table table-hover align-middle">
+                <thead class="table-light"><tr><th>Nombre</th><th>Proveedor</th><th class="text-end">Precio</th><th class="text-end">Acciones</th></tr></thead>
+                <tbody>
+                <tr th:each="item : ${items}">
+                    <td th:text="${item.nombre}">Nombre</td>
+                    <td class="text-muted" th:text="${item.proveedor != null} ? ${item.proveedor.nombre} : '-'">Proveedor</td>
+                    <td class="text-end" th:text="'$ ' + ${#numbers.formatDecimal(item.precio, 1, 'POINT', 2, 'COMMA')}">$ 0,00</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" th:href="@{${basePath} + '/consultar/' + ${item.id}}">Consultar</a>
+                        <a class="btn btn-sm btn-outline-dark" th:href="@{${basePath} + '/modificar/' + ${item.id}}">Modificar</a>
+                        <form th:action="@{${basePath} + '/baja/' + ${item.id}}" method="post" class="d-inline"
+                              onsubmit="return confirm('¿Eliminar este registro?');">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{fragments/footer :: pie-pagina}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
