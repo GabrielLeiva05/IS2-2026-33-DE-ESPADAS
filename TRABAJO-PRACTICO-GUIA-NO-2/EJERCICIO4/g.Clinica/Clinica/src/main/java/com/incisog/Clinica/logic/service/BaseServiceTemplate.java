@@ -1,12 +1,11 @@
 package com.incisog.Clinica.logic.service;
 
-import com.incisog.Clinica.logic.dto.adapter.BaseAdapter;
 import com.incisog.Clinica.logic.error.ErrorServiceException;
 import com.incisog.Clinica.logic.persistence.repository.BaseRepositoryTemplate;
 import com.incisog.Clinica.models.BaseEntity;
 
 import java.util.List;
-import java.util.Optional;
+
 
 public abstract class BaseServiceTemplate<T extends BaseEntity> {
 
@@ -46,6 +45,7 @@ public abstract class BaseServiceTemplate<T extends BaseEntity> {
 
     public void eliminar(String id) throws ErrorServiceException{
         T entidad = buscarPorId(id);
+        antesDeEliminar(entidad);
         entidad.setEliminado(true);
         repository.save(entidad);
     }
