@@ -41,40 +41,28 @@
             <div class="container px-4 px-lg-5 my-5">
                 <div class="text-center text-white">
                     <h1 class="display-4 fw-bolder">Juegos 33 de Espadas</h1>
-                    <p class="lead fw-normal text-white-50 mb-0">Busca tu videojuego favorito</p>
+                    <p class="lead fw-normal text-white-50 mb-3">Busca tu videojuego favorito</p>
+                    <form class="d-flex justify-content-center" th:action="@{/busqueda}" method="get">
+                        <label for="catalog-search" class="visually-hidden">Buscar videojuegos por título</label>
+                        <div class="input-group" style="max-width: 32rem;">
+                            <input id="catalog-search" class="form-control" type="search" name="query"
+                                   placeholder="Buscar por título" aria-label="Buscar videojuegos por título">
+                            <button class="btn btn-outline-light" type="submit">Buscar</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </header>
         <!-- Section-->
         <section class="py-5">
             <div class="container px-4 px-lg-5 mt-5">
-                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
-
-                    <div class="col mb-5" th:each="videojuego : ${videojuegos}">
-                        <div class="card h-100">
-                            <!-- Product image-->
-                            <img class="card-img-top" th:src="@{'/imagenes/' + ${videojuego.imagen}}" th:alt="${videojuego.titulo}" />
-                            <!-- Product details-->
-                            <div class="card-body p-4">
-                                <div class="text-center">
-                                    <!-- Product name-->
-                                    <h5 class="fw-bolder" th:text="${videojuego.titulo}">Titulo</h5>
-                                    <span class="text-muted" th:text="${videojuego.categoria.nombre}">Categoria</span>
-                                    <!-- Product price-->
-                                    <div th:text="'$' + ${videojuego.precio}">$0.00</div>
-                                </div>
-                            </div>
-                            <!-- Product actions-->
-                            <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                                <div class="text-center"><a class="btn btn-outline-dark mt-auto" th:href="@{/}">Ver detalle</a></div>
-                            </div>
-                        </div>
+                <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center"
+                     id="videojuegos-grid" data-card-layout="shop"
+                     th:attr="data-api-url=@{/api/videojuegos},data-image-base=@{/imagenes/}">
+                    <div class="col-12 text-center py-4" data-catalog-status role="status">Cargando videojuegos...</div>
+                    <div class="col-12 text-center py-4" data-catalog-empty hidden>
+                        <h4>Todavía no hay videojuegos cargados</h4>
                     </div>
-
-                    <div class="col-12 text-center" th:if="${#lists.isEmpty(videojuegos)}">
-                        <h4>Todavia no hay videojuegos cargados</h4>
-                    </div>
-
                 </div>
             </div>
         </section>

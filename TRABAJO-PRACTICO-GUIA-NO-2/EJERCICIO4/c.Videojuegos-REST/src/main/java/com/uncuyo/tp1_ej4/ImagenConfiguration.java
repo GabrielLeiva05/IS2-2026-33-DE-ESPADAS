@@ -10,7 +10,8 @@ public class ImagenConfiguration implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry){
         WebMvcConfigurer.super.addResourceHandlers(registry);
-        registry.addResourceHandler("/imagenes/**").addResourceLocations("file:/C:/Videojuegos/imagenes/");
+        registry.addResourceHandler("/imagenes/**")
+                .addResourceLocations("file:/C:/Videojuegos/imagenes/", "classpath:/static/images/");
     }
 
 }

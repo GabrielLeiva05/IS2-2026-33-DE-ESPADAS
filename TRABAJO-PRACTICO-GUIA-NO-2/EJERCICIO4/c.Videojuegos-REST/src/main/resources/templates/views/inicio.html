@@ -8,12 +8,15 @@
   <nav th:replace="~{components/navbar :: nav_bar(activo='videojuegos')}"></nav>
   <div class="container py-5 mt-5">
     <div class="row">
-      <div class="col-12 col-md-3" th:each="videojuego : ${videojuegos}">
-        <div th:replace="~{components/card :: _card}"></div>
+      <div class="col-12 col-md-3" id="videojuegos-grid" data-card-layout="simple"
+           th:attr="data-api-url=@{/api/videojuegos},data-image-base=@{/imagenes/}">
+        <div class="text-center py-4" data-catalog-status role="status">Cargando videojuegos...</div>
+        <div class="text-center py-4" data-catalog-empty hidden>No hay videojuegos disponibles.</div>
       </div>
     </div>
   </div>
   <div th:replace="~{components/footer :: pie}"></div>
   <th:block th:replace="~{components/scripts :: scripts}"></th:block>
+  <script th:src="@{/js/shop-scripts.js}"></script>
 </body>
 </html>

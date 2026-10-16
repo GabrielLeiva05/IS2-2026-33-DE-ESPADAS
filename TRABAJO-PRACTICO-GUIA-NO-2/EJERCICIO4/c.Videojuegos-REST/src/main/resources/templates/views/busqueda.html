@@ -7,21 +7,25 @@
 <body>
   <nav th:replace="~{components/navbar :: nav_bar(activo='videojuegos')}"></nav>
   <div class="container py-5 mt-5">
-    <div class="row" th:if="${videojuegos.size}">
-      <div class="col-12">
-        <h2>Resultados "<span th:text="${resultado}"></span>": </h2>
+    <h2>Resultados de "<span th:text="${resultado}"></span>"</h2>
+    <form class="mb-3" th:action="@{/busqueda}" method="get">
+      <label for="catalog-search" class="visually-hidden">Buscar videojuegos por título</label>
+      <div class="input-group">
+        <input id="catalog-search" class="form-control" type="search" name="query"
+               th:value="${resultado}" placeholder="Buscar por título" aria-label="Buscar videojuegos por título">
+        <button class="btn btn-primary" type="submit">Buscar</button>
       </div>
-      <div class="col-12 col-md-3" th:each="videojuego : ${videojuegos}">
-        <div th:replace="~{components/card :: _card}"></div>
-      </div>
-    </div>
-    <div class="row" th:unless="${videojuegos.size}">
-      <div class="col-12">
-        <h2>No hay resultados de "<span th:text="${resultado}"></span>"</h2>
+    </form>
+    <div class="row" id="videojuegos-grid" data-card-layout="simple"
+         th:attr="data-api-url=@{/api/videojuegos},data-image-base=@{/imagenes/},data-query=${resultado}">
+      <div class="col-12 text-center py-4" data-catalog-status role="status">Buscando videojuegos...</div>
+      <div class="col-12 text-center py-4" data-catalog-empty hidden>
+        <h2>No hay resultados para "<span th:text="${resultado}"></span>"</h2>
       </div>
     </div>
   </div>
   <div th:replace="~{components/footer :: pie}"></div>
   <th:block th:replace="~{components/scripts :: scripts}"></th:block>
+  <script th:src="@{/js/shop-scripts.js}"></script>
 </body>
 </html>

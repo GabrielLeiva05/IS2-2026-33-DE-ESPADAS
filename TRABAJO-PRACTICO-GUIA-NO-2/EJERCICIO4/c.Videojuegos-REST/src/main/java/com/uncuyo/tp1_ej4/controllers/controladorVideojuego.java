@@ -29,16 +29,8 @@ public class controladorVideojuego {
     private ServicioEstudio svcEstudio;
 
     @GetMapping("/inicio")
-    public String inicio(Model model) {
-        try {
-            List<Videojuego> videojuegos = this.svcVideojuego.findAllByActivo();
-            model.addAttribute("videojuegos", videojuegos);
-
-            return "views/inicio";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
-        }
+    public String inicio() {
+        return "views/inicio";
     }
 
     @GetMapping("/detalle/{id}")
@@ -55,15 +47,8 @@ public class controladorVideojuego {
 
     @GetMapping(value = "/busqueda")
     public String busquedaVideojuego(Model model, @RequestParam(value ="query",required = false)String q){
-        try {
-            List<Videojuego> videojuegos = this.svcVideojuego.findByTitle(q);
-            model.addAttribute("videojuegos", videojuegos);
-            model.addAttribute("resultado",q);
-            return "views/busqueda";
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-            return "error";
-        }
+        model.addAttribute("resultado", q == null ? "" : q);
+        return "views/busqueda";
     }
 
     @GetMapping("/crud")
