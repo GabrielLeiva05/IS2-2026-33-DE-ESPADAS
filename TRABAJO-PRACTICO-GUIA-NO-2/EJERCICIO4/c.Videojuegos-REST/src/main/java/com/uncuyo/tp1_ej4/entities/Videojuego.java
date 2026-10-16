@@ -1,8 +1,6 @@
 package com.uncuyo.tp1_ej4.entities;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -14,8 +12,6 @@ import java.util.Date;
 @Table(name = "videojuegos")
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class Videojuego {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,5 +46,21 @@ public class Videojuego {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "fk_categoria", nullable = false)
     private Categoria categoria;
-}
 
+    public Videojuego() {
+    }
+
+    public Videojuego(long id, String titulo, String descripcion, String imagen, float precio, short stock,
+            Date fechaLanzamiento, boolean activo, Estudio estudio, Categoria categoria) {
+        this.id = id;
+        this.titulo = titulo;
+        this.descripcion = descripcion;
+        this.imagen = imagen;
+        this.precio = precio;
+        this.stock = stock;
+        this.fechaLanzamiento = fechaLanzamiento;
+        this.activo = activo;
+        this.estudio = estudio;
+        this.categoria = categoria;
+    }
+}

@@ -1,9 +1,7 @@
 package com.uncuyo.tp1_ej4.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -13,8 +11,6 @@ import java.util.List;
 @Table(name = "categorias")
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,4 +22,14 @@ public class Categoria {
     @OneToMany(mappedBy = "categoria")
     @JsonIgnore
     private List<Videojuego> videojuegos;
+
+    public Categoria() {
+    }
+
+    public Categoria(long id, String nombre, boolean activo, List<Videojuego> videojuegos) {
+        this.id = id;
+        this.nombre = nombre;
+        this.activo = activo;
+        this.videojuegos = videojuegos;
+    }
 }
