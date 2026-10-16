@@ -8,21 +8,21 @@ public abstract class BaseAdapter<E, D> {
     public abstract E toEntity(D dto);
     public abstract D toDTO(E entidad);
 
-    public List<D> listDTO(List<E> entidades) {
+    public List<D> toDTOList(List<E> entidades) {
         if (entidades == null) {
             return List.of();
         }
         return entidades.stream()
                 .map(this::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public List<E> listEntity(List<D> dtos) {
-        if (dtos == null) {
-            return List.of();
-        }
-        return dtos.stream()
-                .map(this::toEntity)
-                .collect(Collectors.toList());
-    }
+//    public List<E> listEntity(List<D> dtos) {
+//        if (dtos == null) {
+//            return List.of();
+//        }
+//        return dtos.stream()
+//                .map(this::toEntity)
+//                .collect(Collectors.toList());
+//    }
 }
