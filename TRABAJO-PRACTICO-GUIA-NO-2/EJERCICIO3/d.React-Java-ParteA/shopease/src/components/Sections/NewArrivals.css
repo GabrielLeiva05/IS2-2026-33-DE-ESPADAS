@@ -1,6 +1,8 @@
-.react-slider-custom-item{
-    max-width: 220px;
-    img {
-        height: 220px;
-    }
+.react-slider-custom-item {
+  display: flex;
+  justify-content: center;
+}
+
+.react-slider-custom-item img {
+  height: 220px;
 }

@@ -5,7 +5,7 @@ import { CartIcon } from "../common/CartIcon";
 
 const Navigation = () => {
   return (
-    <nav className="flex items-center py-6 px-16 justify-between gap-40">
+    <nav className="flex flex-wrap items-center py-4 px-4 md:px-16 justify-between gap-4 md:gap-40">
       <div className="flex items-center gap-6">
         {/* ** Logo ** */ }
         <a href="/" className="text-3xl text-black font-bold gap-8 href='/'">ShopEase</a>
@@ -13,7 +13,7 @@ const Navigation = () => {
 
       <div className="flex flex-wrap items-center gap-10 flex-1">
         {/* ** Navigation Links ** */ }
-        <ul className="flex gap-8">
+        <ul className="flex gap-4 md:gap-8">
             <li className="text-gray-600 hover:text-black"><a href="/">Shop</a></li>
             <li className="text-gray-600 hover:text-black"><a href="men">Men</a></li>
             <li className="text-gray-600 hover:text-black"><a href="women">Women</a></li>
