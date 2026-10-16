@@ -1,6 +1,8 @@
 package com.uncuyo.tp1_ej4.entities;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,13 +13,8 @@ import java.util.List;
 @Table(name = "estudios")
 @Getter
 @Setter
-public class Estudio {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
+public class Estudio extends EntidadBase {
     private String nombre;
-    private boolean activo = true;
 
     @OneToMany(mappedBy = "estudio")
     @JsonIgnore
@@ -27,9 +24,8 @@ public class Estudio {
     }
 
     public Estudio(long id, String nombre, boolean activo, List<Videojuego> videojuegos) {
-        this.id = id;
+        super(id, activo);
         this.nombre = nombre;
-        this.activo = activo;
         this.videojuegos = videojuegos;
     }
 }

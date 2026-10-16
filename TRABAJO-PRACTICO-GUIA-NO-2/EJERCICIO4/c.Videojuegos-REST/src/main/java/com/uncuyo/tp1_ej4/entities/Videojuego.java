@@ -12,11 +12,7 @@ import java.util.Date;
 @Table(name = "videojuegos")
 @Getter
 @Setter
-public class Videojuego {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
-
+public class Videojuego extends EntidadBase {
     @NotEmpty(message = "{NotEmpty.Videojuego.titulo}")
     private String titulo;
     @Size(min=5,max=100,message= "La descripcion debe ser entre 5 y 100 caracteres")
@@ -35,7 +31,6 @@ public class Videojuego {
     @NotNull(message="No puede ser nulo la fecha")
     @PastOrPresent(message="Debe ser igual o menor a la fecha de hoy")
     private Date fechaLanzamiento;
-    private boolean activo = true;
 
     @NotNull(message="Es requerido el estudio")
     @ManyToOne(fetch = FetchType.EAGER)
@@ -52,14 +47,13 @@ public class Videojuego {
 
     public Videojuego(long id, String titulo, String descripcion, String imagen, float precio, short stock,
             Date fechaLanzamiento, boolean activo, Estudio estudio, Categoria categoria) {
-        this.id = id;
+        super(id, activo);
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.imagen = imagen;
         this.precio = precio;
         this.stock = stock;
         this.fechaLanzamiento = fechaLanzamiento;
-        this.activo = activo;
         this.estudio = estudio;
         this.categoria = categoria;
     }
