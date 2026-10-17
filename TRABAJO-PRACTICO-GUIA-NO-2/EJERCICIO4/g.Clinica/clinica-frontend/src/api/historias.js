@@ -1,8 +1,9 @@
 import { pedir } from "./cliente.js";
 
 export const buscarHistoriaDePaciente = (pacienteId) => pedir(`/historias/paciente/${pacienteId}`);
+// Con el Adapter, la API recibe los ids "planos" (HistoriaClinicaDTO), no objetos anidados.
 export const crearHistoria = (pacienteId, usuarioId) =>
-  pedir("/historias", { method: "POST", body: { paciente: { id: pacienteId }, usuario: { id: usuarioId } } });
+  pedir("/historias", { method: "POST", body: { pacienteId, usuarioId } });
 
 // Detalles: siempre dentro de una historia (composición)
 export const listarDetalles = (historiaId) => pedir(`/historias/${historiaId}/detalles`);
