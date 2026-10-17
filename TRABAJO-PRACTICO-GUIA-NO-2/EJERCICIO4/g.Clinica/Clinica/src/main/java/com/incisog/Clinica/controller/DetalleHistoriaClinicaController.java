@@ -19,8 +19,15 @@ public class DetalleHistoriaClinicaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<DetalleHistoriaClinica>> listar(@PathVariable String historiaId) throws ErrorServiceException {
-        return ResponseEntity.ok(service.listar(historiaId));
+    public ResponseEntity<List<DetalleHistoriaClinica>> listar(
+            @PathVariable String historiaId,
+            @RequestParam(required = false) String criterio,
+            @RequestParam(required = false) String valor) throws ErrorServiceException {
+
+        if (criterio == null || criterio.isBlank()) {
+            return ResponseEntity.ok(service.listar(historiaId));              // sin filtro: como siempre
+        }
+        return ResponseEntity.ok(service.buscar(historiaId, criterio, valor)); // con filtro: Strategy
     }
 
     // Body: {"fechaHistoria": "2026-10-13", "detalleHistoria": "...", "medico": {"id": "..."}}

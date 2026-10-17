@@ -2,6 +2,7 @@ package com.incisog.Clinica.logic.service;
 
 import com.incisog.Clinica.logic.error.ErrorServiceException;
 import com.incisog.Clinica.logic.persistence.repository.DetalleHistoriaClinicaRepository;
+import com.incisog.Clinica.logic.strategy.CriterioBusquedaDetalle;
 import com.incisog.Clinica.models.DetalleHistoriaClinica;
 import com.incisog.Clinica.models.HistoriaClinica;
 import com.incisog.Clinica.models.Medico;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DetalleHistoriaClinicaService {
@@ -18,12 +20,18 @@ public class DetalleHistoriaClinicaService {
     private final HistoriaClinicaService historiaService;
     private final MedicoService medicoService;
 
+    //El contexto no es una interface en este caso, si no la misma clase DetalleHistoriaClinicaService
+    private final Map<String, CriterioBusquedaDetalle> criterios;
+
+
     public DetalleHistoriaClinicaService(DetalleHistoriaClinicaRepository repository,
                                          HistoriaClinicaService historiaService,
-                                         MedicoService medicoService) {
+                                         MedicoService medicoService,
+                                         Map<String, CriterioBusquedaDetalle> criterios) {
         this.repository = repository;
         this.historiaService = historiaService;
         this.medicoService = medicoService;
+        this.criterios = criterios;
     }
 
     /** Detalles activos de la historia, del más reciente al más antiguo. */
@@ -104,5 +112,29 @@ public class DetalleHistoriaClinicaService {
         if (detalle.getDetalleHistoria() == null || detalle.getDetalleHistoria().trim().isEmpty()) {
             throw new ErrorServiceException("Debe indicar el detalle de la atención");
         }
+    }
+
+    public List<DetalleHistoriaClinica> buscar(String historiaId, String criterio, String valor) throws ErrorServiceException {
+        //Se repite mucho la palabra Criterio.. JAJA
+        //criterios es la coleccion clave/valor que tenemos
+        //criterio es la clave
+        //criterioObj es el valor que recibimos con la clave correspondiente (La estrategia que vamos a usar)
+
+        //algunas validaciones
+        if (valor == null || valor.isBlank()) {
+            throw new ErrorServiceException("Debe indicar un valor de búsqueda");
+        }
+
+        CriterioBusquedaDetalle criterioObj = criterios.get(criterio);   // la estrategia elegida por su clave
+        if (criterioObj == null) {
+            throw new ErrorServiceException("Criterio desconocido: " + criterio);
+        }
+        List<DetalleHistoriaClinica> listaBase = listar(historiaId);
+        try {
+            return listaBase.stream().filter(det -> criterioObj.cumple(det, valor)).toList();
+        } catch (IllegalArgumentException e) {
+            throw new ErrorServiceException(e.getMessage());
+        }
+
     }
 }
