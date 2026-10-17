@@ -5,11 +5,12 @@ import { buscarPaciente } from "../api/pacientes.js";
 import { listarMedicos } from "../api/medicos.js";
 import {
   buscarHistoriaDePaciente, crearHistoria,
-  listarDetalles, agregarDetalle, modificarDetalle, eliminarDetalle,
+  listarDetalles, buscarDetalles, agregarDetalle, modificarDetalle, eliminarDetalle,
 } from "../api/historias.js";
 import FotoPacienteCard from "../components/FotoPacienteCard.jsx";
 import DetalleForm from "../components/DetalleForm.jsx";
 import DetallesLista from "../components/DetallesLista.jsx";
+import FiltroDetalles from "../components/FiltroDetalles.jsx";
 
 /**
  * Ficha del paciente: datos + foto + historia clínica con sus atenciones.
@@ -47,6 +48,9 @@ export default function HistoriaPacientePage() {
   const [idEditando, setIdEditando] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
+  // Filtro (patrón Strategy en el backend): null = sin filtro
+  const [filtro, setFiltro] = useState(null);
+
   // ---------- carga inicial ----------
 
   async function cargarHistoria() {
@@ -81,6 +85,39 @@ export default function HistoriaPacientePage() {
     cargarTodo();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pacienteId]); // se vuelve a cargar si cambia el paciente de la URL
+
+  // ---------- atenciones: carga con o sin filtro ----------
+
+  // Pide los detalles: todos, o filtrados si hay un filtro activo.
+  // Se usa después de agregar/editar/eliminar, así el filtro se mantiene.
+  async function cargarDetalles(historiaId, filtroAUsar = filtro) {
+    if (filtroAUsar) {
+      setDetalles(await buscarDetalles(historiaId, filtroAUsar.criterio, filtroAUsar.valor));
+    } else {
+      setDetalles(await listarDetalles(historiaId));
+    }
+  }
+
+  async function aplicarFiltro(criterio, valor) {
+    setError("");
+    try {
+      const nuevo = { criterio, valor };
+      await cargarDetalles(historia.id, nuevo); // si el backend responde 400, el filtro no se activa
+      setFiltro(nuevo);
+    } catch (e) {
+      setError(e.message); // ej: "Debe indicar un valor de búsqueda"
+    }
+  }
+
+  async function quitarFiltro() {
+    setError("");
+    setFiltro(null);
+    try {
+      await cargarDetalles(historia.id, null);
+    } catch (e) {
+      setError(e.message);
+    }
+  }
 
   // ---------- historia ----------
 
@@ -125,7 +162,7 @@ export default function HistoriaPacientePage() {
         await agregarDetalle(historia.id, detalle);
       }
       limpiarFormulario();
-      setDetalles(await listarDetalles(historia.id));
+      await cargarDetalles(historia.id);
     } catch (e) {
       setError(e.message); // ej: "La fecha no puede ser futura", "Debe indicar el médico"
     } finally {
@@ -149,7 +186,7 @@ export default function HistoriaPacientePage() {
     try {
       await eliminarDetalle(historia.id, detalle.id);
       if (detalle.id === idEditando) limpiarFormulario();
-      setDetalles(await listarDetalles(historia.id));
+      await cargarDetalles(historia.id);
     } catch (e) {
       setError(e.message);
     }
@@ -213,7 +250,15 @@ export default function HistoriaPacientePage() {
                 editando={idEditando !== null}
                 enviando={enviando}
               />
-              <h5 className="mb-3">Atenciones ({detalles.length})</h5>
+              <h5 className="mb-3">
+                Atenciones ({detalles.length})
+                {filtro && (
+                  <span className="badge text-bg-info ms-2 fw-normal">
+                    Filtro: {filtro.criterio} = "{filtro.valor}"
+                  </span>
+                )}
+              </h5>
+              <FiltroDetalles onBuscar={aplicarFiltro} onLimpiar={quitarFiltro} filtroActivo={filtro} />
               <DetallesLista
                 detalles={detalles}
                 idEditando={idEditando}
@@ -227,4 +272,3 @@ export default function HistoriaPacientePage() {
     </>
   );
 }
-
