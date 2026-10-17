@@ -6,55 +6,63 @@ import com.incisog.Clinica.models.FotoPaciente;
 import com.incisog.Clinica.models.Paciente;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
+/**
+ * Hereda de la plantilla: listar, buscarPorId, crear, modificar, eliminar.
+ * Completa los pasos: validar, copiarDatos (obligatorios) y antesDeCrear, antesDeModificar (hooks).
+ */
 @Service
-public class PacienteService {
-    private final PacienteRepository repository;
+public class PacienteService extends BaseServiceTemplate<Paciente> {
+
+    // Mismo objeto que "repository" de la base, pero con su tipo concreto
+    // para poder usar existsByDocumentoAndEliminadoFalse.
+    private final PacienteRepository pacienteRepository;
 
     public PacienteService(PacienteRepository repository) {
-        this.repository = repository;
+        super(repository);
+        this.pacienteRepository = repository;
     }
 
-    public List<Paciente> listar() {
-        return repository.findByEliminadoFalse();
+    // ---------- pasos de la plantilla ----------
+
+    @Override
+    protected void validar(Paciente paciente) throws ErrorServiceException {
+        if (paciente == null) {
+            throw new ErrorServiceException("Debe indicar el paciente");
+        }
+        if (esVacio(paciente.getNombre())) {
+            throw new ErrorServiceException("Debe indicar el nombre");
+        }
+        if (esVacio(paciente.getApellido())) {
+            throw new ErrorServiceException("Debe indicar el apellido");
+        }
+        if (esVacio(paciente.getDocumento())) {
+            throw new ErrorServiceException("Debe indicar el documento");
+        }
     }
 
-    public Paciente buscarPorId(String id) throws ErrorServiceException {
-        return repository.findById(id)
-                .filter(paciente -> !paciente.isEliminado())
-                .orElseThrow(() -> new ErrorServiceException("Paciente no encontrado o eliminado."));
-    }
-
-    public Paciente crear(Paciente paciente) throws ErrorServiceException {
-        validar(paciente);
+    @Override
+    protected void antesDeCrear(Paciente paciente) throws ErrorServiceException {
         chequearDocumento(paciente.getDocumento());
-        paciente.setId(null);
-        paciente.setEliminado(false);
         paciente.setFoto(null); // la foto se sube por su propio endpoint
-        return repository.save(paciente);
     }
 
-    public Paciente modificar(String id, Paciente datos) throws ErrorServiceException {
-        validar(datos);
-        Paciente paciente = buscarPorId(id);
-
-        // Si se corrige el documento (error de carga), el nuevo no puede ser de otro paciente.
-        if (!paciente.getDocumento().equals(datos.getDocumento())) {
+    @Override
+    protected void antesDeModificar(Paciente existente, Paciente datos) throws ErrorServiceException {
+        // Solo si se corrige el documento hay que verificar que el nuevo no sea de otro paciente.
+        if (!existente.getDocumento().equals(datos.getDocumento())) {
             chequearDocumento(datos.getDocumento());
         }
-
-        paciente.setNombre(datos.getNombre());
-        paciente.setApellido(datos.getApellido());
-        paciente.setDocumento(datos.getDocumento());
-        return repository.save(paciente);
     }
 
-    public void eliminar(String id) throws ErrorServiceException {
-        Paciente paciente = buscarPorId(id);
-        paciente.setEliminado(true);
-        repository.save(paciente);
+    @Override
+    protected void copiarDatos(Paciente existente, Paciente datos) {
+        existente.setNombre(datos.getNombre());
+        existente.setApellido(datos.getApellido());
+        existente.setDocumento(datos.getDocumento());
+        // la foto NO se copia: se cambia solo desde FotoPacienteService
     }
+
+    // ---------- métodos propios de Paciente (fuera de la plantilla) ----------
 
     // Lo usa FotoPacienteService después de guardar la foto.
     public Paciente asignarFoto(Paciente paciente, FotoPaciente foto) {
@@ -62,31 +70,15 @@ public class PacienteService {
         return repository.save(paciente);
     }
 
-    private void validar(Paciente paciente) throws ErrorServiceException {
-        if (paciente == null) {
-            throw new ErrorServiceException("Debe indicar el paciente");
-        }
-        if (paciente.getNombre() == null || paciente.getNombre().trim().isEmpty()) {
-            throw new ErrorServiceException("Debe indicar el nombre");
-        }
-        if (paciente.getApellido() == null || paciente.getApellido().trim().isEmpty()) {
-            throw new ErrorServiceException("Debe indicar el apellido");
-        }
-        if (paciente.getDocumento() == null || paciente.getDocumento().trim().isEmpty()) {
-            throw new ErrorServiceException("Debe indicar el documento");
-        }
-    }
+    // ---------- auxiliares ----------
 
     private void chequearDocumento(String documento) throws ErrorServiceException {
-        if (repository.existsByDocumentoAndEliminadoFalse(documento)) {
+        if (pacienteRepository.existsByDocumentoAndEliminadoFalse(documento)) {
             throw new ErrorServiceException("Ya existe un paciente con ese documento");
         }
     }
 
-    // Jackson lo agrega al JSON como "tieneFoto": le sirve al frontend para saber
-    // si tiene sentido pedir la foto. No es una columna (JPA usa los atributos, no los getters).
-    public boolean isTieneFoto(String id) throws ErrorServiceException {
-        Paciente paciente = buscarPorId(id);
-        return (paciente.getFoto() != null);
+    private boolean esVacio(String texto) {
+        return texto == null || texto.trim().isEmpty();
     }
 }

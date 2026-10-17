@@ -1,0 +1,17 @@
+Adapter (estructural)
+
+El Adapter permite que dos partes con interfaces distintas trabajen juntas, usando una clase intermedia que traduce de una a la otra.
+
+En nuestro caso, cada entidad le servía a dos partes que necesitaban cosas distintas. La base de datos necesitaba todo (la foto del paciente, la clave del usuario, el campo eliminado), pero el frontend no tenía que recibir eso. Por ejemplo, no queríamos que en la lista de pacientes viajara la foto de cada uno, ni que se mostrara la clave de los usuarios. Para lograrlo estábamos agregando anotaciones como @JsonIgnore dentro de las entidades, o sea, mezclando cosas de la API con el modelo. Entonces separamos las dos formas del dato. Las entidades quedaron solo para la base, y los DTO (PacienteDTO, UsuarioDTO, etc.) quedaron para la API. Los adapters traducen en los dos sentidos: lo que llega del front se convierte en entidad (toEntity) y lo que sale hacia el front se convierte en DTO (toDTO). Esto también nos permitió agregar datos que no existen en la entidad, como tieneFoto, que el adapter calcula. Los services y el Template Method no tuvieron que cambiar, porque los adapters se usan en los controllers.
+
+Strategy (comportamiento)
+
+El Strategy encapsula distintas formas de hacer una misma tarea en clases separadas e intercambiables, y se elige cuál usar en el momento.
+
+Lo usamos para buscar dentro de las atenciones de una historia clínica. Un médico o la secretaria pueden querer ver solo las atenciones de un médico, las que mencionan cierta palabra o las que son desde una fecha. Si lo hacíamos con un if por cada criterio, cada filtro nuevo nos obligaba a modificar el mismo método. Por eso creamos la interfaz CriterioBusquedaDetalle y una clase por cada criterio (CriterioPorMedico, CriterioPorTexto, CriterioDesdeFecha). El DetalleHistoriaClinicaService cumple el rol de contexto: recibe el nombre del criterio, elige la estrategia de un mapa que arma Spring y la aplica, sin saber cuál es. Para agregar un criterio nuevo alcanza con crear otra clase, sin tocar las que ya existen.
+
+Factory Method (creacional)
+
+El Factory Method define una clase creadora con un método para fabricar objetos, y deja que las subclases decidan qué clase concreta se crea.
+
+Lo usamos porque Paciente y Médico tienen un comportamiento en común a la hora de crearse, y al final cada creator crea el objeto que le corresponde. Primero sacamos los atributos repetidos (nombre, apellido y documento) a una clase Persona. Después creamos PersonaCreator, que tiene el método crear: normaliza los datos (saca espacios de más, pone mayúscula en nombre y apellido, y deja el documento solo con números) y llama al factory method nuevaPersona(). PacienteCreator lo implementa devolviendo un Paciente, y MedicoCreator devolviendo un Medico
