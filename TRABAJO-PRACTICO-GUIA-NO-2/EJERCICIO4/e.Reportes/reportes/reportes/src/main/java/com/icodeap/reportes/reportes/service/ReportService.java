@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import org.springframework.stereotype.Service;
 
 import net.sf.jasperreports.engine.JREmptyDataSource;
@@ -15,7 +17,13 @@ import net.sf.jasperreports.engine.JasperPrint;
 @Service 
 public class ReportService {
 
-    public byte[] generarReport(String reportName) throws JRException {
+    private final DataSource dataSource;
+
+    public ReportService(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public byte[] generarReport(String reportName) throws Exception {
 
     InputStream reportStream = getClass()
             .getResourceAsStream("/reports/" + reportName + ".jasper");
@@ -32,7 +40,7 @@ public class ReportService {
     JasperPrint jasperPrint = JasperFillManager.fillReport(
             reportStream,
             params,
-            new JREmptyDataSource()
+            dataSource.getConnection()
     );
 
     return JasperExportManager.exportReportToPdf(jasperPrint);
