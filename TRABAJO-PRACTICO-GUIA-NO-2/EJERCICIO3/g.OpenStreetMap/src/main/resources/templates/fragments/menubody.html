@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Menu principal. "Administracion" solo aparece para el rol ADMIN (el acceso real se controla en el servidor). -->
+<nav th:fragment="menu-principal" class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand" th:href="@{/}">Mi Tienda</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Tienda</a></li>
+                <li class="nav-item dropdown" th:if="${esAdmin}">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">Administración</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" th:href="@{/admin/articulo/list}">Artículos</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/proveedor/list}">Proveedores</a></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/proveedor/mapa}">Mapa de proveedores</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item" th:href="@{/admin/usuario/list}">Usuarios</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center">
+                <a class="btn btn-outline-dark me-2" th:href="@{/carrito}">
+                    <i class="bi-cart-fill me-1"></i>
+                    Carrito
+                    <span class="badge bg-dark text-white ms-1 rounded-pill"
+                          th:text="${cantidadCarrito != null ? cantidadCarrito : 0}">0</span>
+                </a>
+                <th:block th:if="${usuarioLogueado}">
+                    <span class="navbar-text me-2">
+                        <i class="bi-person-circle"></i> <span th:text="${usuarioNombre}">usuario</span>
+                        <span class="badge bg-secondary" th:if="${esAdmin}">Admin</span>
+                    </span>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button class="btn btn-outline-secondary" type="submit">Salir</button>
+                    </form>
+                </th:block>
+                <th:block th:unless="${usuarioLogueado}">
+                    <a class="btn btn-dark me-2" th:href="@{/login}">Ingresar</a>
+                    <a class="btn btn-outline-dark" th:href="@{/registro}">Registrarme</a>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</nav>
+</body>
+</html>
