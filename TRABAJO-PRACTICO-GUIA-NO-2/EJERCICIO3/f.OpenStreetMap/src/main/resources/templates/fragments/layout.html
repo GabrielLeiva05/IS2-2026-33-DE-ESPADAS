@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(pagina)">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title th:text="${pagina} + ' | Mi Tienda'">Mi Tienda</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/assets/favicon.ico}" />
+    <!-- Bootstrap icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <!-- Core theme CSS (incluye Bootstrap) -->
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
+</head>
+<body>
+
+<!-- Mensajes de exito / error (msgExito y msgError, igual que patronTemplate) -->
+<div th:fragment="mensajes" class="container px-4 px-lg-5 mt-4">
+    <div th:if="${msgExito}" class="alert alert-success mb-0" role="alert" th:text="${msgExito}">Todo bien</div>
+    <div th:if="${msgError}" class="alert alert-danger mb-0" role="alert" th:text="${msgError}">Algo salio mal</div>
+</div>
+
+<th:block th:fragment="scripts">
+    <!-- Bootstrap core JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS -->
+    <script th:src="@{/js/scripts.js}"></script>
+</th:block>
+
+<!-- Leaflet (OpenStreetMap). CSS: se pone dentro del body de la pagina que dibuja el mapa. -->
+<th:block th:fragment="leaflet-css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</th:block>
+<!-- Leaflet JS: va despues del fragmento "scripts" y antes del script propio de la pagina. -->
+<th:block th:fragment="leaflet-js">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</th:block>
+
+</body>
+</html>
