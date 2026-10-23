@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: jwt-demo
+  security:
+    user:
+      name: none
+      password: none
+
+logging:
+  level:
+    org.springframework.security: DEBUG
