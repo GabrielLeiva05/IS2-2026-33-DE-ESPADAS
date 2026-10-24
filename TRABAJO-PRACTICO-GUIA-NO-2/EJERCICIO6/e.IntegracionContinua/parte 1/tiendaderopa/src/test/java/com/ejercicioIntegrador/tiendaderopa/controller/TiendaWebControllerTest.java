@@ -31,7 +31,7 @@ class TiendaWebControllerTest {
                 "orden-1", null, "pago-1", null, "approved", model);
 
         verify(checkoutService).procesarRetorno("orden-1", "pago-1", "cliente@example.com");
-        assertEquals("rejected", model.getAttribute("estadoInformado"));
+        assertEquals("approved", model.getAttribute("estadoInformado"));
         assertEquals("El pago fue aprobado. Tu compra quedó registrada.", model.getAttribute("mensaje"));
     }
 }
