@@ -1,0 +1,31 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+    <p class="feedback success" th:if="${mensaje}" th:text="${mensaje}" role="status"></p>
+    <p class="feedback error" th:if="${error}" th:text="${error}" role="alert"></p>
+    <p class="drawer-empty" th:if="${#lists.isEmpty(lineas)}">Tu carrito todavía está vacío.</p>
+    <div class="drawer-lines" th:if="${!#lists.isEmpty(lineas)}">
+        <article class="drawer-line" th:each="linea : ${lineas}" th:attr="data-quantity=${linea.cantidad}">
+            <div class="drawer-product-image">
+                <img th:if="${linea.producto.imagen != null}"
+                     th:src="@{/imagen/{id}(id=${linea.producto.imagen.id})}"
+                     th:alt="${linea.producto.nombre}">
+                <span th:if="${linea.producto.imagen == null}">ZERO</span>
+            </div>
+            <div class="drawer-product-info">
+                <h3 th:text="${linea.producto.nombre}"></h3>
+                <p th:text="${'Cantidad: ' + linea.cantidad}"></p>
+                <form th:if="${carrito.mercadoPagoPreferenceId == null}"
+                      th:action="@{/carrito/items/{id}/eliminar(id=${linea.id})}" method="post">
+                    <button class="remove-item" type="submit">Quitar</button>
+                </form>
+            </div>
+            <strong th:text="${'$ ' + #numbers.formatDecimal(linea.subtotal, 1, 2, 'COMMA')}"></strong>
+        </article>
+    </div>
+    <div class="drawer-summary">
+        <div class="summary-total">
+            <span>Subtotal</span>
+            <strong th:text="${'$ ' + #numbers.formatDecimal(carrito.total, 1, 2, 'COMMA')}"></strong>
+        </div>
+        <a class="drawer-checkout" th:href="@{/carrito}">Revisar compra y pagar</a>
+    </div>
+</div>

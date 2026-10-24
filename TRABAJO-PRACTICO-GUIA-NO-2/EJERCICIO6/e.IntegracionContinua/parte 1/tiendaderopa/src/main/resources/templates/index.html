@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Zero | Ropa deportiva</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/store.css}">
+</head>
+<body class="storefront">
+<header th:replace="~{fragments/store-header :: storeHeader}"></header>
+
+<main>
+    <section class="store-intro">
+        <div>
+            <p class="eyebrow">ROPA DEPORTIVA · TODOS LOS DÍAS</p>
+            <h1>Movete a tu manera.</h1>
+            <p>Prendas, calzado y accesorios para acompañar cada ritmo.</p>
+        </div>
+        <a class="catalog-link" href="#productos">Ver catálogo <span aria-hidden="true">↓</span></a>
+    </section>
+
+    <section id="productos" class="catalog-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">SELECCIÓN ZERO</p>
+                <h2>Productos</h2>
+            </div>
+            <span th:text="${#lists.size(productos)} + ' productos'"></span>
+        </div>
+
+        <p class="empty-state" th:if="${#lists.isEmpty(productos)}">
+            No hay productos publicados en este momento.
+        </p>
+
+        <div class="product-grid" th:if="${!#lists.isEmpty(productos)}">
+            <article class="product-item" th:each="item : ${productos}">
+                <div class="product-photo">
+                    <img th:if="${item.producto.imagen != null}"
+                         th:src="@{/imagen/{id}(id=${item.producto.imagen.id})}"
+                         th:alt="${item.producto.nombre}">
+                    <div class="photo-placeholder" th:if="${item.producto.imagen == null}">ZERO</div>
+                    <span class="offer-label" th:if="${item.producto.enOferta}">OFERTA</span>
+                </div>
+                <div class="product-copy">
+                    <p class="product-category"
+                       th:text="${item.producto.subCategoria != null ? item.producto.subCategoria.nombre : 'ZERO'}"></p>
+                    <h3 th:text="${item.producto.nombre}"></h3>
+                    <p class="product-description" th:text="${item.producto.descripcion}"></p>
+                    <p class="product-size" th:if="${item.producto.talle != null}"
+                              th:text="${'Talle ' + item.producto.talle}"></p>
+                    <div class="product-buy-row">
+                        <strong th:if="${item.precio > 0}" th:text="${'$ ' + #numbers.formatDecimal(item.precio, 1, 2, 'COMMA')}"></strong>
+                        <strong th:unless="${item.precio > 0}">Precio pendiente</strong>
+                        <form sec:authorize="hasRole('CLIENTE')" th:if="${item.precio > 0 and item.stockDisponible > 0}" th:action="@{/carrito/items}" method="post" class="cart-add-form">
+                            <input type="hidden" name="productoId" th:value="${item.producto.id}">
+                            <input type="hidden" name="cantidad" value="1">
+                            <button type="submit" aria-label="Agregar al carrito">Agregar</button>
+                        </form>
+                        <a sec:authorize="isAnonymous()" th:if="${item.precio > 0 and item.stockDisponible > 0}" th:href="@{/login}" class="sign-in-link">Ingresar para comprar</a>
+                    </div>
+                    <p class="stock-note" th:if="${item.stockDisponible > 0}" th:text="${item.stockDisponible} + ' disponibles'"></p>
+                    <p class="stock-note" th:unless="${item.stockDisponible > 0}">Sin stock</p>
+                </div>
+            </article>
+        </div>
+    </section>
+</main>
+
+<div sec:authorize="hasRole('CLIENTE')" th:replace="~{fragments/cart-drawer-shell :: shell}"></div>
+
+<footer class="store-footer"><span>ZERO</span><span>Ropa deportiva unisex</span></footer>
+<script th:src="@{/js/store.js}" defer></script>
+</body>
+</html>

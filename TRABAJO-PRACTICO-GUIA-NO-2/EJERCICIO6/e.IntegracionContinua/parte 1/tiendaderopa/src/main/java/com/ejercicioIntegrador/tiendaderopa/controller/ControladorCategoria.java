@@ -1,0 +1,87 @@
+package com.ejercicioIntegrador.tiendaderopa.controller;
+
+import com.ejercicioIntegrador.tiendaderopa.model.Categoria;
+import com.ejercicioIntegrador.tiendaderopa.service.ServicioCategoria;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+@Controller
+public class ControladorCategoria {
+
+    @Autowired
+    private ServicioCategoria svcCategoria;
+
+    @GetMapping("/categorias")
+    public String listaCategorias(Model model) {
+        try {
+            model.addAttribute("categorias", this.svcCategoria.findAll());
+            return "views/categorias/lista";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+
+    @GetMapping("/formulario/categoria/{id}")
+    public String formularioCategoria(Model model, @PathVariable("id") String id) {
+        try {
+            if (id == "") {
+                model.addAttribute("categoria", new Categoria());
+            } else {
+                model.addAttribute("categoria", this.svcCategoria.findById(id));
+            }
+            return "views/categorias/formulario";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+
+    @PostMapping("/formulario/categoria/{id}")
+    public String guardarCategoria(
+            @Valid @ModelAttribute("categoria") Categoria categoria,
+            BindingResult result,
+            Model model, @PathVariable("id") String id
+    ) {
+        try {
+            if (result.hasErrors()) {
+                return "views/categorias/formulario";
+            }
+            if (id == "") {
+                this.svcCategoria.saveOne(categoria);
+            } else {
+                this.svcCategoria.updateOne(categoria, id);
+            }
+            return "redirect:/categorias";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+
+    @GetMapping("/eliminar/categoria/{id}")
+    public String eliminarCategoria(Model model, @PathVariable("id") String id) {
+        try {
+            model.addAttribute("categoria", this.svcCategoria.findById(id));
+            return "views/categorias/eliminar";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+
+    @PostMapping("/eliminar/categoria/{id}")
+    public String desactivarCategoria(Model model, @PathVariable("id") String id) {
+        try {
+            this.svcCategoria.deleteById(id);
+            return "redirect:/categorias";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
+        }
+    }
+}
