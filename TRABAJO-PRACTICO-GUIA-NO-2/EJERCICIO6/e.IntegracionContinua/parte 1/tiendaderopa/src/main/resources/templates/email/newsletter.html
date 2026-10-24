@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Ofertas Zero</title></head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f4;padding:20px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;">
+      <tr>
+        <td style="background:#111111;color:#ffffff;padding:24px;text-align:center;">
+          <h1 style="margin:0;font-size:28px;letter-spacing:4px;">ZERO</h1>
+          <p style="margin:6px 0 0;font-size:14px;">Ofertas para vos · <span th:text="${#temporals.format(fecha,'dd/MM/yyyy')}">01/01/2026</span></p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px 24px;">
+          <p th:if="${#lists.isEmpty(productos)}" style="color:#555;">Por el momento no tenemos productos en oferta.</p>
+
+          <table th:each="p : ${productos}" width="100%" cellpadding="0" cellspacing="0"
+                 style="border-bottom:1px solid #eeeeee;padding:12px 0;">
+            <tr>
+              <td>
+                <p style="margin:0;font-size:12px;color:#888;" th:text="${p.categoria}">Categoría</p>
+                <p style="margin:2px 0;font-size:18px;font-weight:bold;color:#111;" th:text="${p.nombre}">Producto</p>
+                <p style="margin:2px 0;font-size:14px;color:#555;" th:if="${p.descripcion != null}" th:text="${p.descripcion}">Descripción</p>
+                <p style="margin:2px 0;font-size:13px;color:#555;" th:if="${p.talle != null}" th:text="'Talle: ' + ${p.talle}">Talle</p>
+              </td>
+              <td align="right" style="vertical-align:middle;">
+                <span style="font-size:20px;font-weight:bold;color:#c0392b;"
+                      th:text="'$ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 2, 'COMMA')}">$ 0,00</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#fafafa;color:#999;font-size:12px;padding:16px;text-align:center;">
+          Recibís este correo porque sos cliente de Zero.
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
