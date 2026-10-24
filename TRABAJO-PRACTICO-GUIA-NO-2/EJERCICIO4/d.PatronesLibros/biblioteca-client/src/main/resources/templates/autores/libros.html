@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!-- Libros de un autor. Los obtiene el servidor recorriendo los libros con el patrón Iterator. -->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera('Libros del autor')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('autores')}"></header>
+
+<main class="container contenido">
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <div class="encabezado">
+        <div>
+            <h1 th:text="${autor.nombreCompleto}">Autor</h1>
+            <p>Libros en los que figura este autor.</p>
+        </div>
+        <a class="btn btn-link" th:href="@{/autores}">Volver a autores</a>
+    </div>
+
+    <div class="panel">
+        <div class="table-responsive" th:if="${!libros.isEmpty()}">
+            <table class="table tabla">
+                <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Tipo</th>
+                    <th>Autores</th>
+                    <th>Género</th>
+                    <th>Año</th>
+                    <th>Páginas</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${libros}">
+                    <td th:text="${l.titulo}">Título</td>
+                    <td th:text="${l.tipoTexto}">Físico</td>
+                    <td>
+                        <span class="etiqueta-autor" th:each="a : ${l.autores}" th:text="${a.nombreCompleto}">Autor</span>
+                    </td>
+                    <td th:text="${l.genero}">Género</td>
+                    <td th:text="${l.fecha}">2000</td>
+                    <td th:text="${l.paginas}">100</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="vacio" th:if="${libros.isEmpty()}">Este autor todavía no figura en ningún libro.</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

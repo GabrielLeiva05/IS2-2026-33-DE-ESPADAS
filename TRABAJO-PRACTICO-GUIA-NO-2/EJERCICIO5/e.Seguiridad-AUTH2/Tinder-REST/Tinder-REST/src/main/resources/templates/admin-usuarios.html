@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Tinder de Mascota - Administración</title>
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/one-page-wonder.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="/">Tinder de Mascota</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="/inicio">Inicio</a></li>
+                <li class="nav-item"><a class="nav-link" href="/logout">Salir</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section style="margin-top:100px;">
+    <div class="container">
+        <h2>Administración de usuarios</h2>
+        <p th:if="${error != null}" th:text="${error}" style="color:red"></p>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Mail</th>
+                <th>Rol</th>
+                <th>Estado</th>
+                <th>Acción</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="usuario : ${usuarios}">
+                <td th:text="${usuario.nombre}"></td>
+                <td th:text="${usuario.apellido}"></td>
+                <td th:text="${usuario.mail}"></td>
+                <td th:text="${usuario.rol}"></td>
+                <td th:text="${usuario.baja == null ? 'Activo' : 'Deshabilitado'}"></td>
+                <td>
+                    <form th:if="${usuario.baja == null}" action="/admin/usuarios/deshabilitar" method="post" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${usuario.id}"/>
+                        <button type="submit" class="btn btn-sm btn-danger">Deshabilitar</button>
+                    </form>
+                    <form th:if="${usuario.baja != null}" action="/admin/usuarios/habilitar" method="post" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${usuario.id}"/>
+                        <button type="submit" class="btn btn-sm btn-success">Habilitar</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+</body>
+</html>

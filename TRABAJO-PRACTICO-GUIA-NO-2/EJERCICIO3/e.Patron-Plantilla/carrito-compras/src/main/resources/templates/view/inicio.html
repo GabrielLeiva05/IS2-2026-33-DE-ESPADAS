@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Tienda')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/menubody :: menu-principal}"></nav>
+
+<header class="bg-dark py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="text-center text-white">
+            <h1 class="display-4 fw-bolder">Comprá con estilo</h1>
+            <p class="lead fw-normal text-white-50 mb-0">Elegí tus artículos y armá tu carrito</p>
+        </div>
+    </div>
+</header>
+
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<section class="py-5">
+    <div class="container px-4 px-lg-5 mt-5">
+        <p th:if="${#lists.isEmpty(articulos)}" class="text-center text-muted">
+            Todavía no hay artículos cargados.
+            <span th:if="${esAdmin}">Cargalos desde <b>Administración &rarr; Artículos</b>.</span>
+        </p>
+        <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+            <div class="col mb-5" th:each="a : ${articulos}">
+                <div class="card h-100">
+                    <img class="card-img-top" style="height: 220px; object-fit: cover;"
+                         th:src="${a.imagenId != null} ? @{/imagenes/{id}(id=${a.imagenId})} : @{/assets/sin-imagen.svg}"
+                         th:alt="${a.nombre}" />
+                    <div class="card-body p-4">
+                        <div class="text-center">
+                            <h5 class="fw-bolder" th:text="${a.nombre}">Articulo</h5>
+                            <div class="small text-muted mb-2" th:text="${a.proveedor}">Proveedor</div>
+                            <span th:text="'$ ' + ${#numbers.formatDecimal(a.precio, 1, 'POINT', 2, 'COMMA')}">$ 0,00</span>
+                        </div>
+                    </div>
+                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                        <form th:action="@{/carrito/agregar/{id}(id=${a.id})}" method="post" class="text-center">
+                            <button class="btn btn-outline-dark mt-auto" type="submit">
+                                <i class="bi-cart-plus me-1"></i> Agregar al carrito
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{fragments/footer :: pie-pagina}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

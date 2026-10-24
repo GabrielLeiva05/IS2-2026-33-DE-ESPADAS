@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${titleEdit})}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/menubody :: menu-principal}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<section class="py-5" th:with="esNuevo=${item.id == null or item.id == ''}">
+    <div class="container px-4 px-lg-5" style="max-width: 760px;">
+        <h2 class="fw-bolder mb-4" th:text="${titleEdit}">Artículo</h2>
+
+        <!-- Formulario principal (multipart: permite subir imagenes) -->
+        <form th:action="@{${basePath} + '/actualizar'}" th:object="${item}" method="post" enctype="multipart/form-data" class="card card-body p-4">
+            <input type="hidden" th:field="*{id}" />
+            <div class="mb-3">
+                <label class="form-label" for="nombre">Nombre</label>
+                <input class="form-control" id="nombre" th:field="*{nombre}" maxlength="150" th:disabled="${isDisabled}" required autofocus />
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="precio">Precio ($)</label>
+                    <input class="form-control" id="precio" name="precio" type="number" step="0.01" min="0.01" th:disabled="${isDisabled}"
+                           th:value="${item.precio > 0} ? ${#numbers.formatDecimal(item.precio, 1, 'NONE', 2, 'POINT')} : ''" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label" for="proveedor">Proveedor</label>
+                    <select class="form-select" id="proveedor" name="proveedor.id" th:disabled="${isDisabled}" required>
+                        <option value="">-- Seleccioná --</option>
+                        <option th:each="p : ${proveedores}" th:value="${p.id}" th:text="${p.nombre}"
+                                th:selected="${item.proveedor != null and item.proveedor.id == p.id}"></option>
+                    </select>
+                    <div class="form-text" th:if="${#lists.isEmpty(proveedores)}">
+                        Primero cargá un proveedor en <a th:href="@{/admin/proveedor/alta}">Proveedores</a>.
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3" th:unless="${isDisabled}">
+                <label class="form-label" for="archivos">
+                    <span th:text="${esNuevo} ? 'Imágenes (al menos una)' : 'Agregar más imágenes (opcional)'">Imágenes</span>
+                </label>
+                <input class="form-control" id="archivos" name="archivos" type="file" multiple
+                       accept="image/png,image/jpeg,image/gif,image/webp" th:required="${esNuevo}" />
+                <div class="form-text">PNG, JPG, GIF o WEBP. Máximo 2 MB por imagen.</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-dark" type="submit" th:unless="${isDisabled}">Guardar</button>
+                <a class="btn btn-outline-secondary" th:href="@{${basePath} + '/cancelar'}">Volver</a>
+            </div>
+        </form>
+
+        <!-- Imagenes actuales (fuera del form principal: no se pueden anidar formularios) -->
+        <div class="mt-4" th:unless="${esNuevo}">
+            <h5 class="fw-bolder">Imágenes actuales</h5>
+            <div class="row g-3">
+                <div class="col-6 col-md-4" th:each="img : ${item.imagenesActivas}">
+                    <div class="card h-100">
+                        <img class="card-img-top" style="height: 140px; object-fit: cover;"
+                             th:src="@{/imagenes/{id}(id=${img.id})}" th:alt="${img.nombre}" />
+                        <div class="card-body p-2 text-center">
+                            <div class="small text-muted text-truncate" th:text="${img.nombre}">archivo.png</div>
+                            <form th:unless="${isDisabled}"
+                                  th:action="@{${basePath} + '/' + ${item.id} + '/imagen/' + ${img.id} + '/baja'}" method="post"
+                                  onsubmit="return confirm('¿Quitar esta imagen?');">
+                                <button class="btn btn-sm btn-outline-danger mt-2" type="submit">Quitar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer th:replace="~{fragments/footer :: pie-pagina}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

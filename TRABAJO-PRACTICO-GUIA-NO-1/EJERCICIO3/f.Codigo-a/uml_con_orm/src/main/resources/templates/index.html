@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABM Cliente / Venta - MiniMarket ORM</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="div-titulo">
+        <h1>ABM Cliente / Venta - MiniMarket</h1>
+    </div>
+
+    <div class="div-tabs">
+        <button class="tab-btn activo" id="tab-clientes" onclick="cambiarTab('clientes')">Clientes</button>
+        <button class="tab-btn" id="tab-ventas" onclick="cambiarTab('ventas')">Ventas</button>
+    </div>
+
+    <!-- ===================== SECCION CLIENTES ===================== -->
+    <div class="contenedor" id="seccion-clientes">
+        <div class="div-formulario">
+            <h2>Formulario Cliente</h2>
+
+            <form action="#" id="formulario-cliente">
+                <input type="text" id="nombre" placeholder="Nombre">
+                <input type="text" id="documento" placeholder="Documento">
+                <input type="text" id="telefono" placeholder="Telefono">
+                <input type="email" id="email" placeholder="Email">
+                <input type="text" id="direccion" placeholder="Direccion">
+                <button type="submit" id="btn-agregar-cliente">Agregar</button>
+            </form>
+        </div>
+
+        <div class="div-listado">
+            <h2>Listado de Clientes</h2>
+            <div class="div-empleados" id="div-clientes"></div>
+        </div>
+    </div>
+
+    <!-- ===================== SECCION VENTAS ===================== -->
+    <div class="contenedor oculto" id="seccion-ventas">
+        <div class="div-formulario">
+            <h2>Formulario Venta</h2>
+
+            <form action="#" id="formulario-venta">
+                <select id="idClienteVenta">
+                    <option value="">Seleccione un cliente</option>
+                </select>
+                <input type="date" id="fecha" placeholder="Fecha">
+                <input type="number" step="0.01" id="precioTotal" placeholder="Precio total">
+                <input type="text" id="estado" placeholder="Estado (PENDIENTE / COMPLETADA)">
+                <button type="submit" id="btn-agregar-venta">Agregar</button>
+            </form>
+        </div>
+
+        <div class="div-listado">
+            <h2>Listado de Ventas</h2>
+            <div class="div-empleados" id="div-ventas"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

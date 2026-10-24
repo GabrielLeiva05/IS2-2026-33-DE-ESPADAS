@@ -1,0 +1,5 @@
+# Created at 2026-09-25T17:35:30.800
+Boot Manifest-JAR contains absolute paths in classpath 'D:\Documents\Proyects\IS2-2026-33-DE-ESPADAS\TRABAJO-PRACTICO-GUIA-NO-2\EJERCICIO2\f.Tinder-REST\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

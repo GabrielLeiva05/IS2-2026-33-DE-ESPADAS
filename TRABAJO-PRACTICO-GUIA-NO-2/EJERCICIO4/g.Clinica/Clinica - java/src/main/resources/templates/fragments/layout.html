@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+  PIEZAS COMUNES de todas las pantallas (equivalente a Layout.jsx).
+  Cada página las "incrusta" con th:replace="~{fragments/layout :: nombreDelFragmento}".
+  Así la barra superior, el menú y el pie se escriben UNA sola vez.
+-->
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<!-- <head>: recibe el título de la pestaña como parámetro -->
+<head th:fragment="head(titulo)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo} + ' · Consultorio'">Consultorio</title>
+    <!-- Template gratuito SB Admin (Start Bootstrap, licencia MIT). Trae Bootstrap 5 incluido. -->
+    <link rel="stylesheet" th:href="@{/css/sb-admin.css}" href="../../static/css/sb-admin.css">
+    <!-- Íconos de Bootstrap: <i class="bi bi-..."></i> -->
+    <link rel="stylesheet" th:href="@{/css/bootstrap-icons.min.css}" href="../../static/css/bootstrap-icons.min.css">
+</head>
+
+<body>
+
+<!-- Barra superior -->
+<nav th:fragment="topnav" class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+    <a class="navbar-brand ps-3" th:href="@{/pacientes}">
+        <i class="bi bi-heart-pulse me-2"></i>Consultorio
+    </a>
+    <button id="botonMenu" type="button" class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0 text-white"
+            title="Mostrar/ocultar menú">
+        <i class="bi bi-list fs-5"></i>
+    </button>
+    <div class="ms-auto me-3 d-flex align-items-center text-white-50">
+        <i class="bi bi-person-circle me-2"></i>
+        <!-- session.usuariosession: el UsuarioDTO que guardó PortalController al hacer login -->
+        <span class="me-3" th:text="${session.usuariosession?.nombreUsuario}">usuario</span>
+        <a class="btn btn-outline-light btn-sm" th:href="@{/logout}">Salir</a>
+    </div>
+</nav>
+
+<!-- Menú lateral: "activo" lo pone cada controller para resaltar la sección actual -->
+<div th:fragment="sidenav" id="layoutSidenav_nav">
+    <nav class="sb-sidenav accordion sb-sidenav-dark">
+        <div class="sb-sidenav-menu">
+            <div class="nav">
+                <div class="sb-sidenav-menu-heading">Gestión</div>
+                <a class="nav-link" th:href="@{/pacientes}" th:classappend="${activo == 'pacientes'} ? 'active'">
+                    <div class="sb-nav-link-icon"><i class="bi bi-people"></i></div>
+                    Pacientes
+                </a>
+                <a class="nav-link" th:href="@{/medicos}" th:classappend="${activo == 'medicos'} ? 'active'">
+                    <div class="sb-nav-link-icon"><i class="bi bi-person-badge"></i></div>
+                    Médicos
+                </a>
+            </div>
+        </div>
+        <div class="sb-sidenav-footer">
+            <div class="small">Sesión iniciada como:</div>
+            <span th:text="${session.usuariosession?.nombreUsuario}">usuario</span>
+        </div>
+    </nav>
+</div>
+
+<!-- Mensajes: "error" y "exito" los ponen los controllers (en el ModelMap o como flash attribute) -->
+<div th:fragment="mensajes">
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}">Mensaje de error</div>
+    <div th:if="${exito}" class="alert alert-success alert-dismissible" th:text="${exito}">Mensaje de éxito</div>
+</div>
+
+<footer th:fragment="footer" class="py-3 bg-light mt-auto">
+    <div class="container-fluid px-4 small text-muted">
+        Historia Clínica · Ingeniería del Software II · Frontend Java (Thymeleaf) · Template: SB Admin (Start Bootstrap, MIT)
+    </div>
+</footer>
+
+<!-- Lo mismo que hacía el scripts.js del template (y el useEffect de Layout.jsx): mostrar/ocultar el menú -->
+<script th:fragment="scripts">
+    document.getElementById("botonMenu").addEventListener("click", function () {
+        document.body.classList.toggle("sb-sidenav-toggled");
+    });
+</script>
+
+</body>
+</html>

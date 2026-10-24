@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Registro')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/menubody :: menu-principal}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+
+<section class="py-5">
+    <div class="container px-4 px-lg-5" style="max-width: 480px;">
+        <h2 class="fw-bolder mb-4 text-center">Crear cuenta</h2>
+        <form th:action="@{/registro}" method="post" class="card card-body p-4">
+            <div class="mb-3">
+                <label class="form-label" for="nombre">Usuario</label>
+                <input class="form-control" id="nombre" name="nombre" th:value="${nombre}" minlength="3" maxlength="50" required autofocus />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="clave">Clave (mínimo 6 caracteres)</label>
+                <input class="form-control" id="clave" name="clave" type="password" minlength="6" maxlength="72" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="confirmacion">Repetir clave</label>
+                <input class="form-control" id="confirmacion" name="confirmacion" type="password" minlength="6" maxlength="72" required />
+            </div>
+            <button class="btn btn-dark w-100" type="submit">Registrarme</button>
+            <p class="text-center mt-3 mb-0">¿Ya tenés cuenta? <a th:href="@{/login}">Ingresá</a></p>
+        </form>
+    </div>
+</section>
+
+<footer th:replace="~{fragments/footer :: pie-pagina}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="6BZ1DDHF_WmOV1oDkbpN">
+    <mxGraphModel dx="1030" dy="562" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="K58kTfXJSXlEcH7iI453-1" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=26;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;" value="Usuario" vertex="1">
+          <mxGeometry height="280" width="220" x="300" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="K58kTfXJSXlEcH7iI453-2" parent="K58kTfXJSXlEcH7iI453-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="&lt;div&gt;-id: int&lt;/div&gt;-nombre: String&lt;div&gt;-apellido: String&lt;/div&gt;&lt;div&gt;-documento: int&lt;/div&gt;&lt;div&gt;-fechaDeNacimiento: Date&lt;/div&gt;&lt;div&gt;-correo: String&lt;/div&gt;&lt;div&gt;-eliminado: Boolean&lt;/div&gt;&lt;div&gt;-password: String&lt;/div&gt;&lt;div&gt;-intentos: int&lt;/div&gt;&lt;div&gt;-bloqueado: Boolean&lt;/div&gt;" vertex="1">
+          <mxGeometry height="152" width="220" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="K58kTfXJSXlEcH7iI453-3" parent="K58kTfXJSXlEcH7iI453-1" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="220" y="178" as="geometry" />
+        </mxCell>
+        <mxCell id="K58kTfXJSXlEcH7iI453-4" parent="K58kTfXJSXlEcH7iI453-1" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" value="+Usuario()&lt;div&gt;+iniciarSesion(password): boolean&lt;/div&gt;&lt;div&gt;+sumarIntentoFallido(): void&lt;/div&gt;&lt;div&gt;+bloquear(): void&lt;/div&gt;&lt;div&gt;+resetearIntentos():void&lt;/div&gt;" vertex="1">
+          <mxGeometry height="94" width="220" y="186" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

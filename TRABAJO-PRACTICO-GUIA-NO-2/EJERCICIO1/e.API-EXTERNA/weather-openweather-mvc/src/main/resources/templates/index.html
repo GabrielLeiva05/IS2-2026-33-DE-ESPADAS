@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="Consulta del clima mediante OpenWeather" />
+    <title>Clima | OpenWeather</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/assets/favicon.ico}" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
+    <link th:href="@{/css/styles.css}" rel="stylesheet" />
+    <style>
+        .weather-card { background: rgba(255,255,255,.96); border-radius: .5rem; padding: 2rem; box-shadow: 0 1rem 3rem rgba(0,0,0,.18); }
+        .weather-temp { font-size: 4rem; line-height: 1; font-weight: 700; }
+        .weather-icon { width: 90px; height: 90px; }
+        .weather-detail { border-top: 1px solid #dee2e6; padding-top: 1rem; }
+        .search-section { padding: 6rem 0 3rem; }
+        .error-box { max-width: 720px; margin: 0 auto; }
+    </style>
+</head>
+<body id="page-top">
+
+<nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand" href="#page-top">WEATHER</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false"
+                aria-label="Menu">
+            Menu <i class="fas fa-bars"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#clima">Clima</a></li>
+                <li class="nav-item"><a class="nav-link" href="#about">Proyecto</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<header class="masthead">
+    <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
+        <div class="text-center w-100">
+            <h1 class="mx-auto my-0 text-uppercase">OpenWeather</h1>
+            <h2 class="text-white-50 mx-auto mt-2 mb-4">Consulta el clima actual desde Spring Boot</h2>
+            <a class="btn btn-primary" href="#clima">Consultar clima</a>
+        </div>
+    </div>
+</header>
+
+<section class="search-section bg-light" id="clima">
+    <div class="container px-4 px-lg-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="text-center mb-4">
+                    <h2 class="text-black mb-2">Clima actual</h2>
+                    <p class="text-black-50">La consulta se realiza desde el BackEnd mediante <strong>RestTemplate</strong>.</p>
+                </div>
+
+                <form method="get" th:action="@{/}" class="row g-2 justify-content-center mb-4">
+                    <div class="col-md-8">
+                        <label for="city" class="visually-hidden">Ciudad</label>
+                        <input id="city" name="city" class="form-control form-control-lg"
+                               th:value="${searchedCity}" placeholder="Ej.: Mendoza" required maxlength="80" />
+                    </div>
+                    <div class="col-md-4 d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-cloud-sun me-2"></i>Consultar
+                        </button>
+                    </div>
+                </form>
+
+                <div th:if="${error}" class="alert alert-danger error-box" role="alert">
+                    <i class="fas fa-circle-exclamation me-2"></i>
+                    <span th:text="${error}">Error</span>
+                </div>
+
+                <div th:if="${weather}" class="weather-card">
+                    <div class="text-center">
+                        <h3 class="mb-0" th:text="${weather.city + ', ' + weather.country}">Mendoza, AR</h3>
+                        <p class="text-muted text-capitalize mb-4" th:text="${weather.description}">Cielo despejado</p>
+
+                        <div class="d-flex justify-content-center align-items-center gap-3">
+                            <img class="weather-icon" th:src="${weather.iconUrl}" alt="Icono del clima" />
+                            <div class="weather-temp" th:text="${#numbers.formatDecimal(weather.temperature, 1, 1) + ' °C'}">20.0 °C</div>
+                        </div>
+
+                        <div class="row mt-4 text-center weather-detail">
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <i class="fas fa-temperature-half text-primary mb-2"></i>
+                                <div class="small text-muted">Sensación térmica</div>
+                                <strong th:text="${#numbers.formatDecimal(weather.feelsLike, 1, 1) + ' °C'}">20.0 °C</strong>
+                            </div>
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                <i class="fas fa-droplet text-primary mb-2"></i>
+                                <div class="small text-muted">Humedad</div>
+                                <strong th:text="${weather.humidity + ' %'}">50 %</strong>
+                            </div>
+                            <div class="col-md-4">
+                                <i class="fas fa-wind text-primary mb-2"></i>
+                                <div class="small text-muted">Viento</div>
+                                <strong th:text="${#numbers.formatDecimal(weather.windSpeed, 1, 1) + ' m/s'}">3.0 m/s</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-center text-muted small mt-3" th:if="${weather}">
+                    Información meteorológica proporcionada por OpenWeather.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="about-section text-center" id="about">
+    <div class="container px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-lg-8">
+                <h2 class="text-white mb-4">MVC + API REST externa</h2>
+                <p class="text-white-50">
+                    El navegador solicita la vista al Controller. El Controller delega la consulta al
+                    WeatherService. El servicio consume OpenWeather, transforma la respuesta y devuelve
+                    un DTO que Thymeleaf utiliza para renderizar la información.
+                </p>
+            </div>
+        </div>
+        <img class="img-fluid" th:src="@{/assets/img/ipad.png}" alt="Arquitectura de la aplicación" />
+    </div>
+</section>
+
+<section class="projects-section bg-light">
+    <div class="container px-4 px-lg-5">
+        <div class="row gx-0 mb-5 justify-content-center">
+            <div class="col-lg-6">
+                <img class="img-fluid" th:src="@{/assets/img/demo-image-01.jpg}" alt="Proyecto" />
+            </div>
+            <div class="col-lg-6">
+                <div class="bg-black text-center h-100 project">
+                    <div class="d-flex h-100">
+                        <div class="project-text w-100 my-auto text-center text-lg-left">
+                            <h4 class="text-white">BackEnd</h4>
+                            <p class="mb-0 text-white-50">
+                                Spring Boot, MVC, Thymeleaf y RestTemplate para consumir la API externa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer bg-black small text-center text-white-50">
+    <div class="container px-4 px-lg-5">Proyecto académico - Spring Boot + OpenWeather</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+<script th:src="@{/js/scripts.js}"></script>
+</body>
+</html>

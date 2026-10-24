@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS productos;
+
+CREATE TABLE productos (
+    codigo INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    precio DOUBLE NOT NULL
+);

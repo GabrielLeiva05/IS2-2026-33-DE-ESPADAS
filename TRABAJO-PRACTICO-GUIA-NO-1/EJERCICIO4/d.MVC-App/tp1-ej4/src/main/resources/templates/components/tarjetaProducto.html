@@ -1,0 +1,13 @@
+<!-- Fragment de tarjeta de producto para la home. Uso: th:replace="~{components/tarjetaProducto :: tarjeta}" con ${videojuego} en el contexto -->
+<div th:fragment="tarjeta" class="col">
+    <div class="card h-100">
+        <img class="card-img-top" th:src="@{'/imagenes/' + ${videojuego.imagen}}" th:alt="${videojuego.titulo}">
+        <div class="card-body p-4">
+            <div class="text-center">
+                <h5 th:text="${videojuego.titulo}">Titulo</h5>
+                <span th:text="${videojuego.categoria.nombre}">Categoria</span> <br>
+                <span th:text="'$' + ${videojuego.precio}">$0.00</span>
+            </div>
+        </div>
+    </div>
+</div>

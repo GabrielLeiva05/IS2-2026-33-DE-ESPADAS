@@ -1,0 +1,118 @@
+{
+    "categories":[
+        {
+            "title":"Categories for Women",
+            "data":[
+                {
+                    "title":"Hoodies & Sweatshirts",
+                    "description":"Explore Now!",
+                    "image":"./images/category-women-hoodies.jpg"
+                },
+                {
+                    "title":"Coats & Jackets",
+                    "description":"Explore Now!",
+                    "image":"./images/category-women-coats.jpg"
+                },
+                {
+                    "title":"Shorts & Skirts",
+                    "description":"Explore Now!",
+                    "image":"./images/category-women-shorts.jpg"
+                },
+                {
+                    "title":"T-shirts & Tops",
+                    "description":"Explore Now!",
+                    "image":"./images/category-women-tshirts.png"
+                }
+            ]
+        },
+        {
+            "title":"Categories for Men",
+            "data":[
+                {
+                    "title":"Shirts",
+                    "description":"Explore Now!",
+                    "image":"./images/category-men-shirts.jpg"
+                },
+                {
+                    "title":"Hoodies & Sweatshirts",
+                    "description":"Explore Now!",
+                    "image":"./images/category-men-hoodies.png"
+                },
+                {
+                    "title":"T-shirts",
+                    "description":"Explore Now!",
+                    "image":"./images/category-men-tshirts.png"
+                },
+                {
+                    "title":"Jeans",
+                    "description":"Explore Now!",
+                    "image":"./images/category-men-jeans.jpg"
+                }
+            ]
+        }
+    ],
+    "footer":{
+        "items":[
+            {
+                "title":"Need Help",
+                "list":[
+                    {
+                        "label":"Contact Us",
+                        "path":"/contact-us"
+                    },
+                    {
+                        "label":"Track Order",
+                        "path":"/track-order"
+                    },
+                    {
+                        "label":"Returns & Refunds",
+                        "path":"/refunds"
+                    },
+                    {
+                        "label":"FAQ's",
+                        "path":"/faq"
+                    },
+                    {
+                        "label":"Career",
+                        "path":"/career"
+                    }
+                ]
+            },
+            {
+                "title":"Company",
+                "list":[
+                    {
+                        "label":"About Us",
+                        "path":"/about"
+                    },
+                    {
+                        "label":"Media",
+                        "path":"/media"
+                    }
+                ]
+            },
+            {
+                "title":"More Info",
+                "list":[
+                    {
+                        "label":"Term and Conditions",
+                        "path":"/terms-conditions"
+                    },
+                    {
+                        "label":"Privacy Policy",
+                        "path":"/policies"
+                    },
+                    {
+                        "label":"Shipping Policy",
+                        "path":"/policies"
+                    }
+                ]
+            },
+            {
+                "title":"Location",
+                "description":"Location Country"
+            }
+        ],
+        "copyright":"Copyright © 2026 ShopEase"
+    }
+}

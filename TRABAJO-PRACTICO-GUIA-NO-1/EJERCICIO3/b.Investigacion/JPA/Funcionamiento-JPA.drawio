@@ -1,0 +1,43 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="MEy8g4mJi9ct-6YUbpNJ">
+    <mxGraphModel dx="1030" dy="562" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-24" edge="1" parent="1" source="kbKlVdMgBTxTUPma2X6N-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="kbKlVdMgBTxTUPma2X6N-19" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-18" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;Clase Java @Entity&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Define atributos, constructor sin argumentos&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="190" x="280" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-25" edge="1" parent="1" source="kbKlVdMgBTxTUPma2X6N-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="kbKlVdMgBTxTUPma2X6N-20" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-19" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;Proveedor lee metadata&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Anotaciones o XML.&lt;/div&gt;&lt;div&gt;@Entity -&amp;gt; Entidad persistente&lt;/div&gt;&lt;div&gt;@Id -&amp;gt; Clave Primaria&lt;/div&gt;&lt;div&gt;atributo -&amp;gt; columna tabla&lt;/div&gt;" vertex="1">
+          <mxGeometry height="95" width="190" x="280" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-26" edge="1" parent="1" source="kbKlVdMgBTxTUPma2X6N-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="kbKlVdMgBTxTUPma2X6N-21" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-20" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;b&gt;Resuelve atributos y @Id&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Access type, clave primaria&lt;/div&gt;" vertex="1">
+          <mxGeometry height="68" width="190" x="280" y="252" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-27" edge="1" parent="1" source="kbKlVdMgBTxTUPma2X6N-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="kbKlVdMgBTxTUPma2X6N-22" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-21" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;b&gt;Mapea atributos a columnas&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;@Table, @Column&lt;/div&gt;" vertex="1">
+          <mxGeometry height="68" width="190" x="280" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-28" edge="1" parent="1" source="kbKlVdMgBTxTUPma2X6N-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="kbKlVdMgBTxTUPma2X6N-23" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-22" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;b&gt;Resuelve relaciones&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;@OneToOne - @OneToMany&lt;/div&gt;&lt;div&gt;@ManyToMany-@ManyToOne&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Clave foránea o tabla intermedia&lt;/div&gt;" vertex="1">
+          <mxGeometry height="95" width="190" x="280" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="kbKlVdMgBTxTUPma2X6N-23" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;b&gt;Esquema en la BD&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Tablas, columnas y claves foráneas&lt;/div&gt;" vertex="1">
+          <mxGeometry height="68" width="190" x="280" y="605" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

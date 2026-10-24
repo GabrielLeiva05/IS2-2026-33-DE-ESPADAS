@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: cabecera(${persona.nombreCompleto})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: barra('personas')}"></header>
+
+<main class="container contenido">
+    <div th:replace="~{fragments/layout :: alertas}"></div>
+
+    <div class="encabezado">
+        <div>
+            <h1 th:text="${persona.nombre + ' ' + persona.apellido}">Nombre Apellido</h1>
+            <p><a th:href="@{/personas}">Volver a personas</a></p>
+        </div>
+        <div>
+            <a class="btn btn-outline-primary" th:href="@{/personas/{id}/editar(id=${persona.id})}">Editar datos</a>
+            <form class="d-inline" th:action="@{/personas/{id}/eliminar(id=${persona.id})}" method="post"
+                  onsubmit="return confirm('¿Eliminar a esta persona junto con su domicilio y sus libros?');">
+                <button type="submit" class="btn btn-outline-danger">Eliminar</button>
+            </form>
+        </div>
+    </div>
+
+    <section class="panel">
+        <h2>Datos personales y domicilio</h2>
+        <dl class="row dato mt-3">
+            <div class="col-sm-4"><dt>DNI</dt><dd th:text="${persona.dni}">0</dd></div>
+            <div class="col-sm-4"><dt>Domicilio</dt>
+                <dd th:text="${persona.domicilio.calle + ' ' + persona.domicilio.numero}">Calle 1</dd></div>
+            <div class="col-sm-4"><dt>Localidad</dt>
+                <dd th:text="${persona.domicilio.localidad?.denominacion}">Localidad</dd></div>
+            <div class="col-sm-4">
+                <dt>Ubicación</dt>
+                <dd>
+                    <a class="btn btn-outline-primary" target="_blank" rel="noopener"
+                       th:href="@{'https://www.google.com/maps/search/?api=1&amp;query=' + ${persona.domicilio.direccion}}">
+                        Abrir en Google Maps
+                    </a>
+                </dd>
+            </div>
+        </dl>
+    </section>
+
+    <section class="panel">
+        <div class="encabezado mb-3">
+            <h2 class="mb-0">Libros de la persona</h2>
+            <a class="btn btn-primary" th:href="@{/personas/{id}/libros/nuevo(id=${persona.id})}">Agregar libro</a>
+        </div>
+
+        <div class="table-responsive" th:if="${!persona.libros.isEmpty()}">
+            <table class="table tabla">
+                <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Autores</th>
+                    <th>Género</th>
+                    <th>Año</th>
+                    <th>Páginas</th>
+                    <th><span class="visually-hidden">Acciones</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="l : ${persona.libros}">
+                    <td th:text="${l.titulo}">Título</td>
+                    <td>
+                        <span class="etiqueta-autor" th:each="a : ${l.autores}" th:text="${a.nombreCompleto}">Autor</span>
+                        <span th:if="${l.autores.isEmpty()}" th:text="${l.autor ?: '-'}">-</span>
+                    </td>
+                    <td th:text="${l.genero}">Género</td>
+                    <td th:text="${l.fecha}">2000</td>
+                    <td th:text="${l.paginas}">100</td>
+                    <td class="acciones">
+                        <a class="btn btn-sm btn-outline-primary"
+                           th:href="@{/personas/{p}/libros/{l}/editar(p=${persona.id}, l=${l.id})}">Editar</a>
+                        <form th:action="@{/personas/{p}/libros/{l}/eliminar(p=${persona.id}, l=${l.id})}" method="post"
+                              onsubmit="return confirm('¿Eliminar este libro?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="vacio" th:if="${persona.libros.isEmpty()}">
+            Esta persona todavía no tiene libros. Agregue el primero con «Agregar libro».
+        </p>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: pie}"></footer>
+</body>
+</html>

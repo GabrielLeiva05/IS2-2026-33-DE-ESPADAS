@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:replace="~{components/recursos :: recursos}"></th:block>
+    <title>Juegos 33 de Espadas</title>
+</head>
+<body>
+    <nav th:replace="~{components/navbar :: nav_bar(activo='inicio')}"></nav>
+
+    <main>
+        <!--productos-->
+        <!--Selector de categorias-->
+
+        <section class="container-fluid" id="categorias">
+
+            <section class="text-center mb-5" th:each="categoria : ${categorias}"
+                     th:if="${categoria.activo and not #lists.isEmpty(categoria.videojuegos)}">
+                <h3 class="display-6" th:text="${categoria.nombre}">Categoria</h3>
+                <div class="row gap gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
+
+                    <th:block th:each="videojuego : ${categoria.videojuegos}" th:if="${videojuego.activo}">
+                        <div th:replace="~{components/tarjetaProducto :: tarjeta}"></div>
+                    </th:block>
+
+                </div>
+            </section>
+
+            <section class="text-center mb-5" th:if="${#lists.isEmpty(categorias)}">
+                <h3 class="display-6">Todavia no hay videojuegos cargados</h3>
+            </section>
+
+        </section>
+    </main>
+
+    <div th:replace="~{components/footer :: pie}"></div>
+
+    <th:block th:replace="~{components/scripts :: scripts}"></th:block>
+</body>
+</html>

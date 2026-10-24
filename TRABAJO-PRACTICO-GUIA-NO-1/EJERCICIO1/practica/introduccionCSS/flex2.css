@@ -1,0 +1,31 @@
+.listaTareas{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid gray;
+}
+.tarea{
+    padding: 0.4rem;
+    border: 1px solid gray;
+    width: 80%;
+    text-align: center;
+    margin: 10px;
+}
+.completa{
+    background-color: lightgreen;
+}
+.incompleta{
+    background-color: lightcoral;
+}
+
+button{
+    padding: 0.4rem;
+    border: none;
+    margin-top: 10px;
+    color: white;
+    background-color: black;
+    border-radius: 0.4rem;
+    height: 3rem;
+    width: 10rem;
+    margin-bottom: 10px;
+}

@@ -1,0 +1,24 @@
+.box1{
+    width: 100vw;
+    height: 100vh;
+    background-color: orange;
+}
+.cajaHija{
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background-color: red;
+    top: 40%;
+    left: 10%;
+}
+@media screen and (max-width: 800px){
+    .box1{
+        background-color: red;
+    }
+    .cajaHija{
+        background-color: white;
+        left: 50%;
+        top: 20%;    
+    }
+}
+

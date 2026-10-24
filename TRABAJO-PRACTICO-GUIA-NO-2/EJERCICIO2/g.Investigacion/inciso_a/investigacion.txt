@@ -1,0 +1,11 @@
+Spring IA es un framework que permite integrar funcionalidades de inteligencia artificial en nuestros proyectos realizados con Java y Spring. Nos facilita la comunicación entre nuestra aplicación y con distintos modelos de IA (ya sean gratuitos o pagos).
+
+Algunas de las ventajas que posee:
+-Integración Sencilla: se puede incorporar IA a una aplicación Spring Boot usando las herramientas y conceptos habituales del ecosistema Spring.
+-Uso de diferentes proveedores: permite trabajar con distintos proveedores de modelos de IA.
+-Contexto: Permite utilizar documentos, BD y otros datos de una aplicación como contexto para las respuestas de la IA.
+
+Algunos ejemplos de como se podría aplicar en distintas funcionalidades de sistemas:
+-Chatbot de atención al cliente
+-Análisis y resumen de documentos
+-Creación de mensajes para pedido de Stock.

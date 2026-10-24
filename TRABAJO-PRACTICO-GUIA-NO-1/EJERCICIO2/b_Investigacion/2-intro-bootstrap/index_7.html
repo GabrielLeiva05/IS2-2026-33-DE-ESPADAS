@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap 5 - Formularios (tema 7)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --page-bg: #f5f7fb;
+        }
+
+        body {
+            background: linear-gradient(180deg, #f8fbff 0%, var(--page-bg) 100%);
+        }
+
+        .hero {
+            background: radial-gradient(circle at top left, rgba(13, 110, 253, 0.18), transparent 45%), #ffffff;
+            border: 1px solid rgba(13, 110, 253, 0.12);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <section class="hero rounded-4 p-4 p-lg-5 shadow-sm mb-4">
+            <p class="text-uppercase text-primary fw-semibold mb-2">Bootstrap 5 · Tema 7</p>
+            <h1 class="display-6 mb-3">Formularios con form-control</h1>
+            <p class="lead mb-0">Este archivo muestra controles básicos de formulario y variantes útiles para capturar datos.</p>
+        </section>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h2 class="h5">Campos básicos</h2>
+                        <form>
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <input type="text" class="form-control" id="nombre" placeholder="Ana Pérez">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Correo electrónico</label>
+                                <input type="email" class="form-control" id="email" placeholder="ana@ejemplo.com">
+                            </div>
+                            <div class="mb-3">
+                                <label for="mensaje" class="form-label">Mensaje</label>
+                                <textarea class="form-control" id="mensaje" rows="4" placeholder="Escribe tu consulta..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Enviar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h2 class="h5">Estados y tamaños</h2>
+                        <div class="mb-3">
+                            <label for="disabledInput" class="form-label">Input deshabilitado</label>
+                            <input class="form-control" type="text" id="disabledInput" placeholder="No editable" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label for="smallInput" class="form-label">Input pequeño</label>
+                            <input class="form-control form-control-sm" type="text" id="smallInput" placeholder="form-control-sm">
+                        </div>
+                        <div class="mb-3">
+                            <label for="largeInput" class="form-label">Input grande</label>
+                            <input class="form-control form-control-lg" type="text" id="largeInput" placeholder="form-control-lg">
+                        </div>
+                        <div class="mb-3">
+                            <label for="exampleColor" class="form-label">Ejemplo con estilo adicional</label>
+                            <input class="form-control border-primary" type="text" id="exampleColor" value="Bootstrap estiliza sin perder accesibilidad">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

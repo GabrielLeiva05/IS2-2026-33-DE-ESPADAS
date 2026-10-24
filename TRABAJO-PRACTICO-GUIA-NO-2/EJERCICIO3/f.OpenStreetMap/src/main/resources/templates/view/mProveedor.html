@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${titleMapa})}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/menubody :: menu-principal}"></nav>
+<div th:replace="~{fragments/layout :: mensajes}"></div>
+<th:block th:replace="~{fragments/layout :: leaflet-css}"></th:block>
+
+<section class="py-5">
+    <div class="container px-4 px-lg-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fw-bolder m-0" th:text="${titleMapa}">Mapa de proveedores</h2>
+            <a class="btn btn-outline-secondary" th:href="@{${basePath} + '/list'}">Volver al listado</a>
+        </div>
+        <p class="text-muted" id="resumenMapa">Cargando proveedores…</p>
+        <div id="mapaProveedores" class="border rounded" style="height: 600px;"></div>
+    </div>
+</section>
+
+<footer th:replace="~{fragments/footer :: pie-pagina}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<th:block th:replace="~{fragments/layout :: leaflet-js}"></th:block>
+<script th:inline="javascript">
+    (function () {
+        const urlDatos = /*[[@{${basePath} + '/ubicaciones'}]]*/ '/admin/proveedor/ubicaciones';
+        const urlModificar = /*[[@{${basePath} + '/modificar/'}]]*/ '/admin/proveedor/modificar/';
+        const resumen = document.getElementById('resumenMapa');
+
+        const map = L.map('mapaProveedores').setView([-32.8895, -68.8458], 12);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        // Evita que un nombre o direccion con HTML se interprete dentro del popup
+        function esc(texto) {
+            return String(texto == null ? '' : texto).replace(/[&<>"']/g, function (c) {
+                return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+            });
+        }
+
+        fetch(urlDatos)
+            .then(function (r) {
+                if (!r.ok) { throw new Error('HTTP ' + r.status); }
+                return r.json();
+            })
+            .then(function (lista) {
+                if (lista.length === 0) {
+                    resumen.textContent = 'Ningún proveedor tiene ubicación cargada todavía.';
+                    return;
+                }
+                const grupo = L.featureGroup();
+                lista.forEach(function (p) {
+                    const popup = '<b>' + esc(p.nombre) + '</b><br>' + esc(p.direccion)
+                        + '<br><a href="' + urlModificar + encodeURIComponent(p.id) + '">Modificar</a>';
+                    L.marker([p.latitud, p.longitud]).bindPopup(popup).addTo(grupo);
+                });
+                grupo.addTo(map);
+                map.fitBounds(grupo.getBounds(), {padding: [40, 40], maxZoom: 16});
+                resumen.textContent = lista.length + (lista.length === 1 ? ' proveedor con ubicación.' : ' proveedores con ubicación.');
+            })
+            .catch(function () {
+                resumen.textContent = 'No se pudieron cargar los proveedores.';
+            });
+    })();
+</script>
+</body>
+</html>

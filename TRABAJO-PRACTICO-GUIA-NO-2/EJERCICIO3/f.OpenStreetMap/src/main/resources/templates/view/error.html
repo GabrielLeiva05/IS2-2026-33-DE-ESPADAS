@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body class="d-flex flex-column min-vh-100">
+<nav th:replace="~{fragments/menubody :: menu-principal}"></nav>
+<section class="py-5">
+    <div class="container px-4 px-lg-5 text-center">
+        <h1 class="display-3 fw-bolder" th:text="${codigo}">500</h1>
+        <p class="lead text-muted" th:text="${mensaje}">Mensaje</p>
+        <a class="btn btn-dark" th:href="@{/}">Volver a la tienda</a>
+    </div>
+</section>
+<footer th:replace="~{fragments/footer :: pie-pagina}"></footer>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
