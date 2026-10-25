@@ -2,11 +2,14 @@ package ar.com.biblioteca.server;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -26,21 +29,53 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class BibliotecaApiIntegrationTest {
 
+    private static final String USERNAME = "cliente";
+    private static final String PASSWORD = "cambiar-esta-clave";
+
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    private String accessToken;
+
+    @BeforeEach
+    void obtenerToken() throws Exception {
+        MvcResult resultado = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"" + USERNAME + "\",\"password\":\"" + PASSWORD + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tokenType", is("Bearer")))
+                .andReturn();
+        accessToken = objectMapper.readTree(resultado.getResponse().getContentAsString())
+                .get("accessToken").asText();
+    }
+
+    @Test
+    void apiRechazaSolicitudesSinJwtOCredencialesInvalidas() throws Exception {
+        mockMvc.perform(get("/api/v1/personas"))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"" + USERNAME + "\",\"password\":\"incorrecta\"}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message", is("Credenciales inválidas")));
+
+        mockMvc.perform(autorizada(get("/api/v1/personas")))
+                .andExpect(status().isOk());
+    }
+
     @Test
     void recorridoCompletoDeLaApi() throws Exception {
         // 1) Los datos de ejemplo están cargados
-        mockMvc.perform(get("/api/v1/personas"))
+        mockMvc.perform(autorizada(get("/api/v1/personas")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)));
 
         // 2) Alta de una localidad
-        long localidadId = idDe(mockMvc.perform(post("/api/v1/localidades")
+        long localidadId = idDe(mockMvc.perform(autorizada(post("/api/v1/localidades"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"denominacion\":\"Localidad de prueba\"}"))
                 .andExpect(status().isCreated())
@@ -49,7 +84,7 @@ class BibliotecaApiIntegrationTest {
         // 3) Alta de una persona con su domicilio (relación 1-1 y Domicilio -> Localidad)
         String personaJson = "{\"nombre\":\"Test\",\"apellido\":\"Unitario\",\"dni\":11111111,"
                 + "\"domicilio\":{\"calle\":\"Calle Falsa\",\"numero\":123,\"localidad\":{\"id\":" + localidadId + "}}}";
-        long personaId = idDe(mockMvc.perform(post("/api/v1/personas")
+        long personaId = idDe(mockMvc.perform(autorizada(post("/api/v1/personas"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(personaJson))
                 .andExpect(status().isCreated())
@@ -57,13 +92,13 @@ class BibliotecaApiIntegrationTest {
                 .andReturn());
 
         // 4) DNI repetido => 409
-        mockMvc.perform(post("/api/v1/personas")
+        mockMvc.perform(autorizada(post("/api/v1/personas"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(personaJson))
                 .andExpect(status().isConflict());
 
         // 5) Datos inválidos => 400 con detalle por campo
-        mockMvc.perform(post("/api/v1/personas")
+        mockMvc.perform(autorizada(post("/api/v1/personas"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"\",\"apellido\":\"X\",\"dni\":22222222,"
                                 + "\"domicilio\":{\"calle\":\"C\",\"numero\":1,\"localidad\":{\"id\":" + localidadId + "}}}"))
@@ -71,13 +106,13 @@ class BibliotecaApiIntegrationTest {
                 .andExpect(jsonPath("$.fieldErrors.nombre").exists());
 
         // 6) Alta de un autor y de un libro de la persona (composición + Libro *-* Autor)
-        long autorId = idDe(mockMvc.perform(post("/api/v1/autores")
+        long autorId = idDe(mockMvc.perform(autorizada(post("/api/v1/autores"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"Autora\",\"apellido\":\"De Prueba\",\"biografia\":\"Bio\"}"))
                 .andExpect(status().isCreated())
                 .andReturn());
 
-        long libroId = idDe(mockMvc.perform(post("/api/v1/personas/" + personaId + "/libros")
+        long libroId = idDe(mockMvc.perform(autorizada(post("/api/v1/personas/" + personaId + "/libros"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"titulo\":\"Libro de prueba\",\"fecha\":2020,\"genero\":\"Ensayo\",\"paginas\":100,"
                                 + "\"autores\":[{\"id\":" + autorId + "}]}"))
@@ -86,25 +121,29 @@ class BibliotecaApiIntegrationTest {
                 .andExpect(jsonPath("$.autor", is("Autora De Prueba")))
                 .andReturn());
 
-        mockMvc.perform(get("/api/v1/personas/" + personaId))
+        mockMvc.perform(autorizada(get("/api/v1/personas/" + personaId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.libros", hasSize(1)));
 
         // 7) No se puede borrar una localidad ni un autor que están en uso => 409
-        mockMvc.perform(delete("/api/v1/localidades/" + localidadId)).andExpect(status().isConflict());
-        mockMvc.perform(delete("/api/v1/autores/" + autorId)).andExpect(status().isConflict());
+        mockMvc.perform(autorizada(delete("/api/v1/localidades/" + localidadId))).andExpect(status().isConflict());
+        mockMvc.perform(autorizada(delete("/api/v1/autores/" + autorId))).andExpect(status().isConflict());
 
         // 8) Se elimina el libro y luego el autor ya puede borrarse
-        mockMvc.perform(delete("/api/v1/personas/" + personaId + "/libros/" + libroId))
+        mockMvc.perform(autorizada(delete("/api/v1/personas/" + personaId + "/libros/" + libroId)))
                 .andExpect(status().isNoContent());
-        mockMvc.perform(delete("/api/v1/autores/" + autorId)).andExpect(status().isNoContent());
+        mockMvc.perform(autorizada(delete("/api/v1/autores/" + autorId))).andExpect(status().isNoContent());
 
         // 9) Al eliminar la persona se elimina su domicilio y luego la localidad queda libre
-        mockMvc.perform(delete("/api/v1/personas/" + personaId)).andExpect(status().isNoContent());
-        mockMvc.perform(delete("/api/v1/localidades/" + localidadId)).andExpect(status().isNoContent());
+        mockMvc.perform(autorizada(delete("/api/v1/personas/" + personaId))).andExpect(status().isNoContent());
+        mockMvc.perform(autorizada(delete("/api/v1/localidades/" + localidadId))).andExpect(status().isNoContent());
 
         // 10) Recurso inexistente => 404
-        mockMvc.perform(get("/api/v1/personas/" + personaId)).andExpect(status().isNotFound());
+        mockMvc.perform(autorizada(get("/api/v1/personas/" + personaId))).andExpect(status().isNotFound());
+    }
+
+    private MockHttpServletRequestBuilder autorizada(MockHttpServletRequestBuilder request) {
+        return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
     }
 
     private long idDe(MvcResult resultado) throws Exception {

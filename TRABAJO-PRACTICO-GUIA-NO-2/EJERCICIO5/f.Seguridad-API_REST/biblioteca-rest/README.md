@@ -5,12 +5,12 @@ Implementación completa del diagrama de clases de diseño solicitado (`docs/dia
 
 | Aplicación | Carpeta | Puerto | Rol |
 |---|---|---|---|
-| **Servidor** | `biblioteca-server` | `8080` | API REST + persistencia (Spring Web, Spring Data JPA, H2/MySQL) |
-| **Cliente**  | `biblioteca-client` | `8081` | Sitio HTML (Thymeleaf) que consume la API con **RestTemplate** y maneja la vista con **DTO's** |
+| **Servidor** | `biblioteca-server` | `8080` | API REST protegida con JWT + persistencia (Spring Web, Spring Security, Spring Data JPA, H2/MySQL) |
+| **Cliente**  | `biblioteca-client` | `8081` | Sitio HTML (Thymeleaf) que consume la API con **RestTemplate**, obtiene y renueva su JWT |
 
 ```
 ┌───────────────┐   HTML   ┌─────────────────────────┐  HTTP + JSON   ┌──────────────────────────┐   JPA   ┌────────┐
-│   Navegador   │ ───────► │  biblioteca-client :8081│ ─────────────► │ biblioteca-server :8080  │ ──────► │ H2 /   │
+│   Navegador   │ ───────► │  biblioteca-client :8081│ ──JWT + JSON─► │ biblioteca-server :8080  │ ──────► │ H2 /   │
 │               │ ◄─────── │  Controller → Service   │ ◄───────────── │ Controller → Service →   │ ◄────── │ MySQL  │
 └───────────────┘          │  → ApiClient(RestTemplate)  DTO's       │ Repository → Entity      │         └────────┘
                            └─────────────────────────┘   /api/v1/...  └──────────────────────────┘
@@ -24,6 +24,9 @@ Implementación completa del diagrama de clases de diseño solicitado (`docs/dia
 * **Conexión a Internet** la primera vez (Maven descarga dependencias) y para que el navegador cargue Bootstrap y las
   tipografías desde CDN. No hace falta instalar Maven: cada proyecto incluye el **Maven Wrapper** (`mvnw` / `mvnw.cmd`).
 * No hace falta instalar ninguna base de datos: por defecto se usa **H2 en memoria**.
+* Credenciales locales de ejemplo: `cliente` / `cambiar-esta-clave`. Configure las variables de entorno
+  `BIBLIOTECA_API_USERNAME` y `BIBLIOTECA_API_PASSWORD` con valores propios en **ambas aplicaciones** para cambiar el usuario/clave.
+  No use las credenciales de ejemplo en producción.
 
 Abra **dos terminales**.
 
@@ -46,8 +49,7 @@ Otras URL útiles:
 | URL | Descripción |
 |---|---|
 | http://localhost:8081 | Sitio web (cliente) |
-| http://localhost:8080/api/v1/personas | La API cruda (JSON) |
-| http://localhost:8080/h2-console | Consola de la base H2 (JDBC URL `jdbc:h2:mem:bibliotecadb`, usuario `sa`, sin contraseña) |
+| http://localhost:8080/api/v1/personas | API JSON (requiere `Authorization: Bearer <JWT>`) |
 
 > Si el servidor no está en ejecución, el cliente lo detecta y muestra un mensaje claro
 > («No se pudo conectar con el servidor…») en lugar de un error técnico.
@@ -116,6 +118,7 @@ ar.com.biblioteca.server
 
 | Método | Ruta | Descripción | Respuestas |
 |---|---|---|---|
+| POST | `/auth/login` | Autentica usuario/clave y emite JWT (15 minutos) | 200 / 401 |
 | GET | `/localidades` | Lista localidades (ordenadas) | 200 |
 | GET | `/localidades/{id}` | Obtiene una localidad | 200 / 404 |
 | POST | `/localidades` | Crea una localidad | 201 / 400 |
@@ -138,10 +141,18 @@ ar.com.biblioteca.server
 
 Los libros se administran **anidados bajo su persona** porque el diagrama los define como composición.
 
-Ejemplo de alta de persona:
+Todas las rutas `/api/v1/**` requieren el JWT del encabezado `Authorization: Bearer <token>`. Para obtenerlo:
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/personas -H "Content-Type: application/json" -d '{
+curl -X POST http://localhost:8080/api/v1/auth/login -H "Content-Type: application/json" -d '{
+  "username": "cliente", "password": "cambiar-esta-clave"
+}'
+```
+
+La respuesta contiene `accessToken`, `tokenType` (`Bearer`) y `expiresIn` (segundos). Ejemplo de alta de persona:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/personas -H "Authorization: Bearer <accessToken>" -H "Content-Type: application/json" -d '{
   "nombre": "María", "apellido": "López", "dni": 33444555,
   "domicilio": { "calle": "Av. Las Heras", "numero": 250, "localidad": { "id": 1 } }
 }'
@@ -188,8 +199,8 @@ Toda falla devuelve el mismo JSON, que el cliente interpreta y muestra al usuari
 ```
 ar.com.biblioteca.client
 ├── BibliotecaClientApplication
-├── config/       RestTemplateConfig            ← bean RestTemplate (timeouts de conexión y lectura)
-├── api/          ApiClient                     ← ÚNICO lugar que usa RestTemplate (GET/POST/PUT/DELETE + traducción de errores)
+├── config/       RestTemplateConfig            ← RestTemplate de API y autenticación
+├── api/          ApiClient, JwtTokenProvider   ← JWT en caché y bearer en cada llamada REST
 ├── dto/          PersonaDTO, DomicilioDTO, LocalidadDTO, LibroDTO, AutorDTO, LibroConPropietarioDTO, ApiErrorDTO
 ├── service/      PersonaService, LocalidadService, AutorService   ← consumen la API a través de ApiClient
 ├── controller/   Home, Persona, Libro, Catalogo, Localidad, Autor ← controladores MVC (devuelven vistas Thymeleaf)
@@ -200,8 +211,10 @@ resources/static/css/app.css
 
 ### 4.1 Cómo cumple la consigna
 
-* **Usa `RestTemplate`**: definido en `RestTemplateConfig` y utilizado en `ApiClient` con `getForObject`, `postForObject`,
-  `put` y `delete`. La URL del servidor se configura en `application.properties` (`biblioteca.api.base-url`).
+* **Usa `RestTemplate`**: `JwtTokenProvider` obtiene un token en `/auth/login`, lo mantiene en memoria y lo renueva antes
+  de vencer; ante un 401, `ApiClient` autentica de nuevo y repite la petición una única vez. `ApiClient` envía
+  `Authorization: Bearer ...` con cada GET/POST/PUT/DELETE. La URL se configura en `application.properties`
+  (`biblioteca.api.base-url`).
 * **Usa DTO's para manipular la vista**: la aplicación cliente **no tiene entidades ni base de datos**. Los controladores nunca
   ven JSON ni objetos del servidor: reciben/entregan DTO's (`PersonaDTO`, `LibroDTO`, …) que además llevan las **validaciones de los formularios**.
   Ejemplos de DTO's pensados para la vista: `LibroDTO.autoresIds` (casillas tildadas del formulario, marcado `@JsonIgnore` para que no viaje
@@ -232,7 +245,8 @@ y página de error amigable si la API no responde.
 1. El navegador envía el formulario `POST /personas/1/libros` al **cliente** (`LibroController`).
 2. Spring enlaza el formulario con `LibroDTO` y lo valida (`@Valid`).
 3. `PersonaService` (cliente) convierte los `autoresIds` en la lista de autores y llama a `ApiClient.post(...)`.
-4. `RestTemplate` envía `POST http://localhost:8080/api/v1/personas/1/libros` con el JSON del libro.
+4. `ApiClient` añade el JWT en `Authorization: Bearer ...` y `RestTemplate` envía
+   `POST http://localhost:8080/api/v1/personas/1/libros` con el JSON del libro.
 5. El **servidor** (`PersonaController` → `PersonaService`) valida, resuelve los autores por id, agrega el libro a la persona
    (cascade) y responde `201` con el libro creado.
 6. El cliente redirige a `/personas/1` y muestra el mensaje «El libro se agregó correctamente».
@@ -244,6 +258,7 @@ y página de error amigable si la API no responde.
 
 | Síntoma | Causa / solución |
 |---|---|
+| El cliente muestra un error 401 | Asegure que usuario/clave (`BIBLIOTECA_API_USERNAME` / `BIBLIOTECA_API_PASSWORD`) coincidan en ambas aplicaciones y reinicie el servidor. |
 | El cliente muestra «No se pudo conectar con el servidor» | Inicie primero `biblioteca-server` (puerto 8080) o corrija `biblioteca.api.base-url` en `biblioteca-client/src/main/resources/application.properties`. |
 | `Port 8080/8081 was already in use` | Cambie `server.port` en el `application.properties` correspondiente (y la URL base del cliente si cambia la del servidor). |
 | La página se ve sin estilos ni tipografías | Bootstrap y Google Fonts se cargan por CDN: se requiere Internet en el navegador. |
@@ -260,4 +275,6 @@ Jackson · Maven (con wrapper) · JUnit 5 + MockMvc · Bootstrap 5 (CDN).
 ## 8. Posibles extensiones
 
 Paginación en los listados, DTO's también en el servidor (para no exponer entidades), documentación OpenAPI/Swagger,
-autenticación con Spring Security, y un `docker-compose` con MySQL.
+gestión de usuarios/roles en una base de datos y un `docker-compose` con MySQL. El servidor genera sus claves RSA en
+memoria al iniciar, por lo que los JWT dejan de ser válidos al reiniciar la instancia; para varias réplicas o producción,
+configure claves persistentes y TLS.

@@ -4,6 +4,10 @@ import ar.com.biblioteca.client.dto.ApiErrorDTO;
 import ar.com.biblioteca.client.exception.ApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
@@ -24,37 +28,44 @@ import java.util.function.Supplier;
 public class ApiClient {
 
     private final RestTemplate restTemplate;
+    private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
     private final String baseUrl;
 
-    public ApiClient(RestTemplate restTemplate,
+    public ApiClient(@Qualifier("apiRestTemplate") RestTemplate restTemplate,
+                     JwtTokenProvider jwtTokenProvider,
                      ObjectMapper objectMapper,
                      @Value("${biblioteca.api.base-url}") String baseUrl) {
         this.restTemplate = restTemplate;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.objectMapper = objectMapper;
         this.baseUrl = baseUrl;
     }
 
     /** GET de un recurso. */
     public <T> T get(String path, Class<T> tipo, Object... variables) {
-        return ejecutar(() -> restTemplate.getForObject(baseUrl + path, tipo, variables));
+        return ejecutar(() -> restTemplate.exchange(baseUrl + path, HttpMethod.GET,
+                entidadAutenticada(null), tipo, variables).getBody());
     }
 
     /** GET de una colección (se deserializa como arreglo y se devuelve como lista). */
     public <T> List<T> getList(String path, Class<T[]> tipoArreglo, Object... variables) {
-        T[] arreglo = ejecutar(() -> restTemplate.getForObject(baseUrl + path, tipoArreglo, variables));
+        T[] arreglo = ejecutar(() -> restTemplate.exchange(baseUrl + path, HttpMethod.GET,
+                entidadAutenticada(null), tipoArreglo, variables).getBody());
         return arreglo == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(arreglo));
     }
 
     /** POST: crea un recurso y devuelve el creado. */
     public <T> T post(String path, Object cuerpo, Class<T> tipo, Object... variables) {
-        return ejecutar(() -> restTemplate.postForObject(baseUrl + path, cuerpo, tipo, variables));
+        return ejecutar(() -> restTemplate.exchange(baseUrl + path, HttpMethod.POST,
+                entidadAutenticada(cuerpo), tipo, variables).getBody());
     }
 
     /** PUT: actualiza un recurso. */
     public void put(String path, Object cuerpo, Object... variables) {
         ejecutar(() -> {
-            restTemplate.put(baseUrl + path, cuerpo, variables);
+            restTemplate.exchange(baseUrl + path, HttpMethod.PUT,
+                    entidadAutenticada(cuerpo), Void.class, variables);
             return null;
         });
     }
@@ -62,20 +73,41 @@ public class ApiClient {
     /** DELETE: elimina un recurso. */
     public void delete(String path, Object... variables) {
         ejecutar(() -> {
-            restTemplate.delete(baseUrl + path, variables);
+            restTemplate.exchange(baseUrl + path, HttpMethod.DELETE,
+                    entidadAutenticada(null), Void.class, variables);
             return null;
         });
+    }
+
+    private HttpEntity<Object> entidadAutenticada(Object cuerpo) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(jwtTokenProvider.getAccessToken());
+        return new HttpEntity<>(cuerpo, headers);
     }
 
     private <T> T ejecutar(Supplier<T> operacion) {
         try {
             return operacion.get();
         } catch (HttpStatusCodeException e) {
+            if (e.getStatusCode().value() == 401) {
+                jwtTokenProvider.invalidateAccessToken();
+                try {
+                    return operacion.get();
+                } catch (HttpStatusCodeException retryException) {
+                    throw traducir(retryException);
+                } catch (ResourceAccessException retryException) {
+                    throw errorConexion();
+                }
+            }
             throw traducir(e);
         } catch (ResourceAccessException e) {
-            throw new ApiException(503, "No se pudo conectar con el servidor (" + baseUrl
-                    + "). Verifique que la aplicación servidor esté en ejecución.");
+            throw errorConexion();
         }
+    }
+
+    private ApiException errorConexion() {
+        return new ApiException(503, "No se pudo conectar con el servidor (" + baseUrl
+                + "). Verifique que la aplicación servidor esté en ejecución.");
     }
 
     /** Convierte la respuesta de error del servidor (JSON) en una ApiException con un mensaje legible. */
