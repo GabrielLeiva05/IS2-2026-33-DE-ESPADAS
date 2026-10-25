@@ -1,0 +1,30 @@
+version: '3'
+
+services:
+  tiendaderopa:
+    build: tiendaderopa
+    mem_limit: 512m
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:mysql://tiendaderopa-db:3306/tiendaderopa_db?createDatabaseIfNotExist=true&serverTimezone=UTC
+      DB_USER_NAME: root
+      DB_PASSWORD: root
+    restart: always
+    depends_on:
+      tiendaderopa-db:
+        condition: service_healthy
+
+  tiendaderopa-db:
+    image: mysql:8.0.33
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: tiendaderopa_db
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
