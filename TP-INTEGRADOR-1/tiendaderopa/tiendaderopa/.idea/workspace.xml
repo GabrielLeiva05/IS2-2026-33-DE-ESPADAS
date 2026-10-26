@@ -5,8 +5,357 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="049f7cae-958a-417e-b875-4a02ffc01b20" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.idea/Tinder-REST.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/.vscode/settings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/.vscode/launch.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/.vscode/settings.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/API_REST.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/CAMBIOS_SEGURIDAD.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/INTEGRACION_JWT.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/TinderApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/audit/Revision.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/audit/UsuarioActualHolder.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/config/ApplicationConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/config/CustomRevisionListener.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/config/DataInitializer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/config/JwtAuthenticationFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/config/JwtService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/config/OAuth2LoginSuccessHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/config/RestTemplateConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/AdminController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/ApiExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/AuthApiController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/ErroresController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/FotoController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/MascotaApiController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/MascotaController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/PortalController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/UsuarioController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/controllers/VotoController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/dtos/ApiErrorDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/dtos/AuthRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/dtos/AuthResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/dtos/MascotaDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/dtos/MascotaRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/dtos/RegisterRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/entities/Foto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/entities/Mascota.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/entities/Usuario.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/entities/Voto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/entities/Zona.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/enumerations/Rol.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/enumerations/Sexo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/enumerations/Tipo.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/errors/ErrorServicio.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/mappers/MascotaMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/repositories/FotoRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/repositories/MascotaRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/repositories/UsuarioRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/repositories/VotoRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/repositories/ZonaRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/services/AuthService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/services/FotoService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/services/MascotaApiClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/services/MascotaService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/services/NotificationService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/services/UsuarioService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/services/VotoService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/java/sprint/tinder/services/ZonaService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/css/one-page-wonder.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/css/one-page-wonder.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/gulpfile.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/01.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/02.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/03.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/400.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/avisoLogueo.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/edicionMascota.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/editarPerfil.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/inicio.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/m1.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/m2.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/m3.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/mascotasUsuario.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/registroExitoso.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/img/registroMal.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/scss/_bootstrap-overrides.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/scss/_global.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/scss/_masthead.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/scss/_mixins.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/scss/_navbar.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/scss/_variables.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/scss/one-page-wonder.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap-grid.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap-grid.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap-grid.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap-grid.min.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap-reboot.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap-reboot.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap-reboot.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap-reboot.min.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/css/bootstrap.min.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/js/bootstrap.bundle.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/js/bootstrap.bundle.js.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/js/bootstrap.bundle.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/js/bootstrap.bundle.min.js.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/js/bootstrap.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/js/bootstrap.js.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/js/bootstrap.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/bootstrap/js/bootstrap.min.js.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/jquery/jquery.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/jquery/jquery.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/jquery/jquery.min.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/jquery/jquery.slim.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/jquery/jquery.slim.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/static/vendor/jquery/jquery.slim.min.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/admin-usuarios.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/error.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/exito.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/inicio.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/login.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/mascota.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/mascotas-explorar.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/mascotas.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/mascotasdebaja.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/perfil.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/main/resources/templates/registro.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/test/java/sprint/tinder/MascotaApiClientTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/test/java/sprint/tinder/MascotaMapperTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/test/java/sprint/tinder/MascotaTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/test/java/sprint/tinder/TinderApplicationTests.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/src/test/java/sprint/tinder/UsuarioTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/TinderApplication.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/audit/Revision.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/audit/UsuarioActualHolder.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/config/ApplicationConfig.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/config/CustomRevisionListener.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/config/DataInitializer.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/config/JwtAuthenticationFilter.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/config/JwtService.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/config/OAuth2LoginSuccessHandler.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/config/RestTemplateConfig.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/config/SecurityConfig.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/AdminController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/ApiExceptionHandler.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/AuthApiController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/ErroresController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/FotoController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/MascotaApiController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/MascotaController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/PortalController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/UsuarioController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/controllers/VotoController.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/dtos/ApiErrorDto.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/dtos/AuthRequest.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/dtos/AuthResponse.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/dtos/MascotaDto.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/dtos/MascotaRequest.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/dtos/RegisterRequest.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/entities/Foto.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/entities/Mascota.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/entities/Usuario.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/entities/Voto.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/entities/Zona.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/enumerations/Rol.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/enumerations/Sexo.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/enumerations/Tipo.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/errors/ErrorServicio.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/mappers/MascotaMapper.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/mappers/MascotaMapperImpl.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/repositories/FotoRepository.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/repositories/MascotaRepository.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/repositories/UsuarioRepository.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/repositories/VotoRepository.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/repositories/ZonaRepository.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/services/AuthService.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/services/FotoService.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/services/MascotaApiClient.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/services/MascotaService.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/services/NotificationService.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/services/UsuarioService.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/services/VotoService.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/sprint/tinder/services/ZonaService.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/css/one-page-wonder.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/css/one-page-wonder.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/gulpfile.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/01.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/02.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/03.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/400.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/avisoLogueo.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/edicionMascota.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/editarPerfil.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/inicio.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/m1.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/m2.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/m3.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/mascotasUsuario.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/registroExitoso.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/img/registroMal.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/package.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/scss/_bootstrap-overrides.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/scss/_global.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/scss/_masthead.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/scss/_mixins.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/scss/_navbar.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/scss/_variables.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/scss/one-page-wonder.scss" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap-grid.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap-grid.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap-grid.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap-grid.min.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap-reboot.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap-reboot.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap-reboot.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap-reboot.min.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap.min.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/css/bootstrap.min.css.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/js/bootstrap.bundle.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/js/bootstrap.bundle.js.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/js/bootstrap.bundle.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/js/bootstrap.bundle.min.js.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/js/bootstrap.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/js/bootstrap.js.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/js/bootstrap.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/bootstrap/js/bootstrap.min.js.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/jquery/jquery.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/jquery/jquery.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/jquery/jquery.min.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/jquery/jquery.slim.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/jquery/jquery.slim.min.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/static/vendor/jquery/jquery.slim.min.map" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/admin-usuarios.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/error.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/exito.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/inicio.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/login.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/mascota.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/mascotas-explorar.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/mascotas.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/mascotasdebaja.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/perfil.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/classes/templates/registro.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/generated-sources/annotations/sprint/tinder/mappers/MascotaMapperImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/test-classes/sprint/tinder/MascotaApiClientTest.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/test-classes/sprint/tinder/MascotaMapperTest.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/test-classes/sprint/tinder/MascotaTest.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/test-classes/sprint/tinder/TinderApplicationTests.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/e.Seguiridad-AUTH2/Tinder-REST/Tinder-REST/target/test-classes/sprint/tinder/UsuarioTest.class" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/BibliotecaClientApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/api/ApiClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/api/JwtTokenProvider.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/config/RestTemplateConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/controller/AutorController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/controller/CatalogoController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/controller/HomeController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/controller/LibroController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/controller/LocalidadController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/controller/PersonaController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/dto/ApiErrorDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/dto/AutorDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/dto/DomicilioDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/dto/LibroConPropietarioDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/dto/LibroDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/dto/LocalidadDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/dto/PersonaDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/exception/ApiException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/service/AutorService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/service/LocalidadService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/java/ar/com/biblioteca/client/service/PersonaService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/messages.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/static/css/app.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/autores/formulario.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/autores/lista.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/error.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/fragments/layout.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/libros/catalogo.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/libros/formulario.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/localidades/formulario.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/localidades/lista.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/personas/detalle.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/personas/formulario.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/main/resources/templates/personas/lista.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/test/java/ar/com/biblioteca/client/ApiClientJwtIntegrationTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-client/src/test/java/ar/com/biblioteca/client/BibliotecaClientApplicationTests.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/listapersonas.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/BibliotecaServerApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/config/DataLoader.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/controllers/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/controllers/AutorController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/controllers/LocalidadController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/controllers/PersonaController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/entities/Autor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/entities/Domicilio.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/entities/Libro.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/entities/Localidad.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/entities/Persona.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/exceptions/ApiError.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/exceptions/BadRequestException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/exceptions/ConflictException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/exceptions/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/exceptions/ResourceNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/repositories/AutorRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/repositories/DomicilioRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/repositories/LibroRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/repositories/LocalidadRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/repositories/PersonaRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/services/AutorService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/services/LocalidadService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/services/MailService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/services/PersonaService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/java/ar/com/biblioteca/server/services/ScheduleTask.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/resources/application-mysql.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/test/java/ar/com/biblioteca/server/BibliotecaApiIntegrationTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/biblioteca-server/src/test/java/ar/com/biblioteca/server/BibliotecaServerApplicationTests.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/docs/diagrama-de-clases.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO5/f.Seguridad-API_REST/biblioteca-rest/docs/requests.http" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO4/g.Clinica/Clinica.zip" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,37 +398,37 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Tiendaderopa.executor&quot;: &quot;Run&quot;,
-    &quot;Application.TiendaderopaApplication.executor&quot;: &quot;Run&quot;,
-    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
-    &quot;JavaScript Debug.panel.html.executor&quot;: &quot;Run&quot;,
-    &quot;JavaScript Debug.register.html.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.tiendaderopa [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.tiendaderopa [install].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;Spring Boot.TiendaderopaApplication.executor&quot;: &quot;Run&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/JuanP/Documents/1FACU/tercero/segundo semestre/ingeniería de software/parte grupal/IS2-2026-33-DE-ESPADAS/TP-INTEGRADOR-1/tiendaderopa/tiendaderopa&quot;,
-    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;SDKs&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;build.tools&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Tiendaderopa.executor": "Run",
+    "Application.TiendaderopaApplication.executor": "Run",
+    "DefaultHtmlFileTemplate": "HTML File",
+    "JavaScript Debug.panel.html.executor": "Run",
+    "JavaScript Debug.register.html.executor": "Run",
+    "Maven.tiendaderopa [clean].executor": "Run",
+    "Maven.tiendaderopa [install].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.TiendaderopaApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "Merging master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/JuanP/Documents/1FACU/tercero/segundo semestre/ingeniería de software/parte grupal/IS2-2026-33-DE-ESPADAS/TP-INTEGRADOR-1/tiendaderopa/tiendaderopa",
+    "node.js.detected.package.jshint": "true",
+    "node.js.selected.package.jshint": "",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "SDKs",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "build.tools"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Application.Tiendaderopa">
     <configuration name="Tiendaderopa" type="Application" factoryName="Application">
       <envs>
