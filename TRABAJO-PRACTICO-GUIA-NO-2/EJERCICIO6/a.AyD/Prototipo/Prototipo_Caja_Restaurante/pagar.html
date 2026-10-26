@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pagar mi cuenta | Sabores de Cuyo</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+</head>
+<body>
+<div class="pay-wrap">
+
+  <!-- Paso 1: cuenta y pago -->
+  <section id="paso1">
+    <div class="pay-head">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="mesa"><i class="fas fa-chair mr-1"></i>Mesa 7</span>
+        <a href="caja.html" class="text-white small"><i class="fas fa-cash-register mr-1"></i>Ver caja</a>
+      </div>
+      <div class="small" style="opacity:.85">Sabores de Cuyo · Sucursal Chacras de Coria</div>
+      <h1 class="h4 mb-0 mt-1">Pagar mi cuenta</h1>
+    </div>
+
+    <div class="px-3">
+      <div class="card mt-n3 mb-3">
+        <div class="card-body py-2" id="items"></div>
+      </div>
+
+      <h2 class="h6 font-weight-bold mt-4">¿Querés dejar propina?</h2>
+      <div class="chips mb-2" id="propinas">
+        <button type="button" class="chip" data-p="0">Sin propina</button>
+        <button type="button" class="chip active" data-p="10">10%</button>
+        <button type="button" class="chip" data-p="15">15%</button>
+        <button type="button" class="chip" data-p="otro">Otro monto</button>
+      </div>
+      <input id="propOtro" type="number" min="0" class="form-control mb-2 d-none" placeholder="Monto de propina ($)">
+
+      <h2 class="h6 font-weight-bold mt-4">Método de pago</h2>
+      <div id="metodos">
+        <label class="metodo"><input type="radio" name="m" value="Efectivo" data-r="0"><i class="fas fa-money-bill-wave"></i><span>Efectivo<div class="small muted">Pagás en la caja con este código</div></span><span class="rec">sin recargo</span></label>
+        <label class="metodo active"><input type="radio" name="m" value="Débito" data-r="0" checked><i class="far fa-credit-card"></i><span>Tarjeta de débito</span><span class="rec">sin recargo</span></label>
+        <label class="metodo"><input type="radio" name="m" value="Crédito" data-r="10"><i class="fas fa-credit-card"></i><span>Tarjeta de crédito</span><span class="rec">+10% recargo</span></label>
+        <label class="metodo"><input type="radio" name="m" value="QR / billetera virtual" data-r="0"><i class="fas fa-qrcode"></i><span>QR / billetera virtual</span><span class="rec">sin recargo</span></label>
+      </div>
+
+      <h2 class="h6 font-weight-bold mt-4">Tus datos para el comprobante</h2>
+      <div class="form-group mb-2">
+        <input id="cNombre" type="text" class="form-control" placeholder="Nombre y apellido">
+        <div class="invalid-msg">Ingresá tu nombre y apellido.</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-5 mb-2">
+          <input id="cDni" type="text" inputmode="numeric" class="form-control" placeholder="DNI">
+          <div class="invalid-msg">DNI de 7 u 8 dígitos.</div>
+        </div>
+        <div class="form-group col-7 mb-2">
+          <input id="cEmail" type="email" class="form-control" placeholder="Email (opcional)">
+          <div class="invalid-msg">Email no válido.</div>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body totales">
+          <div class="fila"><span class="muted">Consumo</span><span id="tCons"></span></div>
+          <div class="fila"><span class="muted">Propina</span><span id="tProp"></span></div>
+          <div class="fila"><span class="muted">Recargo por método de pago</span><span id="tRec"></span></div>
+          <div class="fila total"><span>Total a pagar</span><span id="tTotal"></span></div>
+        </div>
+      </div>
+
+      <div id="errCaja" class="alert alert-danger mt-3 d-none"><i class="fas fa-lock mr-1"></i>La caja de la sucursal está cerrada. Pedí ayuda al personal.</div>
+
+      <div class="sticky-pay">
+        <button id="btnPagar" class="btn btn-vino btn-lg btn-block"><i class="fas fa-lock mr-2"></i>Pagar <span id="bTotal"></span></button>
+        <p class="text-center small muted mt-2 mb-0"><i class="fas fa-shield-alt mr-1"></i>Pago seguro · tus datos solo se usan para emitir el comprobante</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Paso 2: confirmación -->
+  <section id="paso2" class="d-none px-3 py-5">
+    <div class="ok-circle mb-3"><i class="fas fa-check"></i></div>
+    <h1 class="h4 text-center font-weight-bold">¡Pago realizado!</h1>
+    <p class="text-center muted">Gracias por visitarnos. Te esperamos pronto.</p>
+    <div class="comprobante mt-4" id="comp"></div>
+    <p class="small muted mt-3"><i class="fas fa-info-circle mr-1"></i>El pago quedó registrado como movimiento de <b>ENTRADA</b> en la Caja N° 1 de la sucursal.</p>
+    <a href="caja.html" class="btn btn-outline-vino btn-block mt-3"><i class="fas fa-cash-register mr-1"></i>Ver el movimiento en la caja</a>
+    <a href="pagar.html" class="btn btn-light btn-block">Volver al inicio</a>
+  </section>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script>
+(function () {
+  var items = [
+    { n: "Empanadas mendocinas (docena)", q: 1, p: 18000 },
+    { n: "Bife de chorizo con papas rústicas", q: 2, p: 16500 },
+    { n: "Ensalada de estación", q: 1, p: 7500 },
+    { n: "Copa de Malbec", q: 2, p: 5200 },
+    { n: "Agua mineral sin gas", q: 1, p: 2800 }
+  ];
+  var fmt = function (n) { return "$ " + n.toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 2 }); };
+  var consumo = items.reduce(function (a, i) { return a + i.q * i.p; }, 0);
+  $("#items").html(items.map(function (i) {
+    return '<div class="item"><div>' + i.n + '<div class="q">' + i.q + " × " + fmt(i.p) + '</div></div><div class="font-weight-bold">' + fmt(i.q * i.p) + "</div></div>";
+  }).join(""));
+
+  var prop = "10";
+  // Pago.calcularTotal() + MetodoPago.aplicarRecargo(monto)
+  function calc() {
+    var p = prop === "otro" ? (parseFloat($("#propOtro").val()) || 0) : consumo * (+prop) / 100;
+    var r = +$("input[name=m]:checked").data("r");
+    var rec = (consumo + p) * r / 100;
+    return { consumo: consumo, propina: Math.round(p), recargo: Math.round(rec), total: Math.round(consumo + p + rec), metodo: $("input[name=m]:checked").val() };
+  }
+  function render() {
+    var c = calc();
+    $("#tCons").text(fmt(c.consumo)); $("#tProp").text(fmt(c.propina)); $("#tRec").text(fmt(c.recargo));
+    $("#tTotal, #bTotal").text(fmt(c.total));
+  }
+  $("#propinas").on("click", ".chip", function () {
+    $("#propinas .chip").removeClass("active"); $(this).addClass("active");
+    prop = String($(this).data("p")); $("#propOtro").toggleClass("d-none", prop !== "otro"); render();
+  });
+  $("#propOtro").on("input", render);
+  $("#metodos").on("change", "input", function () { $(".metodo").removeClass("active"); $(this).closest(".metodo").addClass("active"); render(); });
+
+  // Pago.validar() + Pago.confirmar(caja)
+  $("#btnPagar").on("click", function () {
+    var ok = true, nom = $.trim($("#cNombre").val()), dni = $.trim($("#cDni").val()), mail = $.trim($("#cEmail").val());
+    $("#cNombre, #cDni, #cEmail").removeClass("is-invalid");
+    if (nom.split(" ").filter(Boolean).length < 2) { $("#cNombre").addClass("is-invalid"); ok = false; }
+    if (!/^\d{7,8}$/.test(dni.replace(/\./g, ""))) { $("#cDni").addClass("is-invalid"); ok = false; }
+    if (mail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { $("#cEmail").addClass("is-invalid"); ok = false; }
+    var cerrada = false; try { cerrada = localStorage.getItem("cajaCerrada") === "1"; } catch (e) {}
+    $("#errCaja").toggleClass("d-none", !cerrada);
+    if (!ok || cerrada) return;
+
+    var c = calc(), d = new Date(), hora = ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+    var nro = 235, prev = [];
+    try { prev = JSON.parse(localStorage.getItem("pagosPendientes") || "[]"); nro += prev.length; } catch (e) {}
+    var comp = "0001-" + ("00000000" + nro).slice(-8);
+    try { prev.push({ mesa: 7, comprobante: comp, metodo: c.metodo, comensal: nom, total: c.total, hora: hora }); localStorage.setItem("pagosPendientes", JSON.stringify(prev)); } catch (e) {}
+
+    $("#comp").html(
+      '<div class="d-flex justify-content-between mb-2"><b>Comprobante</b><b>' + comp + '</b></div>' +
+      '<div class="fila"><span class="muted">Fecha</span><span>' + d.toLocaleDateString("es-AR") + " " + hora + '</span></div>' +
+      '<div class="fila"><span class="muted">Mesa</span><span>7</span></div>' +
+      '<div class="fila"><span class="muted">Comensal</span><span>' + $("<i>").text(nom).html() + '</span></div>' +
+      '<div class="fila"><span class="muted">Método</span><span>' + c.metodo + '</span></div>' +
+      '<div class="fila"><span class="muted">Consumo</span><span>' + fmt(c.consumo) + '</span></div>' +
+      '<div class="fila"><span class="muted">Propina</span><span>' + fmt(c.propina) + '</span></div>' +
+      '<div class="fila"><span class="muted">Recargo</span><span>' + fmt(c.recargo) + '</span></div>' +
+      '<div class="fila font-weight-bold" style="font-size:18px;border-top:1px solid #e8e0d6;margin-top:6px;padding-top:8px"><span>Total</span><span>' + fmt(c.total) + "</span></div>");
+    $("#paso1").addClass("d-none"); $("#paso2").removeClass("d-none"); window.scrollTo(0, 0);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

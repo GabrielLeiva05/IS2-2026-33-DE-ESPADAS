@@ -1,0 +1,114 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="DCD Noticias FING" id="dcd-noticias">
+    <mxGraphModel dx="1981" dy="1081" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1112" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="c-Persona" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Persona" vertex="1">
+          <mxGeometry height="220" width="360" x="1000" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Persona-a" parent="c-Persona" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="- id: Long&lt;br&gt;- nombre: String&lt;br&gt;- apellido: String&lt;br&gt;- dni: String&lt;br&gt;- email: String&lt;br&gt;- eliminado: boolean" vertex="1">
+          <mxGeometry height="118" width="360" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Persona-s" parent="c-Persona" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="360" y="148" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Persona-m" parent="c-Persona" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="+ getNombreCompleto(): String&lt;br&gt;+ eliminar(): void&lt;br&gt;+ restaurar(): void" vertex="1">
+          <mxGeometry height="64" width="360" y="156" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Imagen" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Imagen" vertex="1">
+          <mxGeometry height="382" width="360" x="40" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Imagen-a" parent="c-Imagen" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="- id: Long&lt;br&gt;- url: String&lt;br&gt;- textoAlternativo: String&lt;br&gt;- epigrafe: String&lt;br&gt;- ancho: int&lt;br&gt;- alto: int&lt;br&gt;- eliminado: boolean" vertex="1">
+          <mxGeometry height="208" width="360" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Imagen-s" parent="c-Imagen" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="360" y="238" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Imagen-m" parent="c-Imagen" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="+ getMiniatura(ancho: int, alto: int): String&lt;br&gt;+ esValida(): boolean&lt;br&gt;+ eliminar(): void&lt;br&gt;+ restaurar(): void" vertex="1">
+          <mxGeometry height="136" width="360" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Noticia" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Noticia" vertex="1">
+          <mxGeometry height="382" width="360" x="520" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Noticia-a" parent="c-Noticia" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="- id: Long&lt;br&gt;- titulo: String&lt;br&gt;- copete: String&lt;br&gt;- categoria: String&lt;br&gt;- fechaEscritura: LocalDate&lt;br&gt;- fechaPublicacion: LocalDateTime&lt;br&gt;- destacada: boolean&lt;br&gt;- eliminado: boolean&lt;br&gt;- autor: Autor&lt;br&gt;- contenido: Contenido&lt;br&gt;- imagenes: List&amp;lt;Imagen&amp;gt;" vertex="1">
+          <mxGeometry height="208" width="360" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Noticia-s" parent="c-Noticia" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="360" y="238" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Noticia-m" parent="c-Noticia" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="+ publicar(): void&lt;br&gt;+ agregarImagen(imagen: Imagen): void&lt;br&gt;+ quitarImagen(imagen: Imagen): void&lt;br&gt;+ getImagenPortada(): Imagen&lt;br&gt;+ getFechaFormateada(): String&lt;br&gt;+ eliminar(): void&lt;br&gt;+ restaurar(): void" vertex="1">
+          <mxGeometry height="136" width="360" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Autor" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Autor" vertex="1">
+          <mxGeometry height="382" width="360" x="1000" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Autor-a" parent="c-Autor" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="- legajo: String&lt;br&gt;- cargo: String&lt;br&gt;- area: String" vertex="1">
+          <mxGeometry height="208" width="360" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Autor-s" parent="c-Autor" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="360" y="238" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Autor-m" parent="c-Autor" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="+ getFirma(): String&lt;br&gt;+ puedePublicar(): boolean" vertex="1">
+          <mxGeometry height="136" width="360" y="246" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Contenido" parent="1" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;" value="Contenido" vertex="1">
+          <mxGeometry height="220" width="360" x="520" y="852" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Contenido-a" parent="c-Contenido" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="- id: Long&lt;br&gt;- cuerpo: String&lt;br&gt;- fechaUltimaEdicion: LocalDateTime&lt;br&gt;- eliminado: boolean" vertex="1">
+          <mxGeometry height="82" width="360" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Contenido-s" parent="c-Contenido" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" value="" vertex="1">
+          <mxGeometry height="8" width="360" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="c-Contenido-m" parent="c-Contenido" style="text;strokeColor=none;fillColor=#ffffff;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;spacingTop=2;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="+ editar(cuerpo: String): void&lt;br&gt;+ getResumen(maxCaracteres: int): String&lt;br&gt;+ contarPalabras(): int&lt;br&gt;+ eliminar(): void&lt;br&gt;+ restaurar(): void" vertex="1">
+          <mxGeometry height="100" width="360" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="e-her" edge="1" parent="1" source="c-Autor" style="html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;endSize=18;endArrow=block;endFill=0;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" target="c-Persona" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-aso" edge="1" parent="1" source="c-Noticia" style="html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;endSize=18;endArrow=open;endFill=0;endSize=12;exitX=1;exitY=0.5;entryX=0;entryY=0.5;fontSize=12;fontStyle=2;" target="c-Autor" value="escribe">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-12" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-aso-l-1" connectable="0" parent="e-aso" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=bottom;fontSize=13;fontStyle=1;labelBackgroundColor=none;" value="0..*" vertex="1">
+          <mxGeometry relative="1" x="-1" as="geometry">
+            <mxPoint x="8" y="-4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-aso-l1" connectable="0" parent="e-aso" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=bottom;fontSize=13;fontStyle=1;labelBackgroundColor=none;" value="1" vertex="1">
+          <mxGeometry relative="1" x="1" as="geometry">
+            <mxPoint x="-18" y="-4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-agr" edge="1" parent="1" source="c-Imagen" style="html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;endSize=18;endArrow=diamondThin;endFill=0;endSize=22;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="c-Noticia" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-agr-l-1" connectable="0" parent="e-agr" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=bottom;fontSize=13;fontStyle=1;labelBackgroundColor=none;" value="1..*" vertex="1">
+          <mxGeometry relative="1" x="-1" as="geometry">
+            <mxPoint x="8" y="-4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-agr-l1" connectable="0" parent="e-agr" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=bottom;fontSize=13;fontStyle=1;labelBackgroundColor=none;" value="0..*" vertex="1">
+          <mxGeometry relative="1" x="1" as="geometry">
+            <mxPoint x="-60" y="-4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-com" edge="1" parent="1" source="c-Contenido" style="html=1;rounded=0;edgeStyle=orthogonalEdgeStyle;endSize=18;endArrow=diamondThin;endFill=1;endSize=22;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" target="c-Noticia" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-com-l-1" connectable="0" parent="e-com" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=bottom;fontSize=13;fontStyle=1;labelBackgroundColor=none;" value="1" vertex="1">
+          <mxGeometry relative="1" x="-1" as="geometry">
+            <mxPoint x="8" y="-6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-com-l1" connectable="0" parent="e-com" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=bottom;fontSize=13;fontStyle=1;labelBackgroundColor=none;" value="1" vertex="1">
+          <mxGeometry relative="1" x="1" as="geometry">
+            <mxPoint x="8" y="30" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

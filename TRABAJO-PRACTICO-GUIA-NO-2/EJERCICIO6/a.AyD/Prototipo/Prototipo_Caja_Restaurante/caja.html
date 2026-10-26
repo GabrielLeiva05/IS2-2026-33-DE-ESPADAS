@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Movimientos de caja | Sabores de Cuyo</title>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+</head>
+<body>
+  <!-- Barra superior -->
+  <nav class="topbar navbar navbar-expand-md navbar-dark">
+    <div class="container">
+      <span class="brand navbar-brand"><i class="fas fa-utensils mr-2"></i>Sabores de Cuyo<small>Sucursal Chacras de Coria</small></span>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav"><span class="navbar-toggler-icon"></span></button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item"><a class="nav-link active" href="caja.html"><i class="fas fa-cash-register mr-1"></i>Caja</a></li>
+          <li class="nav-item"><a class="nav-link" href="pagar.html"><i class="fas fa-mobile-alt mr-1"></i>Vista comensal</a></li>
+          <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-user-circle mr-1"></i>Laura Gómez (cajera)</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <!-- Encabezado -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+      <div class="mb-2">
+        <h1 class="page-title">Movimientos de caja</h1>
+        <div class="muted">Caja N° 1 · <span id="lblApertura">abierta el 26/10/2026 a las 11:00</span></div>
+      </div>
+      <div class="mb-2 d-flex align-items-center">
+        <span id="estado" class="badge-estado badge-abierta mr-2"><i class="fas fa-lock-open mr-1"></i>Abierta</span>
+        <button id="btnCerrar" class="btn btn-outline-vino mr-2" data-toggle="modal" data-target="#mCerrar"><i class="fas fa-lock mr-1"></i>Cerrar caja</button>
+        <button id="btnNuevo" class="btn btn-vino" data-toggle="modal" data-target="#mNuevo"><i class="fas fa-plus mr-1"></i>Nuevo movimiento</button>
+      </div>
+    </div>
+
+    <!-- Indicadores -->
+    <div class="row">
+      <div class="col-6 col-lg-3 mb-3"><div class="card kpi"><div class="lbl">Saldo inicial</div><div class="val" id="kInicial">$ 0</div></div></div>
+      <div class="col-6 col-lg-3 mb-3"><div class="card kpi"><div class="lbl">Ingresos (entradas)</div><div class="val txt-ok" id="kEnt">$ 0</div></div></div>
+      <div class="col-6 col-lg-3 mb-3"><div class="card kpi"><div class="lbl">Egresos (salidas)</div><div class="val txt-mal" id="kSal">$ 0</div></div></div>
+      <div class="col-6 col-lg-3 mb-3"><div class="card kpi main"><div class="lbl">Saldo actual</div><div class="val" id="kSaldo">$ 0</div></div></div>
+    </div>
+
+    <!-- Filtros + tabla -->
+    <div class="card">
+      <div class="card-body pb-0">
+        <div class="form-row align-items-end">
+          <div class="form-group col-sm-6 col-md-3">
+            <label class="small muted mb-1">Fecha</label>
+            <input type="date" class="form-control" value="2026-10-26">
+          </div>
+          <div class="form-group col-sm-6 col-md-3">
+            <label class="small muted mb-1">Tipo</label>
+            <select id="fTipo" class="form-control"><option value="">Todos</option><option>ENTRADA</option><option>SALIDA</option></select>
+          </div>
+          <div class="form-group col-sm-6 col-md-3">
+            <label class="small muted mb-1">Método de pago</label>
+            <select id="fMetodo" class="form-control"><option value="">Todos</option><option>Efectivo</option><option>Débito</option><option>Crédito</option><option>QR / billetera virtual</option><option value="-">Sin pago asociado</option></select>
+          </div>
+          <div class="form-group col-sm-6 col-md-3">
+            <div class="custom-control custom-switch mb-2">
+              <input type="checkbox" class="custom-control-input" id="fAnulados">
+              <label class="custom-control-label" for="fAnulados">Mostrar anulados</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table mb-0">
+          <thead>
+            <tr><th>Hora</th><th>Tipo</th><th>Concepto</th><th>Método / Comensal</th><th class="text-right">Monto</th><th class="text-right">Acciones</th></tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="card-footer bg-white small muted" id="pie"></div>
+    </div>
+  </main>
+
+  <!-- Modal: nuevo movimiento -->
+  <div class="modal fade" id="mNuevo" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" id="formNuevo" novalidate>
+        <div class="modal-header">
+          <h5 class="modal-title">Nuevo movimiento</h5>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <label class="small muted mb-1">Tipo de movimiento</label>
+          <div class="btn-group btn-group-toggle d-flex tipo-switch mb-3" data-toggle="buttons">
+            <label class="btn btn-outline-secondary ent active"><input type="radio" name="tipo" value="ENTRADA" checked><i class="fas fa-arrow-down mr-1"></i>Entrada</label>
+            <label class="btn btn-outline-secondary sal"><input type="radio" name="tipo" value="SALIDA"><i class="fas fa-arrow-up mr-1"></i>Salida</label>
+          </div>
+          <div class="form-group">
+            <label class="small muted mb-1">Monto ($)</label>
+            <input id="nMonto" type="number" min="0" step="0.01" class="form-control" placeholder="0,00">
+            <div class="invalid-msg" id="errMonto">Ingresá un monto mayor a 0.</div>
+          </div>
+          <div class="form-group">
+            <label class="small muted mb-1">Concepto</label>
+            <input id="nConcepto" type="text" class="form-control" list="conceptos" placeholder="Ej.: Pago a proveedor de verduras">
+            <datalist id="conceptos">
+              <option value="Pago a proveedor">
+              <option value="Retiro de efectivo">
+              <option value="Ingreso de cambio">
+              <option value="Compra de insumos">
+            </datalist>
+            <div class="invalid-msg">Ingresá un concepto.</div>
+          </div>
+          <p class="small muted mb-0"><i class="fas fa-info-circle mr-1"></i>Los cobros a comensales se registran solos desde la pantalla de pago.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-vino">Registrar movimiento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: anular -->
+  <div class="modal fade" id="mAnular" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Anular movimiento</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+        <div class="modal-body">
+          <p id="anularTxt" class="mb-2"></p>
+          <div class="form-group mb-2">
+            <label class="small muted mb-1">Motivo</label>
+            <input id="anularMotivo" type="text" class="form-control" placeholder="Ej.: monto cargado dos veces">
+          </div>
+          <p class="small muted mb-0"><i class="fas fa-shield-alt mr-1"></i>El movimiento no se borra: queda marcado como anulado (borrado lógico) para auditoría y puede restaurarse.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="btnConfAnular">Anular</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: cerrar caja -->
+  <div class="modal fade" id="mCerrar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Cerrar caja N° 1</h5><button type="button" class="close" data-dismiss="modal">&times;</button></div>
+        <div class="modal-body">
+          <p class="mb-1">Saldo final calculado: <b id="cierreSaldo"></b></p>
+          <p class="small muted mb-0">Al cerrar la caja no se podrán registrar pagos ni movimientos hasta la próxima apertura.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-vino" id="btnConfCerrar">Cerrar caja</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+  <script>
+  (function () {
+    // Modelo en memoria (equivale a Caja con su lista de Movimiento)
+    var caja = { numero: 1, saldoInicial: 50000, abierta: true, movimientos: [
+      { id: 1, hora: "11:05", tipo: "ENTRADA", concepto: "Ingreso de cambio", metodo: "-", comensal: "", monto: 20000, eliminado: false },
+      { id: 2, hora: "12:40", tipo: "ENTRADA", concepto: "Pago mesa 4 · comprobante 0001-00000231", metodo: "Débito", comensal: "Carla Funes", monto: 38500, eliminado: false },
+      { id: 3, hora: "13:15", tipo: "ENTRADA", concepto: "Pago mesa 2 · comprobante 0001-00000232", metodo: "Efectivo", comensal: "Martín Quiroga", monto: 24300, eliminado: false },
+      { id: 4, hora: "13:30", tipo: "SALIDA", concepto: "Pago a proveedor de verduras", metodo: "-", comensal: "", monto: 18000, eliminado: false },
+      { id: 5, hora: "13:52", tipo: "ENTRADA", concepto: "Pago mesa 9 · comprobante 0001-00000233", metodo: "Crédito", comensal: "Lucía Ortega", monto: 61050, eliminado: false },
+      { id: 6, hora: "14:10", tipo: "ENTRADA", concepto: "Pago mesa 9 · comprobante 0001-00000233", metodo: "Crédito", comensal: "Lucía Ortega", monto: 61050, eliminado: true },
+      { id: 7, hora: "14:25", tipo: "ENTRADA", concepto: "Pago mesa 5 · comprobante 0001-00000234", metodo: "QR / billetera virtual", comensal: "Diego Pérez", monto: 45200, eliminado: false },
+      { id: 8, hora: "15:00", tipo: "SALIDA", concepto: "Retiro de efectivo para depósito", metodo: "-", comensal: "", monto: 40000, eliminado: false }
+    ]};
+    var nextId = 9, nuevoId = null, aAnular = null;
+
+    // Pagos enviados desde la vista del comensal (mismo navegador)
+    try {
+      var pend = JSON.parse(localStorage.getItem("pagosPendientes") || "[]");
+      pend.forEach(function (p) { caja.movimientos.push({ id: nextId++, hora: p.hora, tipo: "ENTRADA", concepto: "Pago mesa " + p.mesa + " · comprobante " + p.comprobante, metodo: p.metodo, comensal: p.comensal, monto: p.total, eliminado: false }); nuevoId = nextId - 1; });
+    } catch (e) {}
+
+    var fmt = function (n) { return "$ " + n.toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 2 }); };
+    var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+    function totales() {
+      var ent = 0, sal = 0;
+      caja.movimientos.forEach(function (m) { if (m.eliminado) return; if (m.tipo === "ENTRADA") ent += m.monto; else sal += m.monto; });
+      return { ent: ent, sal: sal, saldo: caja.saldoInicial + ent - sal };   // Caja.calcularSaldo()
+    }
+    function render() {
+      var t = totales(), fT = $("#fTipo").val(), fM = $("#fMetodo").val(), fA = $("#fAnulados").is(":checked");
+      $("#kInicial").text(fmt(caja.saldoInicial)); $("#kEnt").text(fmt(t.ent)); $("#kSal").text(fmt(t.sal)); $("#kSaldo").text(fmt(t.saldo));
+      var rows = caja.movimientos.slice().sort(function (a, b) { return b.hora.localeCompare(a.hora) || b.id - a.id; })
+        .filter(function (m) { return (fA || !m.eliminado) && (!fT || m.tipo === fT) && (!fM || m.metodo === fM); });
+      var html = rows.map(function (m) {
+        var signo = m.tipo === "ENTRADA" ? "+" : "−", cls = m.tipo === "ENTRADA" ? "txt-ok" : "txt-mal";
+        var met = m.metodo === "-" ? '<span class="muted">—</span>' : esc(m.metodo) + '<div class="small muted">' + esc(m.comensal) + '</div>';
+        var acc = !caja.abierta ? "" : m.eliminado
+          ? '<button class="btn-icon restore" data-id="' + m.id + '" title="Restaurar"><i class="fas fa-undo"></i></button>'
+          : '<button class="btn-icon anular" data-id="' + m.id + '" title="Anular"><i class="fas fa-ban"></i></button>';
+        return '<tr class="' + (m.eliminado ? "anulado" : "") + (m.id === nuevoId ? " nuevo" : "") + '"><td>' + m.hora + '</td><td><span class="tipo tipo-' + m.tipo + '">' + m.tipo + '</span></td><td>' + esc(m.concepto) + (m.eliminado ? ' <span class="small">(anulado)</span>' : "") + '</td><td>' + met + '</td><td class="text-right font-weight-bold ' + cls + '">' + signo + " " + fmt(m.monto) + '</td><td class="text-right acc">' + acc + '</td></tr>';
+      }).join("");
+      $("#tbody").html(html || '<tr><td colspan="6" class="text-center muted py-4">No hay movimientos para los filtros elegidos.</td></tr>');
+      var activos = caja.movimientos.filter(function (m) { return !m.eliminado; }).length;
+      $("#pie").text(rows.length + " movimientos listados · " + activos + " activos · " + (caja.movimientos.length - activos) + " anulados");
+      nuevoId = null;
+    }
+
+    $("#fTipo, #fMetodo, #fAnulados").on("change", render);
+
+    // Nuevo movimiento -> Caja.registrarMovimiento(m)
+    $("#formNuevo").on("submit", function (e) {
+      e.preventDefault();
+      var tipo = $("input[name=tipo]:checked").val(), monto = parseFloat($("#nMonto").val()), concepto = $.trim($("#nConcepto").val());
+      var ok = true;
+      $("#nMonto, #nConcepto").removeClass("is-invalid");
+      if (!(monto > 0)) { $("#errMonto").text("Ingresá un monto mayor a 0."); $("#nMonto").addClass("is-invalid"); ok = false; }
+      else if (tipo === "SALIDA" && monto > totales().saldo) { $("#errMonto").text("La salida supera el saldo disponible (" + fmt(totales().saldo) + ")."); $("#nMonto").addClass("is-invalid"); ok = false; }
+      if (!concepto) { $("#nConcepto").addClass("is-invalid"); ok = false; }
+      if (!ok) return;
+      var d = new Date(), hora = ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+      caja.movimientos.push({ id: nextId, hora: hora, tipo: tipo, concepto: concepto, metodo: "-", comensal: "", monto: monto, eliminado: false });
+      nuevoId = nextId++;
+      $("#mNuevo").modal("hide"); this.reset(); $(".tipo-switch .btn").removeClass("active"); $(".tipo-switch .ent").addClass("active");
+      render();
+    });
+
+    // Anular -> Movimiento.eliminar() / Restaurar -> Movimiento.restaurar()
+    $("#tbody").on("click", ".anular", function () {
+      aAnular = caja.movimientos.filter(function (m) { return m.id === +$(this).data("id"); }, this)[0];
+      $("#anularTxt").html("¿Anular <b>" + esc(aAnular.concepto) + "</b> por <b>" + fmt(aAnular.monto) + "</b>?");
+      $("#anularMotivo").val(""); $("#mAnular").modal("show");
+    });
+    $("#btnConfAnular").on("click", function () { if (aAnular) aAnular.eliminado = true; $("#mAnular").modal("hide"); render(); });
+    $("#tbody").on("click", ".restore", function () {
+      var id = +$(this).data("id"); caja.movimientos.forEach(function (m) { if (m.id === id) m.eliminado = false; }); render();
+    });
+
+    // Cerrar caja -> Caja.cerrar()
+    $("#mCerrar").on("show.bs.modal", function () { $("#cierreSaldo").text(fmt(totales().saldo)); });
+    $("#btnConfCerrar").on("click", function () {
+      caja.abierta = false; $("#mCerrar").modal("hide");
+      $("#estado").removeClass("badge-abierta").addClass("badge-cerrada").html('<i class="fas fa-lock mr-1"></i>Cerrada');
+      $("#btnNuevo, #btnCerrar").prop("disabled", true);
+      $("#lblApertura").text("cerrada · saldo final " + fmt(totales().saldo));
+      try { localStorage.setItem("cajaCerrada", "1"); } catch (e) {}
+      render();
+    });
+    try { localStorage.removeItem("cajaCerrada"); } catch (e) {}
+
+    render();
+  })();
+  </script>
+</body>
+</html>
