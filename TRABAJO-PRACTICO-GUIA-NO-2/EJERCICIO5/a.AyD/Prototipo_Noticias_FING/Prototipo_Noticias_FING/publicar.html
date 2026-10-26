@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8">
+        <title>Publicar noticia | Novedades – Facultad de Ingeniería UNCuyo</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="Facultad de Ingeniería, UNCuyo, noticias, novedades" name="keywords">
+        <meta content="Prototipo del portal de noticias de la Facultad de Ingeniería – UNCuyo" name="description">
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap" rel="stylesheet">
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="lib/slick/slick.css" rel="stylesheet">
+        <link href="lib/slick/slick-theme.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet">
+        <link href="css/fing.css" rel="stylesheet">
+    </head>
+
+    <body>
+        <!-- Top Bar Start -->
+        <div class="top-bar">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="tb-contact">
+                            <p><i class="fas fa-map-marker-alt"></i>Centro Universitario, Mendoza</p>
+                            <p><i class="fas fa-globe"></i>ingenieria.uncuyo.edu.ar</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="tb-menu">
+                            <a href="#">Institucional</a>
+                            <a href="#">Carreras</a>
+                            <a href="#">Estudiantes</a>
+                            <a href="publicar.html"><i class="fas fa-lock"></i> Ingreso autores</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Top Bar End -->
+
+        <!-- Brand Start -->
+        <div class="brand">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-3 col-md-4">
+                        <div class="b-logo">
+                            <a href="index.html" class="fing-logo">
+                                <span class="fl-mark">FI</span>
+                                <span class="fl-text"><b>Facultad de Ingeniería</b><small>Universidad Nacional de Cuyo</small></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-md-4">
+                        <div class="b-ads fing-banner">
+                            <a href="index.html#cal">
+                                <i class="far fa-calendar-check"></i>
+                                <span><b>Calendario Académico 2026</b><small>Fechas clave del ciclo lectivo</small></span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-4">
+                        <div class="b-search">
+                            <input type="text" placeholder="Buscar noticias">
+                            <button><i class="fa fa-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Brand End -->
+
+        <!-- Nav Bar Start -->
+        <div class="nav-bar">
+            <div class="container">
+                <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+                    <a href="#" class="navbar-brand">MENÚ</a>
+                    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                        <div class="navbar-nav mr-auto">
+                            <a href="index.html" class="nav-item nav-link">Novedades</a>
+                            <div class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">Categorías</a>
+                                <div class="dropdown-menu">
+                                    <a href="index.html#docentes" class="dropdown-item">Docentes</a>
+                                    <a href="index.html#estudiantes" class="dropdown-item">Estudiantes</a>
+                                    <a href="index.html#institucional" class="dropdown-item">Institucional</a>
+                                    <a href="index.html#capacitacion" class="dropdown-item">Capacitación</a>
+                                    <a href="index.html#general" class="dropdown-item">General</a>
+                                </div>
+                            </div>
+                            <a href="noticia.html" class="nav-item nav-link">Noticia</a>
+                            <a href="publicar.html" class="nav-item nav-link active">Publicar noticia</a>
+                            <a href="contact.html" class="nav-item nav-link">Contacto</a>
+                        </div>
+                        <div class="social ml-auto">
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <!-- Nav Bar End -->
+
+        <!-- Breadcrumb Start -->
+        <div class="breadcrumb-wrap">
+            <div class="container">
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="index.html">Novedades</a></li><li class="breadcrumb-item"><a href="#">Panel del autor</a></li><li class="breadcrumb-item active">Publicar noticia</li>
+                </ul>
+            </div>
+        </div>
+        <!-- Breadcrumb End -->
+
+        <!-- Publicar Start -->
+        <div class="contact publicar">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="contact-form">
+                            <h2 class="section-title">Nueva noticia</h2>
+                            <form onsubmit="return false">
+                                <div class="form-group">
+                                    <label>Título *</label>
+                                    <input type="text" class="form-control" value="Estudiantes compartieron experiencias de prototipado" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Copete (resumen)</label>
+                                    <textarea class="form-control" rows="2">Estudiantes de Mecatrónica, Ciencias de la Computación, Industrial y Diseño Industrial intercambiaron las metodologías de prototipado de cada disciplina.</textarea>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label>Categoría *</label>
+                                        <select class="form-control">
+                                            <option>Docentes</option><option selected>Estudiantes</option><option>Institucional</option><option>Capacitación</option><option>General</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label>Fecha de escritura *</label>
+                                        <input type="date" class="form-control" value="2026-10-26" />
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label>Autor</label>
+                                        <input type="text" class="form-control" value="Comunicación Institucional FING" readonly />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Contenido (cuerpo) *</label>
+                                    <textarea class="form-control" rows="7">Estudiantes de Ingeniería Mecatrónica, Licenciatura en Ciencias de la Computación e Ingeniería Industrial, junto con estudiantes de Diseño Industrial, participaron de una jornada de intercambio sobre los métodos de prototipado que utiliza cada disciplina…</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Imágenes * <small class="text-muted">(mínimo 1 · la primera es la portada)</small></label>
+                                    <div class="upload-box"><i class="fas fa-cloud-upload-alt"></i> Arrastrá una imagen o <a href="#">buscala en tu equipo</a></div>
+                                    <div class="form-row mt-2">
+                                        <div class="col-md-6"><input type="text" class="form-control" placeholder="Epígrafe" value="Estudiantes compartieron experiencias de prototipado" /></div>
+                                        <div class="col-md-6"><input type="text" class="form-control" placeholder="Texto alternativo (accesibilidad)" /></div>
+                                    </div>
+                                    <p class="lib-title">O reutilizá una imagen de la biblioteca:</p>
+                                    <div class="lib-grid">
+                                        <label class="lib-item">
+                                            <input type="checkbox" checked />
+                                            <img src="https://ingenieria.uncuyo.edu.ar/cache/7b6771bd3ffb239d7d0e7a9952bfd0f8_297_526_c.jpeg" alt="Estudiantes compartieron experiencias de prototipado" onerror="this.onerror=null;this.src='img/news-350x223-1.jpg'" />
+                                            <span>Estudiantes compartieron experienc…</span>
+                                        </label>
+                                        <label class="lib-item">
+                                            <input type="checkbox"  />
+                                            <img src="https://ingenieria.uncuyo.edu.ar/cache/baea9432f7dba2b84017a99fb3be1206_297_526_c.jpeg" alt="Egresado de la Facultad compartió su experiencia en inteligencia artificial aplicada a la industria" onerror="this.onerror=null;this.src='img/news-350x223-2.jpg'" />
+                                            <span>Egresado de la Facultad compartió …</span>
+                                        </label>
+                                        <label class="lib-item">
+                                            <input type="checkbox"  />
+                                            <img src="https://ingenieria.uncuyo.edu.ar/cache/fa75d6b1b644260990df5beed2f22eb6_359_636_c.jpeg" alt="Se invita a docentes de la Facultad a experimentar con tecnología de realidad virtual" onerror="this.onerror=null;this.src='img/news-350x223-3.jpg'" />
+                                            <span>Se invita a docentes de la Faculta…</span>
+                                        </label>
+                                        <label class="lib-item">
+                                            <input type="checkbox"  />
+                                            <img src="https://ingenieria.uncuyo.edu.ar/cache/1a93fbaacb18d2e4e3204a726569b5ad_297_526_c.jpeg" alt="La Facultad fortaleció la formación docente en bibliografía digital e inteligencia artificial" onerror="this.onerror=null;this.src='img/news-350x223-4.jpg'" />
+                                            <span>La Facultad fortaleció la formació…</span>
+                                        </label>
+                                        <label class="lib-item">
+                                            <input type="checkbox"  />
+                                            <img src="https://ingenieria.uncuyo.edu.ar/cache/794a9d67102deaf4987b388e63ea918d_297_526_c.jpeg" alt="Perforación offshore: un egresado compartió su experiencia en el Golfo de México" onerror="this.onerror=null;this.src='img/news-350x223-5.jpg'" />
+                                            <span>Perforación offshore: un egresado …</span>
+                                        </label>
+                                        <label class="lib-item">
+                                            <input type="checkbox"  />
+                                            <img src="https://ingenieria.uncuyo.edu.ar/cache/cdf319d503de6df147734744cab57c5d_297_526_c.png" alt="Certificación internacional ACI-ICPA: abren las inscripciones para la edición Mendoza 2026" onerror="this.onerror=null;this.src='img/news-350x223-1.jpg'" />
+                                            <span>Certificación internacional ACI-IC…</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group form-check">
+                                    <input type="checkbox" class="form-check-input" id="dest" />
+                                    <label class="form-check-label" for="dest">Marcar como novedad destacada</label>
+                                </div>
+                                <div class="pub-actions">
+                                    <button class="btn" type="submit"><i class="fas fa-paper-plane"></i> Publicar</button>
+                                    <button class="btn btn-outline" type="button">Guardar borrador</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="contact-info">
+                            <h3>Mis noticias</h3>
+                            <table class="table table-sm mine">
+                                <thead><tr><th>Título</th><th>Fecha</th><th></th></tr></thead>
+                                <tbody>
+                                <tr>
+                                    <td>Llamado a concursos docentes de la Facultad de I…</td>
+                                    <td>26 oct 2026</td>
+                                    <td class="text-nowrap">
+                                        <a href="#" class="btn-icon" title="Editar"><i class="fas fa-pen"></i></a>
+                                        <a href="#" class="btn-icon danger" title="Dar de baja (borrado lógico)"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Egresado de la Facultad compartió su experiencia…</td>
+                                    <td>26 oct 2026</td>
+                                    <td class="text-nowrap">
+                                        <a href="#" class="btn-icon" title="Editar"><i class="fas fa-pen"></i></a>
+                                        <a href="#" class="btn-icon danger" title="Dar de baja (borrado lógico)"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Estudiantes compartieron experiencias de prototi…</td>
+                                    <td>26 oct 2026</td>
+                                    <td class="text-nowrap">
+                                        <a href="#" class="btn-icon" title="Editar"><i class="fas fa-pen"></i></a>
+                                        <a href="#" class="btn-icon danger" title="Dar de baja (borrado lógico)"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Se invita a docentes de la Facultad a experiment…</td>
+                                    <td>22 oct 2026</td>
+                                    <td class="text-nowrap">
+                                        <a href="#" class="btn-icon" title="Editar"><i class="fas fa-pen"></i></a>
+                                        <a href="#" class="btn-icon danger" title="Dar de baja (borrado lógico)"><i class="fas fa-trash-alt"></i></a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <p class="hint"><i class="fas fa-info-circle"></i> Dar de baja una noticia la oculta del portal (borrado lógico); puede restaurarse desde administración.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Publicar End -->
+
+        <!-- Footer Start -->
+        <div class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="footer-widget">
+                            <h3 class="title">Contacto</h3>
+                            <div class="contact-info">
+                                <p><i class="fa fa-map-marker"></i>Centro Universitario, Ciudad de Mendoza</p>
+                                <p><i class="fa fa-globe"></i>ingenieria.uncuyo.edu.ar</p>
+                                <div class="social">
+                                    <a href="#"><i class="fab fa-twitter"></i></a>
+                                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="#"><i class="fab fa-instagram"></i></a>
+                                    <a href="#"><i class="fab fa-youtube"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="footer-widget">
+                            <h3 class="title">Categorías</h3>
+                            <ul>
+                                <li><a href="index.html#docentes">Docentes</a></li>
+                                <li><a href="index.html#estudiantes">Estudiantes</a></li>
+                                <li><a href="index.html#institucional">Institucional</a></li>
+                                <li><a href="index.html#capacitacion">Capacitación</a></li>
+                                <li><a href="index.html#general">General</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="footer-widget">
+                            <h3 class="title">Últimas novedades</h3>
+                            <ul>
+                                <li><a href="noticia.html">Llamado a concursos docentes de la Facultad de Ingeniería</a></li>
+                                <li><a href="noticia.html">Egresado de la Facultad compartió su experiencia en inteligencia artificial aplicada a la industria</a></li>
+                                <li><a href="noticia.html">Estudiantes compartieron experiencias de prototipado</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="footer-widget">
+                            <h3 class="title">Suscripción</h3>
+                            <div class="newsletter">
+                                <p>Recibí en tu correo las novedades de la Facultad de Ingeniería.</p>
+                                <form onsubmit="return false">
+                                    <input class="form-control" type="email" placeholder="Tu correo electrónico">
+                                    <button class="btn">Enviar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End -->
+
+        <!-- Footer Menu Start -->
+        <div class="footer-menu">
+            <div class="container">
+                <div class="f-menu">
+                    <a href="#">Términos de uso</a>
+                    <a href="#">Privacidad</a>
+                    <a href="#">Accesibilidad</a>
+                    <a href="contact.html">Contacto</a>
+                </div>
+            </div>
+        </div>
+        <!-- Footer Menu End -->
+
+        <!-- Footer Bottom Start -->
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 copyright">
+                        <p>Prototipo académico – Ingeniería del Software II · Contenidos: <a href="https://ingenieria.uncuyo.edu.ar/">Facultad de Ingeniería UNCuyo</a></p>
+                    </div>
+                    <div class="col-md-6 template-by">
+                        <!--/*** The author’s attribution link below must remain intact on your website. ***/-->
+                        <p>Designed By <a href="https://htmlcodex.com">HTML Codex</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer Bottom End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+        <script src="lib/easing/easing.min.js"></script>
+        <script src="lib/slick/slick.min.js"></script>
+        <script src="js/main.js"></script>
+    </body>
+</html>

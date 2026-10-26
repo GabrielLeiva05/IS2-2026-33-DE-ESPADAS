@@ -1,0 +1,57 @@
+/* Ajustes del prototipo FING sobre la plantilla News (HTML Codex) */
+.fing-logo { display: flex; align-items: center; gap: 12px; text-decoration: none !important; }
+.fing-logo .fl-mark { width: 52px; height: 52px; border-radius: 6px; background: #FF6F61; color: #fff; font-weight: 600; font-size: 22px; display: flex; align-items: center; justify-content: center; }
+.fing-logo .fl-text { display: flex; flex-direction: column; color: #000; line-height: 1.2; }
+.fing-logo .fl-text b { font-size: 17px; }
+.fing-logo .fl-text small { font-size: 12px; color: #666; }
+.fing-banner a { display: flex; align-items: center; justify-content: center; gap: 14px; height: 70px; border: 1px dashed #FF6F61; border-radius: 6px; color: #000; text-decoration: none !important; }
+.fing-banner i { font-size: 30px; color: #FF6F61; }
+.fing-banner span { display: flex; flex-direction: column; }
+.fing-banner small { color: #666; }
+.n-cat { display: inline-block; background: #FF6F61; color: #fff; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; padding: 2px 8px; border-radius: 3px; margin-bottom: 6px; }
+.n-meta { display: block; margin-top: 6px; font-size: 12px; color: rgba(255,255,255,.85); }
+.n-meta.dark { color: #777; }
+.n-meta i { margin-right: 3px; }
+.top-news .tn-title > div, .cat-news .cn-title > div { width: 100%; }
+.top-news .tn-right .tn-title a { font-size: 15px; }
+.top-news .tn-left .tn-title a { font-size: 24px; }
+.cat-news .cn-title a { font-size: 14px; line-height: 1.35; }
+.cat-news .cn-title .n-cat { margin-bottom: 4px; }
+.tab-news .tn-title .n-meta { margin-top: 2px; }
+.main-news .mn-img { margin-bottom: 8px !important; }
+.main-news .mn-meta { margin: 0 0 25px 0; }
+.footer .footer-widget ul li a { white-space: normal; }
+.main-news .mn-meta .n-meta { display: inline; margin-left: 8px; }
+.main-news .mn-title a { font-size: 15px; }
+.section-title { font-size: 24px; font-weight: 600; margin-bottom: 20px; color: #000; }
+.single-news .sn-copete { font-size: 18px; color: #444; margin: 10px 0 20px; }
+.single-news .sn-author { display: flex; align-items: center; gap: 12px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 12px 0; }
+.single-news .sn-author .sa-avatar { width: 42px; height: 42px; border-radius: 50%; background: #f3f6ff; color: #FF6F61; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.single-news .sn-author span { display: flex; flex-direction: column; }
+.single-news .sn-author small { color: #777; }
+.single-news figure.sn-img figcaption { font-size: 13px; color: #777; padding: 8px 0; font-style: italic; }
+.single-news .sn-body { padding-top: 10px; }
+.single-news .sn-body p { font-size: 16px; line-height: 1.75; }
+.single-news .sn-source { font-size: 14px; color: #777; }
+.single-news .sn-gallery h2, .single-news .sn-related h2 { font-size: 22px; font-weight: 600; margin: 10px 0 15px; }
+.single-news .gal-img { margin-bottom: 30px; border-radius: 4px; }
+.single-news .gal-img img { height: 140px; object-fit: cover; }
+.sidebar .category ul { list-style: none; padding: 0; }
+.sidebar .category li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+.sidebar .category li a { color: #000; }
+.publicar label { font-weight: 600; font-size: 14px; }
+.publicar .upload-box { border: 2px dashed #ccc; border-radius: 6px; padding: 22px; text-align: center; color: #777; }
+.publicar .upload-box i { color: #FF6F61; font-size: 22px; margin-right: 6px; }
+.publicar .lib-title { margin: 14px 0 8px; font-size: 14px; color: #555; }
+.publicar .lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.publicar .lib-item { position: relative; font-weight: 400 !important; font-size: 12px; cursor: pointer; border: 1px solid #eee; border-radius: 4px; overflow: hidden; margin: 0; }
+.publicar .lib-item img { width: 100%; height: 80px; object-fit: cover; display: block; }
+.publicar .lib-item input { position: absolute; top: 6px; left: 6px; transform: scale(1.3); }
+.publicar .lib-item span { display: block; padding: 4px 6px; color: #555; }
+.publicar .pub-actions { display: flex; gap: 10px; margin-top: 10px; }
+.publicar .btn-outline { background: #fff !important; color: #FF6F61 !important; border: 1px solid #FF6F61 !important; }
+.publicar .mine td { font-size: 13px; vertical-align: middle; }
+.publicar .btn-icon { color: #555; margin-left: 8px; }
+.publicar .btn-icon.danger { color: #d9534f; }
+.publicar .hint { font-size: 13px; color: #777; }
+@media (max-width: 767px) { .publicar .lib-grid { grid-template-columns: repeat(2, 1fr); } .fing-banner { display: none; } }
