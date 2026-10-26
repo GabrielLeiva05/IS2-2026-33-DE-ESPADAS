@@ -1,0 +1,147 @@
+### Archivo de pruebas de la API (IntelliJ HTTP Client / extensión "REST Client" de VS Code)
+### El servidor debe estar corriendo en http://localhost:8080
+
+@base = http://localhost:8080/api/v1
+@token = pegar-aqui-el-accessToken
+
+### Autenticación (usar las credenciales configuradas en el servidor)
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{ "username": "cliente", "password": "cambiar-esta-clave" }
+
+### Las llamadas siguientes requieren:
+### Authorization: Bearer <accessToken devuelto por /auth/login>
+
+### ---------------- LOCALIDADES ----------------
+GET {{base}}/localidades
+Authorization: Bearer {{token}}
+
+###
+GET {{base}}/localidades/1
+Authorization: Bearer {{token}}
+
+###
+POST {{base}}/localidades
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ "denominacion": "Tunuyán" }
+
+###
+PUT {{base}}/localidades/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ "denominacion": "Mendoza (Capital)" }
+
+###
+DELETE {{base}}/localidades/7
+Authorization: Bearer {{token}}
+
+### ---------------- AUTORES ----------------
+GET {{base}}/autores
+Authorization: Bearer {{token}}
+
+###
+POST {{base}}/autores
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ "nombre": "Ernesto", "apellido": "Sabato", "biografia": "Escritor argentino." }
+
+###
+PUT {{base}}/autores/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{ "nombre": "Gabriel", "apellido": "García Márquez", "biografia": "Biografía actualizada." }
+
+###
+DELETE {{base}}/autores/5
+Authorization: Bearer {{token}}
+
+### ---------------- PERSONAS (con su domicilio) ----------------
+GET {{base}}/personas
+Authorization: Bearer {{token}}
+
+###
+GET {{base}}/personas?filtro=mart
+Authorization: Bearer {{token}}
+
+###
+GET {{base}}/personas/1
+Authorization: Bearer {{token}}
+
+###
+# Alta de persona + domicilio (la localidad se referencia por id)
+POST {{base}}/personas
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "María",
+  "apellido": "López",
+  "dni": 33444555,
+  "domicilio": {
+    "calle": "Av. Las Heras",
+    "numero": 250,
+    "localidad": { "id": 1 }
+  }
+}
+
+###
+PUT {{base}}/personas/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "nombre": "Ana",
+  "apellido": "Martínez",
+  "dni": 30123456,
+  "domicilio": { "calle": "Av. San Martín", "numero": 1300, "localidad": { "id": 2 } }
+}
+
+###
+DELETE {{base}}/personas/3
+Authorization: Bearer {{token}}
+
+### ---------------- LIBROS DE UNA PERSONA (composición) ----------------
+GET {{base}}/personas/1/libros
+Authorization: Bearer {{token}}
+
+###
+GET {{base}}/personas/1/libros/1
+Authorization: Bearer {{token}}
+
+###
+# Alta de libro con dos autores (relación muchos a muchos, por id de autor)
+POST {{base}}/personas/1/libros
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "titulo": "El túnel",
+  "fecha": 1948,
+  "genero": "Novela",
+  "paginas": 160,
+  "autores": [ { "id": 3 } ]
+}
+
+###
+PUT {{base}}/personas/1/libros/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "titulo": "Cien años de soledad",
+  "fecha": 1967,
+  "genero": "Novela",
+  "paginas": 471,
+  "autor": "Gabriel García Márquez",
+  "autores": [ { "id": 1 } ]
+}
+
+###
+DELETE {{base}}/personas/1/libros/1
+Authorization: Bearer {{token}}
