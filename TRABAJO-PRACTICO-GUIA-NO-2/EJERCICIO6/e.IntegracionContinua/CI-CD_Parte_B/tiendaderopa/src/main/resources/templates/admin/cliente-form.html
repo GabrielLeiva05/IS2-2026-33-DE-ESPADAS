@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body>
+<aside th:replace="~{fragments/sidebar :: sidebar}"></aside>
+<main class="main">
+    <header class="header">
+        <h1 th:text="${cliente.id == null ? 'Nuevo cliente' : 'Editar cliente'}"></h1>
+    </header>
+    <p class="notice error" th:if="${error}" th:text="${error}"></p>
+    <form class="form-container" method="post"
+          th:action="${cliente.id == null ? '/admin/clientes' : '/admin/clientes/' + cliente.id}">
+        <div class="form-group"><label for="nombre">Nombre</label><input id="nombre" name="nombre" required th:value="${cliente.nombre}"></div>
+        <div class="form-group"><label for="apellido">Apellido</label><input id="apellido" name="apellido" required th:value="${cliente.apellido}"></div>
+        <div class="form-group"><label for="fechaNacimiento">Fecha de nacimiento</label><input id="fechaNacimiento" name="fechaNacimiento" type="date" required th:value="${cliente.fechaNacimiento != null ? #dates.format(cliente.fechaNacimiento, 'yyyy-MM-dd') : ''}"></div>
+        <div class="form-group"><label for="tipoDocumento">Tipo de documento</label><select id="tipoDocumento" name="tipoDocumento" required><option th:each="tipo : ${tiposDocumento}" th:value="${tipo}" th:text="${tipo}" th:selected="${tipo == cliente.tipoDocumento}"></option></select></div>
+        <div class="form-group"><label for="documento">Documento</label><input id="documento" name="documento" required th:value="${cliente.documento}"></div>
+        <div class="form-group"><label for="direccionEstadia">Dirección</label><input id="direccionEstadia" name="direccionEstadia" th:value="${cliente.direccionEstadia}"></div>
+        <div class="form-actions">
+            <button class="btn-submit" type="submit">Guardar</button>
+            <a class="btn-cancel" th:href="@{/admin/clientes}">Cancelar</a>
+        </div>
+    </form>
+</main>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
