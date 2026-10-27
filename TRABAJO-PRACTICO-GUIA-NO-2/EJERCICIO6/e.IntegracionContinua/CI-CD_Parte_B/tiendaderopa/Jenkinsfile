@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        jdk 'JDK25'
+    }
+
     options {
         skipDefaultCheckout(true)
     }
