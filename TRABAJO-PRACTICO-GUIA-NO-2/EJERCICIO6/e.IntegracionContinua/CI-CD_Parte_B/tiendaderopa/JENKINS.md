@@ -12,7 +12,7 @@ Si Jenkins corre dentro de un contenedor, el contenedor (o el agente que ejecuta
 
 ## Crear y cargar el pipeline en Jenkins
 
-1. En **Manage Jenkins → Tools → JDK installations**, agregue o seleccione una instalación de Java 25 y asígnele el nombre `JDK25`. Puede apuntar a un JDK 25 ya instalado en el agente o configurar su instalación automática. Verifique que incluya `javac`; un JRE no alcanza para compilar.
+1. En **Manage Jenkins → Tools → JDK installations**, agregue o seleccione una instalación real de Java 25 y asígnele el nombre `JDK25`. Puede apuntar a un JDK 25 ya instalado en el agente o configurar su instalación automática. Verifique que incluya `javac`; un JRE no alcanza para compilar. El nombre es solo una etiqueta: no convierte un JDK anterior en Java 25.
 2. Confirme que los archivos `Jenkinsfile`, `Dockerfile` y `.dockerignore` estén guardados en el repositorio y accesibles desde la rama que Jenkins va a construir.
 3. En Jenkins, seleccione **New Item**, asigne un nombre y elija **Pipeline**.
 4. En **Pipeline**, seleccione **Pipeline script from SCM**, elija **Git** e indique la URL del repositorio. Configure credenciales si el repositorio es privado y seleccione la rama a construir.
@@ -21,7 +21,7 @@ Si Jenkins corre dentro de un contenedor, el contenedor (o el agente que ejecuta
 6. Guarde la configuración y seleccione **Build Now**. El pipeline solicita la herramienta `JDK25`, clona el repositorio, ejecuta `./mvnw -B clean verify` desde el directorio del proyecto y construye la imagen si las pruebas terminan correctamente.
 7. Revise **Console Output** y la sección de resultados de pruebas. Para comprobar la imagen desde el host/daemon compartido, ejecute `docker images tiendaderopa`; el tag numérico corresponde al número del build.
 
-El wrapper descarga Maven según `.mvn/wrapper/maven-wrapper.properties`; no es necesario instalar Maven manualmente. El nombre `JDK25` de Jenkins debe coincidir exactamente con el solicitado en el `Jenkinsfile`.
+El wrapper descarga Maven según `.mvn/wrapper/maven-wrapper.properties`; no es necesario instalar Maven manualmente. El nombre `JDK25` de Jenkins debe coincidir exactamente con el solicitado en el `Jenkinsfile`. Antes de Maven, el pipeline verifica `javac` y la JVM que reporta `mvnw -version`; ambos deben indicar la versión 25.
 
 ## Construcción y ejecución manual
 

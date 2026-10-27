@@ -21,6 +21,32 @@ pipeline {
             }
         }
 
+        stage('Verificar JDK 25') {
+            steps {
+                dir(env.PROJECT_DIR) {
+                    sh '''
+                        echo "JAVA_HOME=$JAVA_HOME"
+                        java -version
+                        javac_version="$(javac -version 2>&1)"
+                        echo "$javac_version"
+                        case "$javac_version" in
+                            "javac 25"*) ;;
+                            *)
+                                echo "Se requiere JDK 25; javac detectado: $javac_version" >&2
+                                exit 1
+                                ;;
+                        esac
+                        maven_version="$(sh mvnw -version)"
+                        printf '%s\\n' "$maven_version"
+                        printf '%s\\n' "$maven_version" | grep -Eq 'Java version: 25([.,]|$)' || {
+                            echo "Maven no se está ejecutando con Java 25." >&2
+                            exit 1
+                        }
+                    '''
+                }
+            }
+        }
+
         stage('Pruebas y empaquetado') {
             steps {
                 dir(env.PROJECT_DIR) {
