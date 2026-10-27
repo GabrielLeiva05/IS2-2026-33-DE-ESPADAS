@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    options {
+        skipDefaultCheckout(true)
+    }
+
+    environment {
+        PROJECT_DIR = 'TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO6/e.IntegracionContinua/CI-CD_Parte_B/tiendaderopa'
+        IMAGE_NAME = 'tiendaderopa'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Pruebas y empaquetado') {
+            steps {
+                dir(env.PROJECT_DIR) {
+                    sh 'sh mvnw -B clean verify'
+                }
+            }
+            post {
+                always {
+                    junit testResults: "${PROJECT_DIR}/target/surefire-reports/*.xml", allowEmptyResults: true
+                }
+            }
+        }
+
+        stage('Construir imagen Docker local') {
+            steps {
+                dir(env.PROJECT_DIR) {
+                    sh 'docker build --pull -t "$IMAGE_NAME:$BUILD_NUMBER" -t "$IMAGE_NAME:latest" .'
+                }
+            }
+        }
+    }
+}
