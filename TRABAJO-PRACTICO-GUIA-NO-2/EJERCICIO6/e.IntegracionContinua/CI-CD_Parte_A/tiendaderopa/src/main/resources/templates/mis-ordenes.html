@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mis compras | ZERO</title>
+    <link rel="stylesheet" th:href="@{/css/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/store.css}">
+</head>
+<body class="storefront">
+<header th:replace="~{fragments/store-header :: storeHeader}"></header>
+
+<main class="cart-main">
+    <header class="cart-heading">
+        <div>
+            <p class="eyebrow">TU CUENTA</p>
+            <h1 th:text="${titulo}">Mis compras</h1>
+        </div>
+    </header>
+
+    <p class="feedback success" th:if="${mensaje}" th:text="${mensaje}"></p>
+    <p class="feedback error" th:if="${error}" th:text="${error}"></p>
+
+    <div class="order-actions" th:if="${permitirFiltrarEstado or permitirCrearOrden}">
+        <form class="order-filter" th:if="${permitirFiltrarEstado}" method="get" th:action="${basePath}">
+            <label for="estadoFiltro">Estado</label>
+            <select id="estadoFiltro" name="estado">
+                <option value="">Todos los estados</option>
+                <option th:each="estado : ${estadosOrden}" th:value="${estado}" th:text="${estado}"
+                        th:selected="${estado == estadoSeleccionado}"></option>
+            </select>
+            <button class="order-button" type="submit">Filtrar</button>
+        </form>
+        <form th:if="${permitirCrearOrden}" method="post" th:action="${basePath + '/crear'}">
+            <button class="order-button primary" type="submit">Abrir carrito</button>
+        </form>
+    </div>
+
+    <section class="order-detail-form" th:if="${permitirAgregarDetalle}">
+        <h2>Agregar producto a la orden</h2>
+        <form class="order-filter" method="post" th:action="${basePath + '/' + ordenId + '/detalles'}">
+            <label for="productoId">Producto</label>
+            <select id="productoId" name="productoId" required>
+                <option value="">Seleccionar</option>
+                <option th:each="opcion : ${productosDisponibles}" th:value="${opcion.key}"
+                        th:text="${opcion.value}"></option>
+            </select>
+            <label for="cantidad">Cantidad</label>
+            <input id="cantidad" name="cantidad" type="number" min="1" value="1" required>
+            <button class="order-button primary" type="submit">Agregar</button>
+        </form>
+    </section>
+
+    <section class="orders-table-wrap">
+        <div class="orders-table-scroll">
+            <table class="orders-table">
+                <thead>
+                <tr>
+                    <th th:each="columna : ${columnas}" th:text="${columna.etiqueta}"></th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="fila : ${filas}">
+                    <td th:each="columna : ${columnas}" th:text="${fila[columna.clave]}"></td>
+                    <td class="order-row-actions">
+                        <a class="order-link" th:if="${permitirVerDetalle}"
+                           th:href="${detallePath + '/' + fila['id']}">Ver detalle</a>
+                        <form method="post" th:if="${permitirAnular and fila['estadoOrdenCompra'] == 'PENDIENTE_DE_PAGO'}"
+                              th:action="${basePath + '/' + fila['id'] + '/anular'}">
+                            <button class="order-link cancel" type="submit">Anular</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(filas)}">
+                    <td class="orders-empty" th:colspan="${#lists.size(columnas) + 1}">Todavía no tenés compras para mostrar.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/cart-drawer-shell :: shell}"></div>
+<footer class="store-footer"><span>ZERO</span><span>Ropa deportiva unisex</span></footer>
+<script th:src="@{/js/store.js}" defer></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+name: Integracion - Tienda de Ropa
+
+on:
+  push:
+    paths:
+      - .github/workflows/tiendaderopa-integration.yml
+      - TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO6/e.IntegracionContinua/CI-CD_Parte_A/tiendaderopa/**
+  pull_request:
+    paths:
+      - .github/workflows/tiendaderopa-integration.yml
+      - TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO6/e.IntegracionContinua/CI-CD_Parte_A/tiendaderopa/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  integration-tests:
+    name: Pruebas de integracion
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: TRABAJO-PRACTICO-GUIA-NO-2/EJERCICIO6/e.IntegracionContinua/CI-CD_Parte_A/tiendaderopa
+    steps:
+      - name: Obtener codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Ejecutar pruebas de integracion
+        run: bash ./mvnw --batch-mode --no-transfer-progress verify

@@ -1,0 +1,124 @@
+package com.ejercicioIntegrador.tiendaderopa.service;
+
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoContacto;
+import com.ejercicioIntegrador.tiendaderopa.enumeraciones.TipoTelefono;
+import com.ejercicioIntegrador.tiendaderopa.exceptions.MiException;
+import com.ejercicioIntegrador.tiendaderopa.model.ContactoTelefonico;
+import com.ejercicioIntegrador.tiendaderopa.model.Persona;
+import com.ejercicioIntegrador.tiendaderopa.model.Proveedor;
+import com.ejercicioIntegrador.tiendaderopa.repository.RepositorioContactoTelefonico;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class ServicioContactoTelefonico {
+
+    @Autowired
+    private RepositorioContactoTelefonico repositorio;
+
+    @Autowired
+    private PersonaServicio personaServicio;
+
+    @Autowired
+    private ServicioProveedor svcProveedor;
+
+    @Transactional
+    public ContactoTelefonico crearContactoTelefonico(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto,
+                                                      String observacion, String idPersona, String idProveedor) throws MiException {
+        validar(telefono, tipoTelefono, tipoContacto, observacion);
+
+        boolean tienePersona = idPersona != null && !idPersona.isBlank();
+        boolean tieneProveedor = idProveedor != null && !idProveedor.isBlank();
+        if (tienePersona == tieneProveedor) { // los dos true, o los dos false
+            throw new MiException("El contacto debe pertenecer a exactamente una Persona o un Proveedor, no ambos ni ninguno");
+        }
+
+        ContactoTelefonico contacto;
+        if (tienePersona) {
+            Persona persona = personaServicio.buscarPersona(idPersona);
+            contacto = new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, persona);
+        } else {
+            Proveedor proveedor = svcProveedor.buscarProveedor(idProveedor);
+            contacto = new ContactoTelefonico(telefono.trim(), tipoTelefono, tipoContacto, observacion, proveedor);
+        }
+
+        return repositorio.save(contacto);
+    }
+
+    
+    public void validar(String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion)
+            throws MiException {
+        if (telefono == null || telefono.trim().isEmpty()) {
+            throw new MiException("El teléfono no puede estar vacío");
+        }
+        if (!telefono.trim().matches("\\d{6,15}")) {
+            throw new MiException("El teléfono debe contener entre 6 y 15 dígitos numéricos");
+        }
+        if (tipoTelefono == null) {
+            throw new MiException("Debe indicar el tipo de teléfono (FIJO o CELULAR)");
+        }
+        if (tipoContacto == null) {
+            throw new MiException("Debe indicar el tipo de contacto (PERSONAL, LABORAL o EMPRESA)");
+        }
+        if (observacion != null && observacion.length() > 255) {
+            throw new MiException("La observación no puede superar los 255 caracteres");
+        }
+    }
+
+    @Transactional
+    public ContactoTelefonico modificarContactoTelefonico(String id, String telefono, TipoTelefono tipoTelefono, TipoContacto tipoContacto, String observacion)
+            throws MiException {
+
+        validar(telefono, tipoTelefono, tipoContacto, observacion);
+
+        ContactoTelefonico contacto = this.repositorio.findById(id).orElseThrow(() -> new MiException("No existe un contacto telefónico con id: " + id));
+
+        contacto.setTelefono(telefono.trim());
+        contacto.setTipoTelefono(tipoTelefono);
+        contacto.setTipoContacto(tipoContacto);
+        contacto.setObservacion(observacion);
+
+        return this.repositorio.save(contacto);
+    }
+
+    @Transactional
+    public ContactoTelefonico guardarTelefonoPerfil(Persona persona, String telefono) throws MiException {
+        validar(telefono, TipoTelefono.CELULAR, TipoContacto.PERSONAL, null);
+        ContactoTelefonico contacto = persona.getContactos().stream()
+                .filter(ContactoTelefonico.class::isInstance)
+                .map(ContactoTelefonico.class::cast)
+                .filter(actual -> !actual.isEliminado())
+                .findFirst()
+                .orElseGet(() -> new ContactoTelefonico(telefono.trim(), TipoTelefono.CELULAR,
+                        TipoContacto.PERSONAL, null, persona));
+        contacto.setTelefono(telefono.trim());
+        contacto.setTipoTelefono(TipoTelefono.CELULAR);
+        contacto.setTipoContacto(TipoContacto.PERSONAL);
+        if (!persona.getContactos().contains(contacto)) {
+            persona.getContactos().add(contacto);
+        }
+        return repositorio.save(contacto);
+    }
+
+    @Transactional
+    public List<ContactoTelefonico> listarContactoTelefonico() {
+        return this.repositorio.findAll();
+    }
+
+    @Transactional
+    public List<ContactoTelefonico> listarContactoTelefonicoActivo() {
+        return this.repositorio.findByEliminadoFalse();
+    }
+
+    public Optional<String> buscarCelularDeProveedor(String idProveedor) {
+        return repositorio.findByProveedor_IdAndEliminadoFalse(idProveedor)
+                .stream()
+                .filter(contacto -> contacto.getTipoTelefono() == TipoTelefono.CELULAR)
+                .map(ContactoTelefonico::getTelefono)
+                .findFirst();
+    }
+}
