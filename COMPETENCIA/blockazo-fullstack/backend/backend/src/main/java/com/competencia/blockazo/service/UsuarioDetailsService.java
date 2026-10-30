@@ -26,7 +26,7 @@ public class UsuarioDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String correo) throws UsernameNotFoundException {
-        Usuario usuario = usuarioRepository.buscarPorCorreo(correo == null ? "" : correo.trim())
+        Usuario usuario = usuarioRepository.findByCorreoIgnoreCase(correo == null ? "" : correo.trim())
                 .orElseThrow(() -> new UsernameNotFoundException("No existe un usuario con ese correo"));
 
         Rol rol = usuario.getRol() != null ? usuario.getRol() : Rol.USUARIO;

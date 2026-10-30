@@ -39,7 +39,7 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (usuarioRepository.buscarPorCorreo(correoAdmin).isPresent()) {
+        if (usuarioRepository.findByCorreoIgnoreCase(correoAdmin).isPresent()) {
             return;
         }
         Usuario admin = Usuario.builder()

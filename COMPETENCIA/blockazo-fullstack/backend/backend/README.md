@@ -27,15 +27,24 @@ com.competencia.blockazo
   * alta: `validar(ALTA) → preAlta → save → postAlta`
   * modificar: `existe? → validar(MODIFICACION) → preModificacion → save → postModificacion`
   * baja: `existe? → validar(BAJA) → preBaja → eliminado = true → save → postBaja` (baja lógica)
-* `UsuarioService` sólo redefine los **hooks**: `validar` (obligatorios, formato de correo/DNI, unicidad),
-  `preAlta` (encripta la clave con BCrypt, rol y fecha de alta), `preModificacion` (conserva la clave si no se envía).
-* `BaseController` define los endpoints REST del ABM; `UsuarioController` sólo hereda y redefine el hook
-  `preUseCase` (un admin no puede darse de baja a sí mismo).
+* `UsuarioService` sólo redefine los **hooks**: `validar` (obligatorios, nombre/apellido solo letras, formato de correo/DNI,
+  unicidad, un admin no puede darse de baja a sí mismo), `preAlta` (encripta la clave con BCrypt, rol y fecha de alta),
+  `preModificacion` (correo, DNI y fecha de nacimiento no se pueden modificar; conserva la clave si no se envía).
+* `BaseController` define los endpoints REST del ABM; `UsuarioController` sólo hereda. **Las reglas de negocio
+  viven únicamente en el servicio**, los controllers no tienen lógica de negocio.
+* `UsuarioRepository` extiende `BaseRepository` (que extiende `JpaRepository`) y usa métodos derivados
+  (`findByCorreoIgnoreCase`, `findByDni`).
 * El registro público y la edición del perfil **también pasan por los métodos plantilla** (`alta` y `modificar`).
 
 ## Datos de la persona
 
 nombre, apellido, dni, fechaNacimiento (`yyyy-MM-dd`), direccion, **correo (= nombre de usuario)**, clave.
+
+Reglas:
+
+* `nombre` y `apellido`: solo letras (con acentos), separadas por espacio, apóstrofe o guion. No se admiten números.
+* `correo`, `dni` y `fechaNacimiento` **no se pueden modificar** (ni desde el Perfil ni desde el ABM).
+  Excepción: quien ingresó con Google/Auth0 y todavía no tiene DNI o fecha de nacimiento los puede cargar **una vez**.
 
 ## Endpoints
 
@@ -45,7 +54,7 @@ nombre, apellido, dni, fechaNacimiento (`yyyy-MM-dd`), direccion, **correo (= no
 | POST | `/api/auth/login` | público | Login `{correo, clave}`. Devuelve `{token, tipo, usuario}` |
 | GET | `/oauth2/authorization/google` | público (navegador) | Login con Google → redirige a `app.frontend.oauth2-redirect?token=...` |
 | GET | `/api/perfil` | logueado | **Mi perfil**: ver mis datos |
-| PUT | `/api/perfil` | logueado | Modificar **todos** mis datos (devuelve token nuevo por si cambió el correo) |
+| PUT | `/api/perfil` | logueado | Modificar mis datos (nombre, apellido, dirección; correo/DNI/fecha no se pueden cambiar). Devuelve `{token, tipo, usuario}` |
 | PUT | `/api/perfil/clave` | logueado | Cambiar clave `{claveActual, claveNueva, confirmacionClave}` |
 | GET | `/api/usuarios` | ADMIN | Listar usuarios activos |
 | GET | `/api/usuarios/{id}` | ADMIN | Consultar |
@@ -80,12 +89,24 @@ POST /api/auth/register
 5. Quien entra con Google puede completar DNI / fecha / dirección desde el Perfil y definir una clave
    (el campo `claveActual` puede ir vacío mientras `tieneClave = false`).
 
-Para usar **Auth0** en lugar de (o además de) Google, descomentar el bloque `auth0` en `application.properties`;
-el login queda en `/oauth2/authorization/auth0`.
+## Login con Auth0 (opcional)
+
+1. En Auth0 crear una aplicación de tipo **Regular Web Application** (no SPA: necesita client secret).
+2. En *Allowed Callback URLs* cargar `http://localhost:8080/login/oauth2/code/auth0`
+   (y `http://localhost:5173/login/oauth2/code/auth0` si se usa el proxy de Vite).
+3. Definir `AUTH0_DOMAIN` (solo el dominio, ej. `mi-tenant.us.auth0.com`), `AUTH0_CLIENT_ID` y `AUTH0_CLIENT_SECRET`
+   (variables de entorno o archivo `.env`, ver `.env.example`).
+4. Arrancar con el perfil `auth0`: `SPRING_PROFILES_ACTIVE=auth0` o `./mvnw spring-boot:run -Dspring-boot.run.profiles=auth0`.
+5. El login queda en `/oauth2/authorization/auth0`.
+
+La configuración está en `application-auth0.properties`. Si falla con `invalid_client`, la causa real se imprime en el log
+del backend (`Login OAuth2 fallido: ...`). Revisar: client id/secret sin espacios, tipo de aplicación, y que el
+*Token Endpoint Authentication Method* de Auth0 coincida con `client-authentication-method` (por defecto `Post` = `client_secret_post`).
 
 ## Cómo levantarlo
 
-1. Tener MySQL corriendo (la base `blockazo` se crea sola). Usuario/clave por defecto `root/root`,
+1. Tener MySQL corriendo (la base `blockazo` se crea sola). Usuario/clave por defecto `root/2003`,
    se cambian con `DB_USERNAME` / `DB_PASSWORD` o en `application.properties`.
+   Las variables también se pueden poner en un archivo `.env` (copiar `.env.example`), que Spring lee automáticamente.
 2. `./mvnw spring-boot:run` (Windows: `mvnw.cmd spring-boot:run`).
 3. Tests de punta a punta (usan H2 en memoria, no necesitan MySQL): `./mvnw test`.

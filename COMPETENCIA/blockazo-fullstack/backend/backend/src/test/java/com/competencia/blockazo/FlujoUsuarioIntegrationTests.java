@@ -1,5 +1,10 @@
 package com.competencia.blockazo;
 
+import com.competencia.blockazo.error.ErrorServiceException;
+import com.competencia.blockazo.model.dto.PerfilRequest;
+import com.competencia.blockazo.model.entity.Usuario;
+import com.competencia.blockazo.model.enums.Proveedor;
+import com.competencia.blockazo.service.UsuarioService;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,6 +16,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -29,6 +38,9 @@ class FlujoUsuarioIntegrationTests {
 
     @Autowired
     private WebApplicationContext context;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     private MockMvc mvc;
 
@@ -85,21 +97,57 @@ class FlujoUsuarioIntegrationTests {
                 .andExpect(jsonPath("$.dni").value("30111222"))
                 .andExpect(jsonPath("$.fechaNacimiento").value("1995-05-20"));
 
-        // Modificar todos los datos (incluido el correo) -> devuelve token nuevo
+        // Nombre con numeros -> 400
+        mvc.perform(put("/api/perfil").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Juan2","apellido":"Perez","dni":"30111222","fechaNacimiento":"1995-05-20",
+                                 "direccion":"Belgrano 456","correo":"juan@mail.com"}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        // El correo, el DNI y la fecha de nacimiento no se pueden modificar -> 400
+        mvc.perform(put("/api/perfil").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Juan","apellido":"Perez","dni":"30111222","fechaNacimiento":"1995-05-20",
+                                 "direccion":"Belgrano 456","correo":"otro@mail.com"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("El correo no se puede modificar"));
+        mvc.perform(put("/api/perfil").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Juan","apellido":"Perez","dni":"30111223","fechaNacimiento":"1995-05-20",
+                                 "direccion":"Belgrano 456","correo":"juan@mail.com"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("El DNI no se puede modificar"));
+        mvc.perform(put("/api/perfil").header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Juan","apellido":"Perez","dni":"30111222","fechaNacimiento":"1995-05-21",
+                                 "direccion":"Belgrano 456","correo":"juan@mail.com"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("La fecha de nacimiento no se puede modificar"));
+
+        // Se pueden modificar nombre, apellido y direccion (el correo/DNI/fecha se envian iguales)
         String perfilBody = mvc.perform(put("/api/perfil").header("Authorization", auth)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"nombre":"Juan Carlos","apellido":"Perez","dni":"30111223","fechaNacimiento":"1995-05-21",
-                                 "direccion":"Belgrano 456","correo":"juancarlos@mail.com"}
+                                {"nombre":"Juan Carlos","apellido":"Perez","dni":"30111222","fechaNacimiento":"1995-05-20",
+                                 "direccion":"Belgrano 456","correo":"juan@mail.com"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.usuario.nombre").value("Juan Carlos"))
-                .andExpect(jsonPath("$.usuario.correo").value("juancarlos@mail.com"))
+                .andExpect(jsonPath("$.usuario.correo").value("juan@mail.com"))
+                .andExpect(jsonPath("$.usuario.dni").value("30111222"))
                 .andReturn().getResponse().getContentAsString();
         String auth2 = token(perfilBody);
 
         // La clave se conserva tras modificar el perfil
-        login("juancarlos@mail.com", "secreta1");
+        login("juan@mail.com", "secreta1");
 
         // Cambiar clave con clave actual incorrecta -> 400
         mvc.perform(put("/api/perfil/clave").header("Authorization", auth2).contentType(MediaType.APPLICATION_JSON)
@@ -111,7 +159,7 @@ class FlujoUsuarioIntegrationTests {
                         .content("{\"claveActual\":\"secreta1\",\"claveNueva\":\"nueva123\",\"confirmacionClave\":\"nueva123\"}"))
                 .andExpect(status().isOk());
 
-        login("juancarlos@mail.com", "nueva123");
+        login("juan@mail.com", "nueva123");
 
         // Un usuario comun no puede usar el ABM
         mvc.perform(get("/api/usuarios").header("Authorization", auth2))
@@ -145,6 +193,22 @@ class FlujoUsuarioIntegrationTests {
                                 """))
                 .andExpect(status().isBadRequest());
 
+        // Validacion del hook validar(): el nombre y el apellido no admiten numeros
+        mvc.perform(post("/api/usuarios").header("Authorization", admin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Pedro3","apellido":"Lopez","dni":"27111000","fechaNacimiento":"1990-01-10",
+                                 "direccion":"Z","correo":"pedro@mail.com","clave":"pedro123"}
+                                """))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/usuarios").header("Authorization", admin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Pedro","apellido":"Lopez9","dni":"27111000","fechaNacimiento":"1990-01-10",
+                                 "direccion":"Z","correo":"pedro@mail.com","clave":"pedro123"}
+                                """))
+                .andExpect(status().isBadRequest());
+
         // Listar / consultar
         mvc.perform(get("/api/usuarios").header("Authorization", admin))
                 .andExpect(status().isOk())
@@ -164,6 +228,22 @@ class FlujoUsuarioIntegrationTests {
                 .andExpect(jsonPath("$.nombre").value("Ana Maria"));
         login("ana@mail.com", "anaana1");
 
+        // El ABM tampoco permite modificar correo, DNI ni fecha de nacimiento
+        mvc.perform(put("/api/usuarios/" + id).header("Authorization", admin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Ana Maria","apellido":"Gomez","dni":"28999889","fechaNacimiento":"1990-01-10",
+                                 "direccion":"Mitre 2","correo":"ana@mail.com"}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        // Un admin no puede darse de baja a si mismo (regla del servicio)
+        Number idAdmin = JsonPath.read(mvc.perform(get("/api/perfil").header("Authorization", admin))
+                .andReturn().getResponse().getContentAsString(), "$.id");
+        mvc.perform(delete("/api/usuarios/" + idAdmin).header("Authorization", admin))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value("No puede darse de baja a si mismo"));
+
         // Baja logica -> ya no puede loguearse y no aparece en el listado
         mvc.perform(delete("/api/usuarios/" + id).header("Authorization", admin))
                 .andExpect(status().isNoContent());
@@ -172,6 +252,26 @@ class FlujoUsuarioIntegrationTests {
                 .andExpect(status().isUnauthorized());
         mvc.perform(get("/api/usuarios/" + id).header("Authorization", admin))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void usuarioOAuth2NombresValidosYCompletaPerfilUnaSolaVez() throws Exception {
+        // Google devuelve un nombre con numeros y no devuelve apellido -> se limpian / se usa un valor por defecto
+        Usuario u = usuarioService.registrarOIngresarOAuth2("goog@mail.com", "Pedro3", null, Proveedor.GOOGLE);
+        assertEquals("Pedro", u.getNombre());
+        assertEquals("Sin apellido", u.getApellido());
+
+        // Puede completar DNI y fecha porque todavia estan vacios
+        usuarioService.actualizarPerfil("goog@mail.com", new PerfilRequest("Pedro", "Gomez", "30222333",
+                LocalDate.of(1992, 3, 4), "Calle 1", "goog@mail.com"));
+
+        // Una vez cargados, ya no se pueden modificar
+        assertThrows(ErrorServiceException.class, () ->
+                usuarioService.actualizarPerfil("goog@mail.com", new PerfilRequest("Pedro", "Gomez", "30222334",
+                        LocalDate.of(1992, 3, 4), "Calle 1", "goog@mail.com")));
+        assertThrows(ErrorServiceException.class, () ->
+                usuarioService.actualizarPerfil("goog@mail.com", new PerfilRequest("Pedro", "Gomez", "30222333",
+                        LocalDate.of(1992, 3, 5), "Calle 1", "goog@mail.com")));
     }
 
     @Test

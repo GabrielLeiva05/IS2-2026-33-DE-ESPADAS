@@ -9,6 +9,8 @@ import com.competencia.blockazo.model.entity.Usuario;
 import com.competencia.blockazo.model.enums.Proveedor;
 import com.competencia.blockazo.model.enums.Rol;
 import com.competencia.blockazo.repository.UsuarioRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,8 @@ public class UsuarioService extends BaseService<Usuario, Long> {
 
     private static final Pattern PATRON_CORREO = Pattern.compile("^[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+$");
     private static final Pattern PATRON_DNI = Pattern.compile("\\d{7,8}");
+    // Solo letras (con acentos, enie, etc.), separadas por un espacio, apostrofe o guion: "Maria Jose", "O'Brien", "Perez-Gomez"
+    private static final Pattern PATRON_NOMBRE = Pattern.compile("^[\\p{L}\\p{M}]+(?:[ '-][\\p{L}\\p{M}]+)*$");
     private static final int LARGO_MINIMO_CLAVE = 6;
 
     private final PasswordEncoder passwordEncoder;
@@ -46,7 +50,9 @@ public class UsuarioService extends BaseService<Usuario, Long> {
     @Override
     protected void validar(BaseUseCaseService useCase, Usuario usuario) throws ErrorServiceException {
         if (useCase == BaseUseCaseService.BAJA) {
-            return; // para la baja no hay que validar datos
+            // Regla de negocio: un administrador no puede darse de baja a si mismo
+            validarQueNoSeaElUsuarioLogueado(usuario);
+            return; // para la baja no hay que validar mas datos
         }
 
         normalizar(usuario);
@@ -56,6 +62,12 @@ public class UsuarioService extends BaseService<Usuario, Long> {
         }
         if (esVacio(usuario.getApellido())) {
             throw new ErrorServiceException("Debe indicar el apellido");
+        }
+        if (!PATRON_NOMBRE.matcher(usuario.getNombre()).matches()) {
+            throw new ErrorServiceException("El nombre solo puede contener letras (no se admiten numeros ni simbolos)");
+        }
+        if (!PATRON_NOMBRE.matcher(usuario.getApellido()).matches()) {
+            throw new ErrorServiceException("El apellido solo puede contener letras (no se admiten numeros ni simbolos)");
         }
         if (esVacio(usuario.getCorreo())) {
             throw new ErrorServiceException("Debe indicar el correo");
@@ -94,12 +106,12 @@ public class UsuarioService extends BaseService<Usuario, Long> {
         }
 
         // Unicidad de correo y DNI
-        Optional<Usuario> mismoCorreo = usuarioRepository().buscarPorCorreo(usuario.getCorreo());
+        Optional<Usuario> mismoCorreo = usuarioRepository().findByCorreoIgnoreCase(usuario.getCorreo());
         if (mismoCorreo.isPresent() && !mismoCorreo.get().getId().equals(usuario.getId())) {
             throw new ErrorServiceException("Ya existe un usuario registrado con ese correo");
         }
         if (usuario.getDni() != null) {
-            Optional<Usuario> mismoDni = usuarioRepository().buscarPorDni(usuario.getDni());
+            Optional<Usuario> mismoDni = usuarioRepository().findByDni(usuario.getDni());
             if (mismoDni.isPresent() && !mismoDni.get().getId().equals(usuario.getId())) {
                 throw new ErrorServiceException("Ya existe un usuario registrado con ese DNI");
             }
@@ -123,7 +135,20 @@ public class UsuarioService extends BaseService<Usuario, Long> {
     }
 
     @Override
-    protected void preModificacion(Usuario actual, Usuario nuevo) {
+    protected void preModificacion(Usuario actual, Usuario nuevo) throws ErrorServiceException {
+        // Correo, DNI y fecha de nacimiento no se pueden modificar (identifican a la persona).
+        // DNI y fecha solo pueden cargarse si todavia estan vacios (usuarios que entraron con Google).
+        if (!actual.getCorreo().equalsIgnoreCase(nuevo.getCorreo())) {
+            throw new ErrorServiceException("El correo no se puede modificar");
+        }
+        if (!esVacio(actual.getDni()) && !actual.getDni().equals(nuevo.getDni())) {
+            throw new ErrorServiceException("El DNI no se puede modificar");
+        }
+        if (actual.getFechaNacimiento() != null && !actual.getFechaNacimiento().equals(nuevo.getFechaNacimiento())) {
+            throw new ErrorServiceException("La fecha de nacimiento no se puede modificar");
+        }
+        nuevo.setCorreo(actual.getCorreo());
+
         // Datos que NO se pisan desde el formulario
         nuevo.setFechaAlta(actual.getFechaAlta());
         nuevo.setProveedor(actual.getProveedor());
@@ -167,7 +192,7 @@ public class UsuarioService extends BaseService<Usuario, Long> {
     @Transactional(rollbackFor = Exception.class)
     public Usuario registrarOIngresarOAuth2(String correo, String nombre, String apellido,
                                             Proveedor proveedor) throws ErrorServiceException {
-        Optional<Usuario> existente = usuarioRepository().buscarPorCorreo(correo);
+        Optional<Usuario> existente = usuarioRepository().findByCorreoIgnoreCase(correo);
         if (existente.isPresent()) {
             if (Boolean.TRUE.equals(existente.get().isEliminado())) {
                 throw new ErrorServiceException("El usuario se encuentra dado de baja");
@@ -175,8 +200,8 @@ public class UsuarioService extends BaseService<Usuario, Long> {
             return existente.get();
         }
         Usuario usuario = Usuario.builder()
-                .nombre(esVacio(nombre) ? correo.substring(0, correo.indexOf('@')) : nombre)
-                .apellido(esVacio(apellido) ? "-" : apellido)
+                .nombre(nombreValido(esVacio(nombre) ? correo.substring(0, correo.indexOf('@')) : nombre, "Usuario"))
+                .apellido(nombreValido(apellido, "Sin apellido"))
                 .correo(correo)
                 .rol(Rol.USUARIO)
                 .proveedor(proveedor)
@@ -187,12 +212,12 @@ public class UsuarioService extends BaseService<Usuario, Long> {
     /** "Mi perfil": datos del usuario logueado. */
     @Transactional(readOnly = true)
     public Usuario buscarPorCorreo(String correo) throws ErrorServiceException {
-        return usuarioRepository().buscarPorCorreo(correo)
+        return usuarioRepository().findByCorreoIgnoreCase(correo)
                 .filter(u -> !Boolean.TRUE.equals(u.isEliminado()))
                 .orElseThrow(() -> new EntidadNoEncontradaException("No existe un usuario con ese correo"));
     }
 
-    /** Seccion Perfil: modifica TODOS los datos personales (incluido el correo). Usa el metodo plantilla modificar(). */
+    /** Seccion Perfil: modifica los datos personales (el correo, el DNI y la fecha de nacimiento no se pueden cambiar). Usa el metodo plantilla modificar(). */
     @Transactional(rollbackFor = Exception.class)
     public Usuario actualizarPerfil(String correoActual, PerfilRequest req) throws ErrorServiceException {
         Usuario actual = buscarPorCorreo(correoActual);
@@ -243,6 +268,26 @@ public class UsuarioService extends BaseService<Usuario, Long> {
             String dni = u.getDni().replace(".", "").trim();
             u.setDni(dni.isEmpty() ? null : dni);
         }
+    }
+
+    /** El administrador logueado no puede darse de baja a si mismo (el username del token es el correo). */
+    private void validarQueNoSeaElUsuarioLogueado(Usuario aDarDeBaja) throws ErrorServiceException {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getName() != null && auth.getName().equalsIgnoreCase(aDarDeBaja.getCorreo())) {
+            throw new ErrorServiceException("No puede darse de baja a si mismo");
+        }
+    }
+
+    /**
+     * Los datos que llegan de Google / Auth0 pueden traer numeros o simbolos (o venir vacios).
+     * Se limpian para cumplir la regla de nombre/apellido; si no queda nada valido, se usa el valor por defecto.
+     */
+    private static String nombreValido(String valor, String porDefecto) {
+        if (esVacio(valor)) {
+            return porDefecto;
+        }
+        String limpio = valor.replaceAll("[^\\p{L}\\p{M} '-]", "").replaceAll("\\s+", " ").trim();
+        return PATRON_NOMBRE.matcher(limpio).matches() ? limpio : porDefecto;
     }
 
     private static boolean esVacio(String s) {
