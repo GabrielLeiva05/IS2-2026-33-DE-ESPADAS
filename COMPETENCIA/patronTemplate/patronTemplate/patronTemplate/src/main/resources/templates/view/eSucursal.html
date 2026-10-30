@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="favicon.ico">
+
+        <title th:text="${titleEdit}"></title>
+        <link th:href="@{/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+        <link th:href="@{/bootstrap/css/jumbotron.css}" rel="stylesheet">
+        <link th:href="@{/bootstrap/css/sticky-footer-navbar.css}" rel="stylesheet">
+    </head>
+
+    <body>
+
+        <header th:insert="~{fragments/menubody :: menu-principal}"></header>
+
+        <main role="main">     
+            <hr>
+            <div class="container"> 
+
+                <div class="card">
+                    <h4 class="card-header">
+                        <strong th:text="${titleEdit}"></strong>
+                    </h4>             
+                    <div class="card-body">
+
+                        <form th:action="@{'/' + ${nameEntityLower} + '/actualizar'}" method="post" th:object="${item}">
+
+							<input type="hidden" name="id" th:field="*{id}" />
+							
+                            <p th:if="${msgExito != null}" th:text="${msgExito}" style="color:green;"></p>	
+                            <p th:if="${msgError != null}" th:text="${msgError}" style="color: red;"></p>
+
+                            <div class="row">
+                                <div class="col-md-6"> 
+                                    <div class="form-group">
+
+                                        <label for="comboBoxEmpresa">Empresa</label>
+                                        <select class="form-control" 
+                                                name="comboBoxEmpresa" 
+                                                th:field="*{empresa.id}"
+                                                th:disabled="${isDisabled}"> 
+                                            <option value="">Seleccione...</option>	
+                                            <option th:each="empresa : ${empresas}" 
+                                                    th:value="${empresa.id}" 
+                                                    th:text="${empresa.razonSocial}"
+                                                    th:selected="${item.empresa != null && empresa.id == item.empresa.id}">
+                                            </option> 
+                                        </select>
+
+                                        <label for="nombre">Nombre</label>
+                                        <input type="text" name="nombre"  th:field="*{nombre}" th:disabled="${isDisabled}" class="form-control" placeholder="" required="required" >
+                                    </div>
+                                </div>                
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6"> 
+                                    <div class="form-group">
+                                        <label for="comboBoxPais">País</label>
+                                        <select class="form-control" 
+                                                id="comboBoxPais"
+                                                th:disabled="${isDisabled}">
+                                            <option value="">Seleccione...</option>
+                                            <option th:each="pais : ${paises}" 
+                                                    th:value="${pais.id}" 
+                                                    th:text="${pais.nombre}">
+                                            </option>                     
+                                        </select>
+                                    </div>
+                                </div>  
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6"> 
+                                    <div class="form-group">
+                                        <label for="comboBoxProvincia">Provincia</label>
+                                        <select class="form-control" 
+                                                id="comboBoxProvincia"
+                                                th:disabled="${isDisabled}">
+                                            <option value="">Seleccione...</option>
+                                            <option th:each="provincia : ${provincias}" 
+                                                    th:value="${provincia.id}" 
+                                                    th:text="${provincia.nombre}">
+                                            </option>                     
+                                        </select>
+                                    </div>
+                                </div>  
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6"> 
+                                    <div class="form-group">
+                                        <label for="comboBoxDepartamento">Departamento</label>
+                                        <select class="form-control" 
+                                                id="comboBoxDepartamento"
+                                                th:disabled="${isDisabled}">
+                                            <option value="">Seleccione...</option>
+                                            <option th:each="departamento : ${departamentos}" 
+                                                    th:value="${departamento.id}" 
+                                                    th:text="${departamento.nombre}"
+                                                    th:selected="${item.direccion.localidad.departamento != null && departamento.id == item.direccion.localidad.departamento.id}">
+                                            </option>                     
+                                        </select>
+                                    </div>
+                                </div>  
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6"> 
+                                    <div class="form-group">
+                                        <label for="comboBoxLocalidad">Localidad</label>
+                                        <select class="form-control" 
+                                                id="comboBoxLocalidad"
+                                                th:disabled="${isDisabled}">
+                                            <option value="">Seleccione...</option>
+                                            <option th:each="localidad : ${localidades}" 
+                                                    th:value="${localidad.id}" 
+                                                    th:text="${localidad.nombre}"
+                                                    th:selected="${item.direccion.localidad != null && localidad.id == item.direccion.localidad.id}">
+                                            </option>                     
+                                        </select>
+                                    </div>
+                                </div>  
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6"> 
+                                    <div class="form-group">
+												
+                                        <label for="calle">Calle</label>
+                                        <input type="text" name="calle" th:field="*{direccion.calle}" th:disabled="${isDisabled}" class="form-control" placeholder="" required="required" >
+
+                                        <label for="numeracion">Numeración</label>
+                                        <input type="text" name="numeracion" th:field="*{direccion.numeracion}" th:disabled="${isDisabled}" class="form-control" placeholder="" required="required" >
+
+                                        <label for="barrio">Barrio</label>
+                                        <input type="text" name="barrio" th:field="*{direccion.barrio}" th:disabled="${isDisabled}" class="form-control" placeholder="" required="required" >
+
+                                        <label for="pisoCasa">Piso/Casa</label>
+                                        <input type="text" name="pisoCasa" th:field="*{direccion.pisoCasa}" th:disabled="${isDisabled}" class="form-control" placeholder="" required="required" >
+
+                                        <label for="puertaManzana">Puerta/Manzana</label>
+                                        <input type="text" name="puertaManzana" th:field="*{direccion.puertaManzana}" th:disabled="${isDisabled}" class="form-control" placeholder="" required="required" >								
+
+                                        <label for="coordenadaX">Coordenada X Georeferencia</label>
+                                        <input type="text" name="coordenadaX" th:field="*{direccion.ubicacionCoordenadaX}" th:disabled="${isDisabled}" class="form-control" placeholder="" required="required" >							
+
+                                        <label for="coordenadaY">Coordenada Y Georeferencia</label>
+                                        <input type="text" name="coordenadaY" th:field="*{direccion.ubicacionCoordenadaY}" th:disabled="${isDisabled}" class="form-control" placeholder="" required="required" >	
+
+                                    </div>
+                                </div>                
+                            </div> 
+
+                            <hr>
+                            <div class="d-grid gap-2 float-right justify-content-md-end">
+                                <button type="submit" title="Guardar el registro." class="btn btn-primary" th:disabled="${isDisabled}">ACEPTAR</button>   
+                                <a class="btn btn-primary" th:href="@{'/' + ${nameEntityLower} + '/cancelar'}" role="button">CANCELAR</a>
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+            </div> <!-- /container -->
+
+        </main>
+
+        <footer th:insert="~{fragments/footer :: pie-pagina}" class="footer"></footer>
+
+        <!-- Bootstrap core JavaScript
+        ================================================== -->
+        <!-- Placed at the end of the document so the pages load faster -->
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+        <script th:src="@{/bootstrap/js/bootstrap.min.js}"></script>
+		
+		<script>
+					// JavaScript para filtrado en cascada
+					   document.addEventListener('DOMContentLoaded', function() {
+					     const paisSelect = document.getElementById('comboBoxPais');
+					     const provinciaSelect = document.getElementById('comboBoxProvincia');
+					     const departamentoSelect = document.getElementById('comboBoxDepartamento');
+						 const localidadSelect = document.getElementById('comboBoxLocalidad');
+
+					     // Cuando cambia el país, cargar provincias
+					     paisSelect.addEventListener('change', function() {
+					       const paisId = this.value;
+					       if (paisId) {
+							fetch("/localidad/filterComboBox?entidad=Provincia&nombreAtributoSuperClass=pais&idFiltro=" + paisId)
+							  .then(response => response.json())
+							  .then(provincias => {
+							    provincias.forEach(provincia => {
+							      const option = document.createElement('option');
+							      option.value = provincia.id;
+							      option.text = provincia.nombre;
+							      provinciaSelect.appendChild(option);
+							    });
+							  })
+							  .catch(error => console.error('Error cargando provincias:', error));
+					       }
+					     });
+
+					     // Cuando cambia la provincia, cargar departamentos
+					     provinciaSelect.addEventListener('change', function() {
+					       const provinciaId = this.value;
+					       if (provinciaId) {
+					         fetch("/localidad/filterComboBox?entidad=Departamento&nombreAtributoSuperClass=provincia&idFiltro=" + provinciaId)
+					           .then(response => response.json())
+					           .then(departamentos => {
+					             departamentos.forEach(departamento => {
+					               const option = document.createElement('option');
+					               option.value = departamento.id;
+					               option.text = departamento.nombre;
+					               departamentoSelect.appendChild(option);
+					             });
+					           })
+					           .catch(error => console.error('Error cargando departamentos:', error));
+					       }
+					     });
+						 
+						 // Cuando cambia la depatameto, cargar localidad
+						 departamentoSelect.addEventListener('change', function() {
+						   const departamentoId = this.value;
+						   if (departamentoId) {
+						 	 fetch("/localidad/filterComboBox?entidad=Localidad&nombreAtributoSuperClass=departamento&idFiltro=" + departamentoId)
+						 	   .then(response => response.json())
+						 	   .then(localidades => {
+						 	      localidades.forEach(localidad => {
+						 		  const option = document.createElement('option');
+						 		  option.value = localidad.id;
+						 		  option.text = localidad.nombre;
+						 		  localidadSelect.appendChild(option);
+						 	    });
+						 	 })
+						 	 .catch(error => console.error('Error cargando localidad:', error));
+						 	}
+						  });
+						 
+					   });
+							  
+		        </script> 
+    </body>
+</html>
