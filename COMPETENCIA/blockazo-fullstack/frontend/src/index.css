@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+/* Estilos base compartidos por los formularios */
+@layer components {
+  .input {
+    @apply w-full px-4 py-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-800
+      placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100;
+  }
+  .input-error {
+    @apply border-red-300 focus:ring-red-400;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-white bg-indigo-600
+      hover:bg-indigo-700 font-medium shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-slate-700 bg-white border
+      border-slate-200 hover:bg-slate-50 font-medium transition disabled:opacity-50 cursor-pointer;
+  }
+  .label {
+    @apply block text-xs font-medium uppercase tracking-wide text-slate-500 mb-1;
+  }
+}
