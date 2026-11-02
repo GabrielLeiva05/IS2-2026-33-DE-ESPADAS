@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Clientes')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Clientes')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Clientes registrados</h1>
+                    <p>Cuentas creadas desde el sitio institucional. Los clientes gestionan sus propios datos.</p>
+                </div>
+                <span class="insignia insignia-violeta" th:text="${clientes.size()} + ' clientes'">0 clientes</span>
+            </div>
+            <section class="tarjeta tarjeta-tabla">
+                <div class="vacio" th:if="${clientes.isEmpty()}">
+                    <svg class="icono"><use href="#i-tienda"/></svg>
+                    <p class="mb-0">Todavía no se registró ningún cliente.</p>
+                </div>
+                <table class="tabla tabla-apilable" th:unless="${clientes.isEmpty()}">
+                    <thead><tr><th>Cliente</th><th>Documento</th><th>Ingresa con</th></tr></thead>
+                    <tbody>
+                    <tr th:each="c : ${clientes}">
+                        <td class="celda-principal">
+                            <div class="persona"><span class="avatar" th:text="${c.iniciales}">MC</span>
+                                <div><strong th:text="${c.nombreCompleto}">Nombre</strong><small th:text="${c.correo}">correo</small></div></div>
+                        </td>
+                        <td data-label="Documento" th:text="${c.numeroDocumento != null} ? ${c.tipoDocumento} + ' ' + ${c.numeroDocumento} : 'Sin informar'">DNI</td>
+                        <td data-label="Ingresa con" th:switch="${c.proveedorAutenticacion}">
+                            <span th:case="'GOOGLE'" class="insignia insignia-azul">Google</span>
+                            <span th:case="'FACEBOOK'" class="insignia insignia-azul">Facebook</span>
+                            <span th:case="*" class="insignia insignia-gris">Correo y contraseña</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

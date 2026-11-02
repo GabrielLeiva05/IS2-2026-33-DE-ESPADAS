@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Cambiar contraseña')}"></head>
+<body class="acceso">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+
+<section class="acceso-panel-marca" aria-hidden="true">
+    <a th:replace="~{fragments/base :: marca('Sistema administrativo')}"></a>
+    <div>
+        <h2>Tu cuenta, protegida</h2>
+        <p>La contraseña se guarda cifrada: nadie, ni siquiera la administración, puede verla.</p>
+    </div>
+    <ul>
+        <li><svg class="icono"><use href="#i-candado"/></svg>Entre 8 y 72 caracteres</li>
+        <li><svg class="icono"><use href="#i-ok"/></svg>Combiná letras y números</li>
+        <li><svg class="icono"><use href="#i-escudo"/></svg>Distinta de la temporal y de tu correo</li>
+    </ul>
+</section>
+
+<div class="acceso-encabezado-movil">
+    <p th:text="${sesion != null and sesion.debeCambiarClave} ? 'Primer ingreso' : 'Mi cuenta'">Mi cuenta</p>
+    <strong>Nueva contraseña</strong>
+</div>
+
+<main class="acceso-cuerpo">
+    <div class="acceso-tarjeta">
+        <a th:replace="~{fragments/base :: marca('Sistema administrativo')}"></a>
+        <h1>Cambiar contraseña</h1>
+        <p class="bajada" th:if="${sesion != null and sesion.debeCambiarClave}">
+            Hola <strong th:text="${sesion.nombreCompleto}">Nombre</strong>. Estás usando la contraseña temporal:
+            para continuar tenés que reemplazarla por una propia.</p>
+        <p class="bajada" th:unless="${sesion != null and sesion.debeCambiarClave}">
+            Elegí una contraseña nueva para <strong th:text="${sesion?.correo}">correo</strong>.</p>
+
+        <div class="alerta alerta-advertencia mb-4" role="status" th:if="${sesion != null and sesion.debeCambiarClave}">
+            <svg class="icono"><use href="#i-alerta"/></svg>
+            <span>Hasta que no cambies la contraseña no vas a poder usar el sistema.</span></div>
+        <div class="alerta alerta-error mb-4" role="alert" th:if="${error != null}">
+            <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+
+        <form class="formulario" th:action="@{/cambiar-clave}" th:object="${formulario}" method="post" data-envio-unico>
+            <div class="campo">
+                <label for="claveActual" th:text="${sesion != null and sesion.debeCambiarClave} ? 'Contraseña temporal' : 'Contraseña actual'">Contraseña actual</label>
+                <div class="control-con-accion">
+                    <input class="control" id="claveActual" type="password" th:field="*{claveActual}"
+                           autocomplete="current-password" required>
+                    <button type="button" class="accion" data-ver-clave="claveActual" aria-label="Mostrar contraseña" aria-pressed="false">
+                        <svg class="icono"><use href="#i-ojo"/></svg></button>
+                </div>
+            </div>
+            <div class="campo">
+                <label for="nuevaClave">Nueva contraseña</label>
+                <div class="control-con-accion">
+                    <input class="control" id="nuevaClave" type="password" th:field="*{nuevaClave}"
+                           autocomplete="new-password" minlength="8" maxlength="72" required aria-describedby="reglas">
+                    <button type="button" class="accion" data-ver-clave="nuevaClave" aria-label="Mostrar contraseña" aria-pressed="false">
+                        <svg class="icono"><use href="#i-ojo"/></svg></button>
+                </div>
+                <ul class="reglas-clave" id="reglas">
+                    <li>Entre 8 y 72 caracteres, con letras y números.</li>
+                    <li>No puede ser la contraseña temporal ni tu correo.</li>
+                </ul>
+            </div>
+            <div class="campo">
+                <label for="confirmarClave">Repetí la nueva contraseña</label>
+                <input class="control" id="confirmarClave" type="password" th:field="*{confirmarClave}"
+                       autocomplete="new-password" minlength="8" maxlength="72" required>
+            </div>
+            <button type="submit" class="btn btn-primario btn-bloque">Guardar contraseña</button>
+        </form>
+
+        <div class="acceso-pie grupo-botones" style="justify-content:center">
+            <a class="btn btn-fantasma" th:href="@{/}" th:unless="${sesion != null and sesion.debeCambiarClave}">
+                <svg class="icono icono-sm"><use href="#i-volver"/></svg>Volver al panel</a>
+            <form th:action="@{/salir}" method="post">
+                <button type="submit" class="btn btn-fantasma">
+                    <svg class="icono icono-sm"><use href="#i-salir"/></svg>Cerrar sesión</button>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

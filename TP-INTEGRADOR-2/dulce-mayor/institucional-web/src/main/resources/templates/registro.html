@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Crear cuenta')}"></head>
+<body class="acceso">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<section th:replace="~{fragments/acceso :: panelMarca}"></section>
+
+<div class="acceso-encabezado-movil">
+    <p>Clientes</p>
+    <strong>Creá tu cuenta</strong>
+</div>
+
+<main class="acceso-cuerpo">
+    <div class="acceso-tarjeta">
+        <a th:replace="~{fragments/base :: marca('Mayorista de golosinas')}"></a>
+        <h1>Creá tu cuenta</h1>
+        <p class="bajada">Es gratis y te lleva un minuto.</p>
+
+        <div class="alerta alerta-error mb-4" role="alert" th:if="${error != null}">
+            <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+
+        <th:block th:replace="~{fragments/acceso :: botonesSociales('Registrate con')}"></th:block>
+
+        <form class="formulario mt-4" th:action="@{/registro}" th:object="${formulario}" method="post" data-envio-unico>
+            <div class="fila-campos dos">
+                <div class="campo"><label class="requerido" for="nombre">Nombre</label>
+                    <input class="control" id="nombre" th:field="*{nombre}" autocomplete="given-name" maxlength="80" required></div>
+                <div class="campo"><label class="requerido" for="apellido">Apellido</label>
+                    <input class="control" id="apellido" th:field="*{apellido}" autocomplete="family-name" maxlength="80" required></div>
+            </div>
+            <div class="campo"><label class="requerido" for="correo">Correo electrónico</label>
+                <input class="control" id="correo" type="email" th:field="*{correo}" autocomplete="email" inputmode="email"
+                       autocapitalize="off" spellcheck="false" maxlength="120" required placeholder="tu@correo.com"></div>
+            <div class="campo"><label class="requerido" for="clave">Contraseña</label>
+                <div class="control-con-accion">
+                    <input class="control" id="clave" type="password" th:field="*{clave}" autocomplete="new-password"
+                           minlength="8" maxlength="72" required aria-describedby="reglas">
+                    <button type="button" class="accion" data-ver-clave="clave" aria-label="Mostrar contraseña" aria-pressed="false">
+                        <svg class="icono"><use href="#i-ojo"/></svg></button>
+                </div>
+                <ul class="reglas-clave" id="reglas"><li>Entre 8 y 72 caracteres, con letras y números.</li><li>Distinta de tu correo.</li></ul></div>
+            <div class="campo"><label class="requerido" for="confirmacionClave">Repetí la contraseña</label>
+                <input class="control" id="confirmacionClave" type="password" th:field="*{confirmacionClave}"
+                       autocomplete="new-password" minlength="8" maxlength="72" required></div>
+
+            <details class="tarjeta" style="padding:var(--dm-e-4);box-shadow:none;border:1px solid var(--dm-borde)">
+                <summary class="etiqueta" style="cursor:pointer;min-height:32px">Datos opcionales (documento y nacimiento)</summary>
+                <div class="formulario mt-4">
+                    <div class="fila-campos dos">
+                        <div class="campo"><label for="tipoDocumento">Tipo de documento</label>
+                            <select class="control" id="tipoDocumento" th:field="*{tipoDocumento}">
+                                <option value="DNI">DNI</option><option value="CUIT">CUIT</option>
+                                <option value="CUIL">CUIL</option><option value="PASAPORTE">Pasaporte</option>
+                            </select></div>
+                        <div class="campo"><label for="numeroDocumento">Número</label>
+                            <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric" maxlength="15"></div>
+                    </div>
+                    <div class="campo"><label for="fechaNacimiento">Fecha de nacimiento</label>
+                        <input class="control" id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}"></div>
+                </div>
+            </details>
+
+            <button type="submit" class="btn btn-primario btn-bloque">Crear mi cuenta</button>
+        </form>
+        <p class="acceso-pie">¿Ya tenés cuenta? <a th:href="@{/ingresar}">Ingresá</a></p>
+    </div>
+</main>
+</body>
+</html>

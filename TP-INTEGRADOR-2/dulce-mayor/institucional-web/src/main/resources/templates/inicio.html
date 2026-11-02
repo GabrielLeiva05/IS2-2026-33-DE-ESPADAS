@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Mayorista de golosinas')}"></head>
+<body class="app-sitio">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<th:block th:replace="~{fragments/base :: cabecera}"></th:block>
+
+<main class="sitio-main">
+    <section class="hero">
+        <div class="hero-interior">
+            <h1>El mayorista de golosinas de Mendoza</h1>
+            <p>Abastecé tu kiosco o almacén con precios por bulto y pack, y la atención de un preventista en tu zona.</p>
+            <div class="grupo-botones">
+                <a class="btn btn-acento" th:href="@{/catalogo}">Ver catálogo mayorista</a>
+                <a class="btn btn-secundario" th:if="${sesion == null}" th:href="@{/registro}">Crear mi cuenta</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="contenedor">
+        <div class="pila mt-4" th:if="${param.salida != null}">
+            <div class="alerta alerta-exito" role="status"><svg class="icono"><use href="#i-ok"/></svg><span>Cerraste la sesión.</span></div>
+        </div>
+
+        <section class="seccion" th:if="${!categorias.isEmpty()}" aria-label="Categorías">
+            <nav class="categorias">
+                <a class="categoria" th:each="c : ${categorias}" th:href="@{/catalogo(categoria=${c.id})}">
+                    <span class="burbuja"><svg class="icono"><use th:href="'#' + ${c.icono}"/></svg></span>
+                    <span th:text="${c.nombre}">Categoría</span>
+                </a>
+            </nav>
+        </section>
+
+        <section class="seccion" th:if="${!ofertas.isEmpty()}">
+            <div class="seccion-titulo">
+                <h2>Ofertas de la semana</h2>
+                <a th:href="@{/catalogo(ofertas=true)}">Ver todas</a>
+            </div>
+            <div class="grilla-productos">
+                <th:block th:each="p : ${ofertas}"><article th:replace="~{fragments/base :: producto(${p})}"></article></th:block>
+            </div>
+        </section>
+
+        <section class="seccion">
+            <div class="seccion-titulo">
+                <h2>Venta por bulto y pack</h2>
+                <a th:href="@{/catalogo}">Ver catálogo</a>
+            </div>
+            <div class="vacio tarjeta" th:if="${destacados.isEmpty()}">
+                <svg class="icono"><use href="#i-catalogo"/></svg>
+                <p class="mb-0">Estamos actualizando el catálogo. Volvé a visitarnos pronto.</p>
+            </div>
+            <div class="grilla-productos" th:unless="${destacados.isEmpty()}">
+                <th:block th:each="p : ${destacados}"><article th:replace="~{fragments/base :: producto(${p})}"></article></th:block>
+            </div>
+        </section>
+
+        <section class="seccion">
+            <div class="ventajas">
+                <div class="ventaja"><span class="kpi-icono tono-magenta"><svg class="icono"><use href="#i-combo"/></svg></span>
+                    <div><h3>Precios mayoristas</h3><p>Comprá por bulto, caja o pack con precios pensados para revender.</p></div></div>
+                <div class="ventaja"><span class="kpi-icono tono-azul"><svg class="icono"><use href="#i-personas"/></svg></span>
+                    <div><h3>Preventista en tu zona</h3><p>Te visitamos en tu comercio para tomar el pedido y asesorarte.</p></div></div>
+                <div class="ventaja"><span class="kpi-icono tono-violeta"><svg class="icono"><use href="#i-camion"/></svg></span>
+                    <div><h3>Reparto propio</h3><p>Llevamos la mercadería hasta tu negocio en todo el Gran Mendoza.</p></div></div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/base :: pie}"></footer>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>
