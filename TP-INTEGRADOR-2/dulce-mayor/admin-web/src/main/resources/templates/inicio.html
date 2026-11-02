@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Inicio')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Panel de administración')}"></header>
+        <main class="contenido">
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <section class="bienvenida mt-4">
+                <h2 th:text="'Hola, ' + ${sesion.nombreCompleto}">Hola</h2>
+                <p th:if="${sesion.jefe}">Gestioná el personal, revisá el stock y el catálogo publicado.</p>
+                <p th:if="${sesion.administrativo and !sesion.jefe}">Revisá el catálogo publicado, las alertas de stock y los clientes registrados.</p>
+                <p th:if="${sesion.preventista}">Consultá el catálogo con precios y disponibilidad. La aplicación móvil para tus visitas está en desarrollo.</p>
+                <p th:if="${sesion.distribuidor}">Tu cuenta ya está activa. La aplicación móvil de entregas y rutas está en desarrollo.</p>
+            </section>
+
+            <!-- Indicadores calculados con datos reales de la API -->
+            <section class="kpis" th:if="${!panel.indicadores.isEmpty()}" aria-label="Indicadores">
+                <a class="kpi" th:each="ind : ${panel.indicadores}" th:href="${ind.enlace} ? @{${ind.enlace}}">
+                    <span class="kpi-icono" th:classappend="${ind.tono}"><svg class="icono"><use th:href="'#' + ${ind.icono}"/></svg></span>
+                    <span class="kpi-etiqueta" th:text="${ind.etiqueta}">Indicador</span>
+                    <span class="kpi-valor" th:text="${ind.valor}">0</span>
+                    <span class="kpi-pie" th:text="${ind.detalle}">detalle</span>
+                </a>
+            </section>
+
+            <div class="grilla-panel">
+                <!-- Stock crítico (administración) -->
+                <section class="tarjeta" th:if="${sesion.administrativo}">
+                    <div class="tarjeta-encabezado">
+                        <h2>Control de stock</h2>
+                        <span class="insignia" th:classappend="${panel.stockCritico.isEmpty()} ? 'insignia-verde' : 'insignia-roja'"
+                              th:text="${panel.stockCritico.isEmpty()} ? 'Sin alertas' : ${panel.stockCritico.size()} + ' con alerta'">estado</span>
+                    </div>
+                    <div class="vacio" th:if="${panel.stockCritico.isEmpty()}">
+                        <svg class="icono"><use href="#i-ok"/></svg>
+                        <p class="mb-0">Ningún producto está por debajo de su stock mínimo.</p>
+                    </div>
+                    <div class="barras" th:unless="${panel.stockCritico.isEmpty()}">
+                        <div class="barra-fila" th:each="s : ${panel.stockCritico}">
+                            <div class="barra-titulo">
+                                <span><strong th:text="${s.nombreProducto}">Producto</strong>
+                                    <small class="texto-secundario" th:text="' · ' + ${s.codigoProducto}">código</small></span>
+                                <span th:text="${s.cantidadActual} + ' / mín. ' + ${s.stockMinimo}">0 / 10</span>
+                            </div>
+                            <div class="barra critica" role="presentation">
+                                <span th:style="'width:' + ${s.porcentajeDelMinimo} + '%'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Distribución del catálogo publicado -->
+                <section class="tarjeta" th:if="${sesion.puedeVerCatalogo}">
+                    <div class="tarjeta-encabezado"><h2>Catálogo por categoría</h2></div>
+                    <div class="vacio" th:if="${panel.categorias.isEmpty()}">
+                        <svg class="icono"><use href="#i-catalogo"/></svg>
+                        <p class="mb-0">Todavía no hay productos con precio vigente publicados.</p>
+                    </div>
+                    <div class="dona-contenedor" th:unless="${panel.categorias.isEmpty()}">
+                        <div class="dona" th:style="${panel.fondoDona}" role="img"
+                             th:attr="aria-label=${panel.totalPublicados} + ' productos publicados por categoría'">
+                            <div class="dona-centro"><strong th:text="${panel.totalPublicados}">0</strong><small>productos</small></div>
+                        </div>
+                        <ul class="leyenda">
+                            <li th:each="seg : ${panel.categorias}">
+                                <span class="punto" th:style="'background:' + ${seg.color}"></span>
+                                <span class="nombre" th:text="${seg.nombre}">Categoría</span>
+                                <strong th:text="${seg.cantidad}">0</strong>
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- Personal por rol (jefe) -->
+                <section class="tarjeta" th:if="${sesion.jefe}">
+                    <div class="tarjeta-encabezado">
+                        <h2>Personal por rol</h2>
+                        <a class="btn btn-secundario btn-chico" th:href="@{/empleados/nuevo}">
+                            <svg class="icono icono-sm"><use href="#i-usuario-mas"/></svg>Nuevo empleado</a>
+                    </div>
+                    <div class="barras">
+                        <div class="barra-fila" th:each="c : ${panel.personal}">
+                            <div class="barra-titulo"><span th:text="${c.rolLegible}">Rol</span><strong th:text="${c.cantidad}">0</strong></div>
+                            <div class="barra" role="presentation"><span th:style="'width:' + ${c.porcentaje} + '%'"></span></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Módulos que todavía no existen: se informan, sin datos simulados -->
+                <section class="tarjeta">
+                    <div class="tarjeta-encabezado"><h2>Próximos módulos</h2></div>
+                    <ul class="lista-modulos">
+                        <li><svg class="icono"><use href="#i-pedido"/></svg>Pedidos de preventistas<span class="insignia insignia-gris">En desarrollo</span></li>
+                        <li><svg class="icono"><use href="#i-ruta"/></svg>Rutas y entregas<span class="insignia insignia-gris">En desarrollo</span></li>
+                        <li><svg class="icono"><use href="#i-etiqueta"/></svg>Promociones<span class="insignia insignia-gris">En desarrollo</span></li>
+                        <li><svg class="icono"><use href="#i-factura"/></svg>Facturación y pagos<span class="insignia insignia-gris">En desarrollo</span></li>
+                        <li><svg class="icono"><use href="#i-tienda"/></svg>Puntos de venta<span class="insignia insignia-gris">En desarrollo</span></li>
+                    </ul>
+                </section>
+            </div>
+
+            <section class="mt-4" aria-label="Accesos rápidos">
+                <div class="accesos">
+                    <a class="acceso-rapido" th:if="${sesion.jefe}" th:href="@{/empleados/nuevo}">
+                        <span class="kpi-icono tono-magenta"><svg class="icono"><use href="#i-usuario-mas"/></svg></span>Alta de empleado</a>
+                    <a class="acceso-rapido" th:if="${sesion.puedeVerCatalogo}" th:href="@{/catalogo}">
+                        <span class="kpi-icono tono-azul"><svg class="icono"><use href="#i-catalogo"/></svg></span>Ver catálogo</a>
+                    <a class="acceso-rapido" th:if="${sesion.administrativo}" th:href="@{/clientes}">
+                        <span class="kpi-icono tono-violeta"><svg class="icono"><use href="#i-tienda"/></svg></span>Clientes</a>
+                    <a class="acceso-rapido" th:href="@{/cambiar-clave}">
+                        <span class="kpi-icono tono-amarillo"><svg class="icono"><use href="#i-llave"/></svg></span>Mi contraseña</a>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

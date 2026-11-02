@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Empleados')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Empleados')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Empleados</h1>
+                    <p>Altas, datos y bajas del personal. Cada alta crea su cuenta con contraseña temporal.</p>
+                </div>
+                <a class="btn btn-primario" th:href="@{/empleados/nuevo}">
+                    <svg class="icono icono-sm"><use href="#i-usuario-mas"/></svg>Nuevo empleado</a>
+            </div>
+
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <nav class="pestanias mt-4" aria-label="Filtrar por rol">
+                <a th:href="@{/empleados}" th:classappend="${rolFiltro == ''} ? 'activo'">Todos</a>
+                <a th:href="@{/empleados(rol='ADMINISTRATIVO')}" th:classappend="${rolFiltro == 'ADMINISTRATIVO'} ? 'activo'">Administrativos</a>
+                <a th:href="@{/empleados(rol='PREVENTISTA')}" th:classappend="${rolFiltro == 'PREVENTISTA'} ? 'activo'">Preventistas</a>
+                <a th:href="@{/empleados(rol='DISTRIBUIDOR')}" th:classappend="${rolFiltro == 'DISTRIBUIDOR'} ? 'activo'">Distribuidores</a>
+                <a th:href="@{/empleados(rol='JEFE')}" th:classappend="${rolFiltro == 'JEFE'} ? 'activo'">Jefe</a>
+            </nav>
+
+            <section class="tarjeta tarjeta-tabla">
+                <div class="vacio" th:if="${empleados.isEmpty()}">
+                    <svg class="icono"><use href="#i-personas"/></svg>
+                    <p>No hay empleados activos con ese rol.</p>
+                    <a class="btn btn-secundario" th:href="@{/empleados/nuevo}">Dar de alta un empleado</a>
+                </div>
+                <table class="tabla tabla-apilable" th:unless="${empleados.isEmpty()}">
+                    <thead><tr><th>Empleado</th><th>Rol</th><th>Legajo</th><th>Documento</th><th>Cuenta</th><th><span class="oculto-visual">Acciones</span></th></tr></thead>
+                    <tbody>
+                    <tr th:each="e : ${empleados}">
+                        <td class="celda-principal">
+                            <div class="persona"><span class="avatar" th:text="${e.iniciales}">JP</span>
+                                <div><strong th:text="${e.nombreCompleto}">Nombre</strong><small th:text="${e.correo}">correo</small></div></div>
+                        </td>
+                        <td data-label="Rol" th:switch="${e.rol}">
+                            <span th:case="'JEFE'" class="insignia insignia-magenta" th:text="${e.rolLegible}">Jefe</span>
+                            <span th:case="'ADMINISTRATIVO'" class="insignia insignia-violeta" th:text="${e.rolLegible}">Administrativo</span>
+                            <span th:case="*" class="insignia insignia-azul" th:text="${e.rolLegible}">Rol</span>
+                        </td>
+                        <td data-label="Legajo" th:text="${e.legajo}">EMP-00001</td>
+                        <td data-label="Documento" th:text="${e.tipoDocumento} + ' ' + ${e.numeroDocumento}">DNI</td>
+                        <td data-label="Cuenta">
+                            <span th:if="${e.debeCambiarClave}" class="insignia insignia-naranja">Clave temporal</span>
+                            <span th:unless="${e.debeCambiarClave}" class="insignia insignia-verde">Activa</span>
+                        </td>
+                        <td class="celda-acciones">
+                            <div class="acciones">
+                                <a class="btn btn-secundario btn-chico" th:href="@{/empleados/{id}/editar(id=${e.id})}">
+                                    <svg class="icono icono-sm"><use href="#i-editar"/></svg>Editar</a>
+                                <form th:unless="${e.rol == 'JEFE'}" th:action="@{/empleados/{id}/baja(id=${e.id})}" method="post"
+                                      th:data-confirmar="'¿Dar de baja a ' + ${e.nombreCompleto} + '? Su cuenta dejará de poder ingresar.'">
+                                    <button type="submit" class="btn btn-peligro btn-chico">
+                                        <svg class="icono icono-sm"><use href="#i-baja"/></svg>Baja</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

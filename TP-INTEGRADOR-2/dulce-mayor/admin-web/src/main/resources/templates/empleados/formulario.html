@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head(${formulario.nuevo} ? 'Nuevo empleado' : 'Editar empleado')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar(${formulario.nuevo} ? 'Nuevo empleado' : 'Editar empleado')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <p class="migas"><a th:href="@{/empleados}"><svg class="icono icono-sm"><use href="#i-volver"/></svg>Empleados</a></p>
+                    <h1 th:text="${formulario.nuevo} ? 'Alta de empleado' : 'Datos de ' + ${formulario.nombre} + ' ' + ${formulario.apellido}">Alta de empleado</h1>
+                    <p th:if="${formulario.nuevo}">Se crea su cuenta con la contraseña temporal <strong>dulcemayor</strong>: deberá cambiarla al ingresar por primera vez.</p>
+                    <p th:unless="${formulario.nuevo}">El correo y el rol no se modifican: identifican la cuenta de ingreso.</p>
+                </div>
+            </div>
+
+            <div class="alerta alerta-error mb-4" role="alert" th:if="${error != null}">
+                <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+
+            <form class="form-pagina" method="post" th:object="${formulario}" data-envio-unico
+                  th:action="${formulario.nuevo} ? @{/empleados} : @{/empleados/{id}(id=*{id})}">
+
+                <section class="tarjeta">
+                    <fieldset class="seccion-form">
+                        <legend><svg class="icono"><use href="#i-usuario"/></svg>Datos personales</legend>
+                        <div class="fila-campos dos">
+                            <div class="campo"><label class="requerido" for="nombre">Nombre</label>
+                                <input class="control" id="nombre" th:field="*{nombre}" autocomplete="given-name" maxlength="80" required></div>
+                            <div class="campo"><label class="requerido" for="apellido">Apellido</label>
+                                <input class="control" id="apellido" th:field="*{apellido}" autocomplete="family-name" maxlength="80" required></div>
+                        </div>
+                        <div class="fila-campos tres">
+                            <div class="campo"><label class="requerido" for="tipoDocumento">Tipo de documento</label>
+                                <select class="control" id="tipoDocumento" th:field="*{tipoDocumento}" required>
+                                    <option value="DNI">DNI</option>
+                                    <option value="CUIL">CUIL</option>
+                                    <option value="CUIT">CUIT</option>
+                                    <option value="PASAPORTE">Pasaporte</option>
+                                </select></div>
+                            <div class="campo"><label class="requerido" for="numeroDocumento">Número</label>
+                                <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric" maxlength="15" required>
+                                <span class="ayuda">Sin puntos ni guiones.</span></div>
+                            <div class="campo"><label class="requerido" for="fechaNacimiento">Fecha de nacimiento</label>
+                                <input class="control" id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}" required>
+                                <span class="ayuda">Debe ser mayor de edad.</span></div>
+                        </div>
+                    </fieldset>
+                </section>
+
+                <section class="tarjeta">
+                    <fieldset class="seccion-form">
+                        <legend><svg class="icono"><use href="#i-llave"/></svg>Cuenta y rol</legend>
+                        <div class="fila-campos dos">
+                            <div class="campo"><label class="requerido" for="correo">Correo electrónico</label>
+                                <input class="control" id="correo" type="email" th:field="*{correo}" inputmode="email" autocapitalize="off"
+                                       spellcheck="false" maxlength="120" required th:readonly="${!formulario.nuevo}">
+                                <span class="ayuda">Es el usuario con el que ingresa al sistema.</span></div>
+                            <div class="campo"><label class="requerido" for="rol">Rol</label>
+                                <select class="control" id="rol" th:field="*{rol}" data-selector-rol required th:if="${formulario.nuevo}">
+                                    <option value="">Seleccioná un rol</option>
+                                    <option th:each="r : ${roles}" th:value="${r}"
+                                            th:text="${r == 'ADMINISTRATIVO'} ? 'Administrativo' : (${r == 'PREVENTISTA'} ? 'Preventista' : 'Distribuidor')">Rol</option>
+                                </select>
+                                <th:block th:unless="${formulario.nuevo}">
+                                    <input type="hidden" th:field="*{rol}" data-selector-rol>
+                                    <input class="control" id="rolVisible" readonly
+                                           th:value="${formulario.rol == 'JEFE'} ? 'Jefe administrativo' : (${formulario.rol == 'ADMINISTRATIVO'} ? 'Administrativo' : (${formulario.rol == 'PREVENTISTA'} ? 'Preventista' : 'Distribuidor'))">
+                                </th:block>
+                                <span class="ayuda" th:if="${formulario.nuevo}">El rol de jefe administrativo no se asigna desde aquí.</span></div>
+                        </div>
+                        <div class="fila-campos dos">
+                            <div class="campo"><label for="legajo">Legajo</label>
+                                <input class="control" id="legajo" th:field="*{legajo}" maxlength="20" autocapitalize="characters">
+                                <span class="ayuda" th:if="${formulario.nuevo}">Si lo dejás vacío se genera automáticamente.</span></div>
+                            <div class="campo"><label for="fechaIngreso">Fecha de ingreso</label>
+                                <input class="control" id="fechaIngreso" type="date" th:field="*{fechaIngreso}">
+                                <span class="ayuda" th:if="${formulario.nuevo}">Por defecto, hoy.</span></div>
+                        </div>
+                        <div class="fila-campos" data-segun-rol="PREVENTISTA">
+                            <div class="campo"><label class="requerido" for="zona">Zona de visitas</label>
+                                <input class="control" id="zona" th:field="*{zona}" maxlength="80" placeholder="Por ejemplo: Godoy Cruz centro"></div>
+                        </div>
+                        <div class="fila-campos dos" data-segun-rol="DISTRIBUIDOR">
+                            <div class="campo"><label class="requerido" for="vehiculo">Vehículo</label>
+                                <input class="control" id="vehiculo" th:field="*{vehiculo}" maxlength="80" placeholder="Por ejemplo: Renault Kangoo"></div>
+                            <div class="campo"><label class="requerido" for="patente">Patente</label>
+                                <input class="control" id="patente" th:field="*{patente}" maxlength="9" autocapitalize="characters" placeholder="AB123CD o ABC123"></div>
+                        </div>
+                    </fieldset>
+                </section>
+
+                <section class="tarjeta">
+                    <fieldset class="seccion-form">
+                        <legend><svg class="icono"><use href="#i-ubicacion"/></svg>Dirección</legend>
+                        <div class="fila-campos dos">
+                            <div class="campo"><label class="requerido" for="idPais">País</label>
+                                <select class="control" id="idPais" th:field="*{idPais}" required data-hijo="idProvincia"
+                                        th:data-cascada="@{/ubicacion/provincias/} + '{id}'">
+                                    <option value="">Seleccioná una opción</option>
+                                    <option th:each="o : ${opciones.paises}" th:value="${o.id}" th:text="${o.nombre}">País</option>
+                                </select></div>
+                            <div class="campo"><label class="requerido" for="idProvincia">Provincia</label>
+                                <select class="control" id="idProvincia" th:field="*{idProvincia}" required data-hijo="idDepartamento"
+                                        th:data-cascada="@{/ubicacion/departamentos/} + '{id}'" data-vacio="Elegí primero el país"
+                                        th:disabled="${opciones.provincias.isEmpty()}">
+                                    <option value="">Seleccioná una opción</option>
+                                    <option th:each="o : ${opciones.provincias}" th:value="${o.id}" th:text="${o.nombre}">Provincia</option>
+                                </select></div>
+                        </div>
+                        <div class="fila-campos dos">
+                            <div class="campo"><label class="requerido" for="idDepartamento">Departamento</label>
+                                <select class="control" id="idDepartamento" th:field="*{idDepartamento}" required data-hijo="idLocalidad"
+                                        th:data-cascada="@{/ubicacion/localidades/} + '{id}'" data-vacio="Elegí primero la provincia"
+                                        th:disabled="${opciones.departamentos.isEmpty()}">
+                                    <option value="">Seleccioná una opción</option>
+                                    <option th:each="o : ${opciones.departamentos}" th:value="${o.id}" th:text="${o.nombre}">Departamento</option>
+                                </select></div>
+                            <div class="campo"><label class="requerido" for="idLocalidad">Localidad</label>
+                                <select class="control" id="idLocalidad" th:field="*{idLocalidad}" required data-vacio="Elegí primero el departamento"
+                                        th:disabled="${opciones.localidades.isEmpty()}">
+                                    <option value="">Seleccioná una opción</option>
+                                    <option th:each="o : ${opciones.localidades}" th:value="${o.id}"
+                                            th:text="${o.codigoPostal != null} ? ${o.nombre} + ' (CP ' + ${o.codigoPostal} + ')' : ${o.nombre}">Localidad</option>
+                                </select></div>
+                        </div>
+                        <div class="fila-campos tres">
+                            <div class="campo ocupa-2"><label class="requerido" for="calle">Calle</label>
+                                <input class="control" id="calle" th:field="*{calle}" autocomplete="address-line1" maxlength="120" required></div>
+                            <div class="campo"><label class="requerido" for="numeracion">Número</label>
+                                <input class="control" id="numeracion" th:field="*{numeracion}" maxlength="10" required placeholder="742 o S/N"></div>
+                        </div>
+                        <div class="fila-campos tres">
+                            <div class="campo"><label for="barrio">Barrio</label>
+                                <input class="control" id="barrio" th:field="*{barrio}" maxlength="80"></div>
+                            <div class="campo"><label for="manzanaPiso">Manzana / piso</label>
+                                <input class="control" id="manzanaPiso" th:field="*{manzanaPiso}" maxlength="20"></div>
+                            <div class="campo"><label for="casaDepartamento">Casa / depto.</label>
+                                <input class="control" id="casaDepartamento" th:field="*{casaDepartamento}" maxlength="20"></div>
+                        </div>
+                        <div class="campo"><label for="referencia">Referencia</label>
+                            <input class="control" id="referencia" th:field="*{referencia}" maxlength="200" placeholder="Entre calles, color de la casa…"></div>
+                    </fieldset>
+                </section>
+
+                <div class="barra-acciones">
+                    <a class="btn btn-fantasma" th:href="@{/empleados}">Cancelar</a>
+                    <button type="submit" class="btn btn-primario" th:text="${formulario.nuevo} ? 'Dar de alta' : 'Guardar cambios'">Guardar</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

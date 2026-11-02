@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * Patron Template Method para la capa de servicio.
  *
- * Los metodos alta, modificar, baja, consultar, listar y listarActivos definen el ALGORITMO
+ * Los metodos alta (altaEntidad), modificar, baja, consultar, listar y listarActivos definen el ALGORITMO
  * (el orden de los pasos y la transaccion) y es igual para todas las entidades del sistema.
  * Las subclases solo completan los PASOS:
  *  - Pasos obligatorios (abstractos): crearEntidad, actualizarEntidad, validar,
@@ -46,6 +46,16 @@ public abstract class BaseService<E extends BaseEntity, REQ, RES extends BaseRes
 
     @Transactional(rollbackFor = Exception.class)
     public RES alta(REQ dto) throws MiException {
+        return convertirAResponse(altaEntidad(dto));
+    }
+
+    /**
+     * Mismo algoritmo de alta, pero devuelve la entidad guardada en lugar del DTO.
+     * Lo usan otros servicios cuando el alta de su entidad incluye crear una entidad dependiente
+     * (por ejemplo, el alta de un empleado crea su usuario y su dirección dentro de la misma transacción).
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public E altaEntidad(REQ dto) throws MiException {
         verificarDatosRecibidos(dto);
         E entidad = crearEntidad(dto);
         entidad.setEliminado(false);
@@ -53,7 +63,7 @@ public abstract class BaseService<E extends BaseEntity, REQ, RES extends BaseRes
         preAlta(entidad);
         E guardada = repositorio.save(entidad);
         postAlta(guardada);
-        return convertirAResponse(guardada);
+        return guardada;
     }
 
     @Transactional(rollbackFor = Exception.class)

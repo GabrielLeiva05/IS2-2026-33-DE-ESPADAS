@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AccountStatusException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -61,6 +63,18 @@ public class ManejadorErrores {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorDTO> accesoDenegado(AccessDeniedException e) {
         return responder(HttpStatus.FORBIDDEN, "No tiene permisos para realizar esta operación");
+    }
+
+    /** Login con correo o contraseña incorrectos (mensaje genérico: no revela si la cuenta existe). */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorDTO> credencialesIncorrectas(BadCredentialsException e) {
+        return responder(HttpStatus.UNAUTHORIZED, "Correo o contraseña incorrectos");
+    }
+
+    /** Cuenta deshabilitada, bloqueada o vencida. */
+    @ExceptionHandler(AccountStatusException.class)
+    public ResponseEntity<ErrorDTO> cuentaNoHabilitada(AccountStatusException e) {
+        return responder(HttpStatus.UNAUTHORIZED, "La cuenta no está habilitada");
     }
 
     @ExceptionHandler(AuthenticationException.class)

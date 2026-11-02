@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Atención')}"></head>
+<body class="acceso">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<main class="acceso-cuerpo centrado">
+    <div class="acceso-tarjeta">
+        <a th:replace="~{fragments/base :: marca('Sistema administrativo')}"></a>
+        <div class="kpi-icono tono-rojo" style="margin:0 auto var(--dm-e-4)"><svg class="icono"><use href="#i-alerta"/></svg></div>
+        <h1 th:switch="${status}">
+            <span th:case="403">Acceso restringido</span>
+            <span th:case="404">No encontramos lo que buscabas</span>
+            <span th:case="503">Servicio no disponible</span>
+            <span th:case="*">Algo no salió bien</span>
+        </h1>
+        <p class="bajada" th:if="${mensaje != null}" th:text="${mensaje}">Detalle</p>
+        <p class="bajada" th:if="${mensaje == null and status == 403}">Tu rol no tiene permisos para esta sección.</p>
+        <p class="bajada" th:if="${mensaje == null and status != 403}">Intentá de nuevo en unos minutos.</p>
+        <a class="btn btn-primario btn-bloque" th:href="@{/}">Volver al inicio</a>
+    </div>
+</main>
+</body>
+</html>

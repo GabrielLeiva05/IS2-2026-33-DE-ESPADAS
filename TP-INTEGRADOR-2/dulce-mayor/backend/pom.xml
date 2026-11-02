@@ -15,6 +15,8 @@
     <description>API REST de Dulce Mayor - Trabajo Practico Integrador N.2</description>
     <properties>
         <java.version>25</java.version>
+        <!-- Misma versión de jjwt que Blockazo (probada con Spring Boot 4) -->
+        <jjwt.version>0.12.6</jjwt.version>
     </properties>
     <dependencies>
         <!-- Mismas dependencias base que el Integrador 1 (mismas versiones, gestionadas por el parent) -->
@@ -29,6 +31,29 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- OAuth2 Client: ingreso de clientes con Google y Facebook (como Blockazo) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-oauth2-client</artifactId>
+        </dependency>
+        <!-- JWT (como Blockazo) -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -53,6 +78,17 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Base en memoria SOLO para las pruebas de integración (como Blockazo) -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
