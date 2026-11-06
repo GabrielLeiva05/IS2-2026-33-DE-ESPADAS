@@ -1,5 +1,10 @@
 package com.ejercicioIntegrador.dulcemayor.integracion;
 
+import com.ejercicioIntegrador.dulcemayor.model.ReservaStock;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPedido;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPuntoVenta;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioReservaStock;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioStock;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioUsuario;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,8 +17,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDate;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -40,7 +51,73 @@ class FlujoSeguridadIntegrationTest {
     @Autowired
     private RepositorioUsuario repositorioUsuario;
 
+    @Autowired
+    private RepositorioPuntoVenta repositorioPuntoVenta;
+
+    @Autowired
+    private RepositorioPedido repositorioPedido;
+
+    @Autowired
+    private RepositorioStock repositorioStock;
+
+    @Autowired
+    private RepositorioReservaStock repositorioReservaStock;
+
     private MockMvc mvc;
+
+    private String preventistaHabilitado() throws Exception {
+        return empleadoHabilitado(jefeHabilitado(), "PREVENTISTA", "flujo@dulcemayor.test", "30111991", "FlujoSeguro2026");
+    }
+
+    /** Da de alta un empleado con el rol indicado y devuelve el token ya habilitado (clave cambiada). */
+    private String empleadoHabilitado(String jefe, String rol, String correo, String dni, String clave) throws Exception {
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        mvc.perform(post("/api/empleados").header("Authorization", jefe).contentType(MediaType.APPLICATION_JSON)
+                        .content(empleadoJson(rol, correo, dni, idLocalidad)))
+                .andExpect(status().isCreated());
+        return cambiarClave(login(correo, "dulcemayor"), "dulcemayor", clave);
+    }
+
+    private void crearStock(String jefe, String idProducto, int cantidadInicial) throws Exception {
+        mvc.perform(post("/api/stock").header("Authorization", jefe).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idProducto\":\"" + idProducto + "\",\"cantidadInicial\":" + cantidadInicial
+                                + ",\"stockMinimo\":2}"))
+                .andExpect(status().isCreated());
+    }
+
+    private String crearProductoConPrecio(String jefe, String codigo, String nombre, double precio) throws Exception {
+        String categoria = mvc.perform(post("/api/categorias").header("Authorization", jefe)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"nombre\":\"" + codigo + "\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idCategoria = JsonPath.read(categoria, "$.id");
+        String subCategoria = mvc.perform(post("/api/subcategorias").header("Authorization", jefe)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"" + codigo + " sub\",\"idCategoria\":\"" + idCategoria + "\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String imagen = mvc.perform(post("/api/imagenes").header("Authorization", jefe)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"" + codigo + ".png\",\"mime\":\"image/png\",\"contenido\":\"AQID\",\"tipoImagen\":\"PRODUCTO\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String producto = mvc.perform(post("/api/productos").header("Authorization", jefe)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"" + codigo + "\",\"nombre\":\"" + nombre
+                                + "\",\"presentacion\":\"UNIDAD\",\"unidadesPorPresentacion\":1,\"enOferta\":false,\"idSubCategoria\":\""
+                                + JsonPath.read(subCategoria, "$.id") + "\",\"idsImagen\":[\"" + JsonPath.read(imagen, "$.id") + "\"]}"))
+                                                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idProducto = JsonPath.read(producto, "$.id");
+        mvc.perform(post("/api/vigencias-precio").header("Authorization", jefe)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fechaDesde\":\"2020-01-01\",\"precio\":" + precio
+                                + ",\"idProducto\":\"" + idProducto + "\"}"))
+                .andExpect(status().isCreated());
+        return idProducto;
+    }
+
+    private String pedidoJson(String idPuntoVenta, String idProducto, int cantidad) {
+        return "{\"idPuntoVenta\":\"" + idPuntoVenta + "\",\"lineas\":[{\"idProducto\":\""
+                + idProducto + "\",\"cantidadPresentaciones\":" + cantidad + "}]}";
+    }
+
 
     @BeforeEach
     void setUp() {
@@ -95,6 +172,19 @@ class FlujoSeguridadIntegrationTest {
                  "vehiculo":"Fiat Fiorino","patente":"AB123CD",
                  "direccion":{"calle":"San Martín","numeracion":"1234","idLocalidad":"%s"}}
                 """.formatted(dni, correo, rol, idLocalidad);
+    }
+
+    private String registrarPuntoVenta(String preventista, String idLocalidad, String documento) throws Exception {
+        String cuerpo = mvc.perform(post("/api/preventista/puntos-venta").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombreCliente":"Carlos","apellidoCliente":"Gómez","correoContactoCliente":"carlos@example.test",
+                                 "fechaNacimientoCliente":"1985-03-12","tipoDocumentoCliente":"DNI","numeroDocumentoCliente":"%s",
+                                 "nombreComercial":"Kiosco Norte","telefono":"2615551234","emailContacto":"kiosco@example.test",
+                                 "direccion":{"calle":"San Martín","numeracion":"123","latitud":-32.89,"longitud":-68.84,"idLocalidad":"%s"}}
+                                """.formatted(documento, idLocalidad)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        return JsonPath.read(cuerpo, "$.id");
     }
 
     // ------------------------------------------------------------------ pruebas
@@ -161,6 +251,200 @@ class FlujoSeguridadIntegrationTest {
                 .content("{\"nombre\":\"Alfajores\"}")).andExpect(status().isCreated());
         // Pero el administrativo no gestiona empleados
         mvc.perform(get("/api/empleados").header("Authorization", administrativo)).andExpect(status().isForbidden());
+    }
+
+    @Test
+    void elFlujoComercialCreaResponsablePedidoReservaYLiberaAlCancelar() throws Exception {
+        String preventista = preventistaHabilitado();
+        String jefe = login(JEFE, "JefeSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "40123456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-01", "Alfajor flujo", 125.50);
+        mvc.perform(post("/api/stock").header("Authorization", jefe).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idProducto\":\"" + idProducto + "\",\"cantidadInicial\":10,\"stockMinimo\":2}"))
+                .andExpect(status().isCreated());
+
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 3)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("BORRADOR"))
+                .andExpect(jsonPath("$.total").value(376.50))
+                .andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+
+        mvc.perform(put("/api/preventista/pedidos/" + idPedido + "/lineas").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 2)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(251.00));
+
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("CONFIRMADO"));
+        assertEquals(10, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+        assertEquals(2, repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).get(0).getCantidad());
+
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/cancelar").header("Authorization", preventista))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("CANCELADO"));
+        assertEquals(10, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+        assertTrue(repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).get(0).getFechaLiberacion() != null);
+    }
+
+    @Test
+    void elPedidoConfirmadoSoloConsumeStockAlCompletarseAdministrativamente() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "flujo@dulcemayor.test", "30111991", "FlujoSeguro2026");
+        String administrativo = empleadoHabilitado(jefe, "ADMINISTRATIVO", "admin@dulcemayor.test", "30111444", "Almacen2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "40223456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-02", "Gomitas flujo", 80.00);
+        crearStock(jefe, idProducto, 10);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 3)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("CONFIRMADO"));
+
+        // Confirmar reserva: el stock físico no baja todavía y la reserva sigue activa
+        assertEquals(10, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+        ReservaStock reservada = repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).get(0);
+        assertFalse(reservada.isConsumida());
+        assertNull(reservada.getFechaLiberacion());
+        assertNull(reservada.getFechaConsumo());
+
+        mvc.perform(post("/api/pedidos/" + idPedido + "/completar").header("Authorization", administrativo))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("COMPLETADO"))
+                .andExpect(jsonPath("$.fechaCompletado").exists());
+
+        assertEquals(7, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+        ReservaStock consumida = repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).get(0);
+        assertTrue(consumida.isConsumida());
+        assertNotNull(consumida.getFechaConsumo());
+        assertNull(consumida.getFechaLiberacion());
+
+        // Un pedido ya completado no vuelve a consumir stock
+        mvc.perform(post("/api/pedidos/" + idPedido + "/completar").header("Authorization", administrativo))
+                .andExpect(status().isBadRequest());
+        assertEquals(7, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+    }
+
+    @Test
+    void elCicloAdministrativoEstaCerradoAlPreventistaYElAdministrativoNoCargaPedidos() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "roles@dulcemayor.test", "30111993", "FlujoSeguro2026");
+        String administrativo = empleadoHabilitado(jefe, "ADMINISTRATIVO", "admin2@dulcemayor.test", "30111445", "Almacen2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "40423456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-04", "Caramelo flujo", 30.00);
+        crearStock(jefe, idProducto, 5);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 1)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk());
+
+        // El preventista no cierra pedidos por la vía administrativa
+        mvc.perform(post("/api/pedidos/" + idPedido + "/completar").header("Authorization", preventista))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/pedidos/" + idPedido + "/cancelar").header("Authorization", preventista))
+                .andExpect(status().isForbidden());
+        // El administrativo no crea ni lista pedidos de preventista
+        mvc.perform(post("/api/preventista/pedidos").header("Authorization", administrativo)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 1)))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/preventista/pedidos").header("Authorization", administrativo))
+                .andExpect(status().isForbidden());
+
+        // El jefe hereda el cierre administrativo y libera la reserva
+        mvc.perform(post("/api/pedidos/" + idPedido + "/cancelar").header("Authorization", jefe))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("CANCELADO"));
+        assertNotNull(repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).get(0).getFechaLiberacion());
+    }
+
+    @Test
+    void laConfirmacionRechazaSobreventaYNoDejaReservasParciales() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "sobreventa@dulcemayor.test", "30111992", "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "40323456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-03", "Chupetín flujo", 50.00);
+        crearStock(jefe, idProducto, 2);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 3)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value(containsString("Stock insuficiente")));
+
+        assertTrue(repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).isEmpty());
+        assertEquals(2, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+        mvc.perform(get("/api/preventista/pedidos").header("Authorization", preventista))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].estado").value("BORRADOR"));
+    }
+
+    @Test
+    void unPreventistaNoVeNiOperaLaCarteraDeOtro() throws Exception {
+        String jefe = jefeHabilitado();
+        String titular = empleadoHabilitado(jefe, "PREVENTISTA", "titular@dulcemayor.test", "30111994", "FlujoSeguro2026");
+        String ajeno = empleadoHabilitado(jefe, "PREVENTISTA", "ajeno@dulcemayor.test", "30111995", "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(titular, idLocalidad, "40523456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-05", "Turrón flujo", 20.00);
+        crearStock(jefe, idProducto, 5);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", titular)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 1)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+
+        mvc.perform(get("/api/preventista/pedidos").header("Authorization", ajeno))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        mvc.perform(get("/api/preventista/puntos-venta").header("Authorization", ajeno))
+                .andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", ajeno))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/api/preventista/pedidos").header("Authorization", ajeno)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 1)))
+                .andExpect(status().isBadRequest());
+
+        assertTrue(repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).isEmpty());
+        assertEquals(5, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+    }
+
+    @Test
+    void elPrecioConfirmadoQuedaCongeladoAunqueCambieLaVigencia() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "precio@dulcemayor.test", "30111996", "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "40623456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-06", "Alfajor precio", 100.00);
+        crearStock(jefe, idProducto, 10);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 2)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.total").value(200.00))
+                .andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk());
+
+        mvc.perform(post("/api/vigencias-precio").header("Authorization", jefe).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"fechaDesde\":\"" + LocalDate.now() + "\",\"precio\":150.00,\"idProducto\":\""
+                                + idProducto + "\"}"))
+                .andExpect(status().isCreated());
+
+        mvc.perform(get("/api/preventista/pedidos").header("Authorization", preventista))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].total").value(200.00))
+                .andExpect(jsonPath("$[0].lineas[0].precioUnitario").value(100.00));
+
+        // Un pedido nuevo sí toma el precio vigente actualizado
+        mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 2)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.total").value(300.00));
     }
 
     @Test

@@ -1,0 +1,25 @@
+# Local environment overrides and credentials
+.env
+.env.*
+!.env.example
+
+# JVM builds and Maven Wrapper cache
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+
+# JavaScript builds and installed dependencies
+**/node_modules/
+**/dist/
+**/dist-ssr/
+
+# Local database volumes and dumps
+**/postgres-data/
+*.dump
+*.sql.gz
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

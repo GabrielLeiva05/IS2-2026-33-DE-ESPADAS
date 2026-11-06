@@ -18,6 +18,15 @@ public interface RepositorioStock extends BaseRepository<Stock> {
 
     List<Stock> findByEliminadoFalseAndCantidadActualLessThanEqual(int cantidad);
 
+    @Query("SELECT COALESCE(SUM(r.cantidad), 0) FROM ReservaStock r WHERE r.producto.id = :idProducto AND r.eliminado = false AND r.consumida = false AND r.fechaLiberacion IS NULL")
+    Long sumarReservasActivas(@Param("idProducto") String idProducto);
+
+    @Query("SELECT COALESCE(SUM(r.cantidad), 0) FROM ReservaStock r WHERE r.producto.id = :idProducto AND r.eliminado = false AND r.consumida = false AND r.fechaLiberacion IS NULL AND r.pedido.estado = com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido.CONFIRMADO")
+    Long sumarReservasConfirmadas(@Param("idProducto") String idProducto);
+
+    @Query("SELECT COALESCE(SUM(r.cantidad), 0) FROM ReservaStock r WHERE r.producto.id = :idProducto AND r.pedido.id <> :idPedido AND r.eliminado = false AND r.consumida = false AND r.fechaLiberacion IS NULL")
+    Long sumarReservasActivasExceptoPedido(@Param("idProducto") String idProducto, @Param("idPedido") String idPedido);
+
     /** Bloquea la fila para que dos descuentos simultaneos no dejen el stock negativo. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Stock s WHERE s.producto.id = :idProducto AND s.eliminado = false")

@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Backend') {
+            steps {
+                dir('backend') {
+                    bat 'mvnw.cmd -B -ntp verify'
+                }
+            }
+        }
+
+        stage('Admin web') {
+            steps {
+                dir('admin-web') {
+                    bat 'mvnw.cmd -B -ntp verify'
+                }
+            }
+        }
+
+        stage('Sitio institucional') {
+            steps {
+                dir('institucional-web') {
+                    bat 'mvnw.cmd -B -ntp verify'
+                }
+            }
+        }
+
+        stage('App distribuidor') {
+            steps {
+                dir('movil/distribuidor') {
+                    bat 'npm ci'
+                    bat 'npm run lint'
+                    bat 'npm run build'
+                }
+            }
+        }
+
+        stage('App preventista') {
+            steps {
+                dir('movil/preventista') {
+                    bat 'npm ci'
+                    bat 'npm run lint'
+                    bat 'npm run build'
+                }
+            }
+        }
+    }
+}

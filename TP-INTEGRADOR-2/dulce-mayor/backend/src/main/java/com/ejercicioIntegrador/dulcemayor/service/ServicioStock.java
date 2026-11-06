@@ -7,7 +7,9 @@ import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.OperacionNoPermitidaException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.RecursoNoEncontradoException;
 import com.ejercicioIntegrador.dulcemayor.model.Producto;
+import com.ejercicioIntegrador.dulcemayor.model.ReservaStock;
 import com.ejercicioIntegrador.dulcemayor.model.Stock;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioReservaStock;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioStock;
 import com.ejercicioIntegrador.dulcemayor.service.base.BaseService;
 import com.ejercicioIntegrador.dulcemayor.service.base.BaseUseCaseService;
@@ -27,11 +29,14 @@ public class ServicioStock extends BaseService<Stock, StockRequestDTO, StockResp
 
     private final RepositorioStock repositorioStock;
     private final ServicioProducto servicioProducto;
+    private final RepositorioReservaStock repositorioReservaStock;
 
-    public ServicioStock(RepositorioStock repositorioStock, ServicioProducto servicioProducto) {
+    public ServicioStock(RepositorioStock repositorioStock, ServicioProducto servicioProducto,
+                         RepositorioReservaStock repositorioReservaStock) {
         super(repositorioStock);
         this.repositorioStock = repositorioStock;
         this.servicioProducto = servicioProducto;
+        this.repositorioReservaStock = repositorioReservaStock;
     }
 
     // ------------------------------------------------------------------
@@ -100,15 +105,26 @@ public class ServicioStock extends BaseService<Stock, StockRequestDTO, StockResp
     /** Cantidad disponible del producto; 0 si todavía no tiene stock registrado. */
     @Transactional(readOnly = true)
     public int cantidadDisponible(String idProducto) {
-        return repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto)
+        int cantidadFisica = repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto)
                 .map(Stock::getCantidadActual)
                 .orElse(0);
+        long reservada = repositorioStock.sumarReservasConfirmadas(idProducto);
+        return (int) Math.max(0, cantidadFisica - reservada);
     }
 
     @Transactional(readOnly = true)
     public boolean hayStockSuficiente(String idProducto, Integer cantidad) throws MiException {
         validarCantidad(cantidad);
         return cantidadDisponible(idProducto) >= cantidad;
+    }
+
+    @Transactional(readOnly = true)
+    public int cantidadDisponibleParaPedido(String idProducto, String idPedido) {
+        int cantidadFisica = repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto)
+                .map(Stock::getCantidadActual)
+                .orElse(0);
+        long reservadaPorOtros = repositorioStock.sumarReservasActivasExceptoPedido(idProducto, idPedido);
+        return (int) Math.max(0, cantidadFisica - reservadaPorOtros);
     }
 
     @Transactional(readOnly = true)
@@ -122,9 +138,9 @@ public class ServicioStock extends BaseService<Stock, StockRequestDTO, StockResp
     public StockResponseDTO descontarStock(String idProducto, Integer cantidad) throws MiException {
         validarCantidad(cantidad);
         Stock stock = bloquearPorProducto(idProducto);
-        if (stock.getCantidadActual() < cantidad) {
+        if (cantidadDisponible(idProducto) < cantidad) {
             throw new MiException("Stock insuficiente de " + stock.getProducto().getNombre()
-                    + ": disponible " + stock.getCantidadActual() + ", solicitado " + cantidad);
+                    + ": disponible " + cantidadDisponible(idProducto) + ", solicitado " + cantidad);
         }
         stock.setCantidadActual(stock.getCantidadActual() - cantidad);
         stock.setFechaActualizacion(LocalDateTime.now());
@@ -137,6 +153,36 @@ public class ServicioStock extends BaseService<Stock, StockRequestDTO, StockResp
         Stock stock = bloquearPorProducto(idProducto);
         stock.setCantidadActual(stock.getCantidadActual() + cantidad);
         stock.setFechaActualizacion(LocalDateTime.now());
+        return convertirAResponse(repositorioStock.save(stock));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void bloquearParaReserva(String idProducto) throws MiException {
+        Stock stock = bloquearPorProducto(idProducto);
+        if (stock.getCantidadActual() <= 0) {
+            throw new MiException("El producto no tiene stock disponible");
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public StockResponseDTO consumirReserva(String idPedido, String idProducto, Integer cantidad) throws MiException {
+        validarCantidad(cantidad);
+        Stock stock = bloquearPorProducto(idProducto);
+        List<ReservaStock> reservas = repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).stream()
+                .filter(reserva -> reserva.getProducto().getId().equals(idProducto)
+                        && !reserva.isConsumida() && reserva.getFechaLiberacion() == null)
+                .toList();
+        int reservado = reservas.stream().mapToInt(ReservaStock::getCantidad).sum();
+        if (reservado != cantidad || stock.getCantidadActual() < cantidad) {
+            throw new MiException("La reserva del pedido no coincide con la cantidad a consumir");
+        }
+        LocalDateTime ahora = LocalDateTime.now();
+        reservas.forEach(reserva -> {
+            reserva.setConsumida(true);
+            reserva.setFechaConsumo(ahora);
+        });
+        stock.setCantidadActual(stock.getCantidadActual() - cantidad);
+        stock.setFechaActualizacion(ahora);
         return convertirAResponse(repositorioStock.save(stock));
     }
 

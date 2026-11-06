@@ -57,4 +57,7 @@ public class Producto extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "imagen_id"))
     @OrderColumn(name = "orden")
     private List<Imagen> imagenes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "producto", fetch = FetchType.LAZY)
+    private List<ReservaStock> reservas = new ArrayList<>();
 }

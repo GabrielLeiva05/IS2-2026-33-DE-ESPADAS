@@ -1,0 +1,53 @@
+A continuación se detalla la descripción y las especificaciones de un proyecto de software. Desglosarlo en un plan de acción o de tareas para llevar adelante el desarrollo del mismo, indicando aquellos aspectos de diseño del sistema que puedan prestarse a confusión o que puedan llevarse adelante de distintas formas, a fin de ir especificando cada uno de esos aspectos y de terminar con un plan totalmente limpio, detallado y coherente. El desarrollo será llevado adelante por un grupo de 4 personas, por lo cual es conveniente pensar el plan también de forma que esas 4 personas puedan avanzar en el mismo de la forma más rápida y organizada posible:
+
+Descripción General
+
+La nueva empresa mayorista de golosinas “Dulce Mayor”, ubicada en la provincia de Mendoza, busca desarrollar su software de gestión integral y su ecosistema web. La empresa cuenta con sucursales en toda la provincia para permitir una mejor logística en la entrega de pedidos de golosinas.
+“Dulce Mayor” desea contar con un sitio web institucional y catálogo público donde los minoristas (clientes) puedan visualizar el surtido de golosinas disponibles (fotos de los productos, descripciones detalladas, presentaciones por bulto/pack y precios mayoristas actualizados). También se mostrará información institucional de la empresa (Ubicación de las sucursales, fotos de las sucursales, etc) y la cotización actualizada del dólar ya que al momento
+de que un cliente pague se aceptan pesos argentinos o dolares. Además, el sitio institucional debe contar con un chatbot con IA que permita armar un presupuesto en funcion de los productos que se indiquen.
+Los pedidos de los minoristas son recepcionados en campo (cada punto de venta) por medio de los preventores, quienes acceden desde sus teléfonos celulares a un sitio responsive optimizado para cargar los pedidos de manera ágil durante sus visitas comerciales.
+Una vez ingresado el pedido por el preventor, este se sincroniza con el sistema central de gestión, el cual es administrado desde el almacén central. En este sector se realiza el control y actualización automática del stock disponible. Si hay stock suficiente, el pedido es procesado y facturado automáticamente. Luego, el sistema coordina la etapa de logística y envío, registrando el despacho y la entrega final del pedido al minorista.
+El sistema debe poder registrar y trazar todo este circuito operativo de punta a punta. La entrega se realiza por el equipo de distribución de pedidos quienes poseen los puntos de entrega que componen la ruta diaria. Una vez entregado el pedido el mismos se marca en el sistema cómo “Entregado” y el sistema le propone el siguiente punto mostrándolo en un mapa. El sistema envía un correo al próximo punto notificando que en breve se encontrará realizando la entrega de los productos solicitados.
+
+Los puntos de venta (kioscos, almacenes, etc) pueden darse de alta por preventistas o se encuentran previamente dados de alta en el sistema, para poder identificar los mismos al momento de tomar el pedido. Los puntos de venta poseen la información de geolocalización permitiendo al preventista ordenar su ruta diaria de la forma más optima posible. Una vez que el preventista toma un pedido, el sistema le propone el siguiente punto más eficiente y muestra
+el mapa con su recorrido. Además, el preventistas debe poder identificar de antemano todos los puntos de su ruta diaria en un mapa para identificar la zona donde será su recorrido.
+
+
+Especificaciones Funcionales del Sistema
+
+- Gestión de Productos y Almacén: En el software de gestión se podrán dar de alta los distintos productos (golosinas, chocolates, chupetines, alfajores, etc.) con sus respectivas imágenes, características, categoría, presentación y stock actual. La cantidad disponible en el inventario se descuenta automáticamente al confirmarse la facturación del pedido. Cuando un producto se queda sin stock, debe dejar de mostrarse automáticamente en el sitio institucional y catálogo público.
+- Trazabilidad del Pedido: El sistema registrará el ciclo de vida completo de cada transacción: fecha y hora de carga por el preventor, estado del stock en almacén, fecha de facturación, datos del transportista y fecha efectiva de entrega al comercio minorista.
+- Notificaciones Automáticas: El sistema enviará al minorista un correo electrónico de confirmación de su pedido de forma automática al momento de ser facturado. Además los días 5 de cada mes se envía, a los clientes, un correo de newsletter con un HTML con los productos en oferta.
+- Facturación y Medios de Pago: El costo total del pedido se calcula en función de las cantidades solicitadas y los precios mayoristas vigentes. El sistema debe calcular el monto a abonar, permitiendo registrar pagos mediante distintos medios: efectivo, transferencia bancaria o billetera virtual. Con el pago registrado, se generará una factura electrónica, la cual quedará disponible para ser descargada por los clientes desde su panel, además de ser enviada por correo electrónico al responsable del comercio. El área de facturación se contacta con el cliente para determinar la forma de pago, en caso de que el preventista no haya consultado la misma al cliente. Si es efectivo se cobra al momento de la entrega de la mercadería. En caso de transferencia se le indica el alias. En caso de billetera virtual se generará el QR al cliente (utilizando la API de Mercado Pago) para que realice el pago ingresando en el sistema en el apartado cliente.
+- Gestión de Promociones: El sistema administrativo incluirá un módulo para registrar promociones y descuentos por volumen o producto destacado mediante un código de descuento. Dicho código podrá ser aplicado por el preventor al momento de armar el pedido en su dispositivo móvil, reduciendo automáticamente el subtotal correspondiente.
+- Reportes y Descargas: El sistema administrativo tendrá un apartado con información detallada de los clientes minoristas, pedidos realizados, estados de envío y montos facturados. Esta información podrá visualizarse en pantalla y descargarse en un archivo PDF. Además, será posible exportar a un archivo Excel el listado histórico de ventas discriminado por departamento y preventor en un período determinado.
+- Estadísticas: El sistema administrativo mostrará gráficos de barra donde se identifica por mes la cantidad de pedidos por preventor por día. Mostrará grafico de torta donde se mostrará la cantidad de productos que tiene en stock el mayorista.
+
+
+Roles y Permisos de Usuarios
+
+El software de gestión contará con distintos niveles de acceso según el perfil del usuario:
+
+a) Preventor: Accede a través de un diseño responsive desde su dispositivo móvil. Puede visualizar el catálogo de productos con stock en tiempo real, registrar nuevos clientes minoristas y cargar los pedidos en campo aplicando códigos de promoción. Puede consultar el estado de los pedidos que gestionó. Puede visualizar la ruta con todos los clientes en un mapa que muestra la ruta por realizar en el día.
+b) Distribuidor: Accede a través de un diseño responsive desde su dispositivo móvil. Puede visualizar la ruta con los pedidos que debe entregar. Marcar los pedidos entregados. Puede visualizar la ruta con todos los puntos en un mapa que muestra la ruta por realizar en el día.
+c) Personal Administrativo / Almacenero: Puede dar de alta y modificar productos, verificar el stock en el almacén, procesar y facturar los pedidos recepcionados, y registrar los pagos efectuados. El personal administrativo podrá modificar su contraseña de acceso al sistema.
+d) Jefe Administrativo: Posee los permisos del personal administrativo y del preventor, además de poder dar de alta nuevos usuarios del sistema (preventores, administrativos), ver reportes globales de ventas por período, y analizar el rendimiento de los preventores y el volumen de golosinas más vendidas. Los reportes gerenciales deben poder descargarse en formatos PDF o Excel. Puede ver las estadísticas.
+e) Clientes (Minoristas): Pueden registrarse y autenticarse en el portal institucional. Visualizan el histórico de sus pedidos realizados, el estado actual de sus envíos y tienen la posibilidad de descargar sus facturas históricas. La registración y el inicio de sesión se podrán realizar mediante correo electrónico o cuentas de redes sociales. También puede visualizar las facturas de sus pedidos y QR de pagos en cada pedido si selecciono pagar por billetera virtual.
+
+Seguridad y Aspectos Técnicos
+
+- Seguridad de Acceso: El ingreso al software por parte de los empleados de la empresa se realiza con usuario y clave. Al darse de alta un nuevo usuario, el sistema asignará una clave por defecto (dulcemayor). Al realizar el primer inicio de sesión, el sistema detectará esta contraseña temporal y obligará al usuario a modificarla antes de permitirle utilizar las restantes funcionalidades de la plataforma.
+- Protección de Datos: El software deberá contar con todas las medidas de seguridad pertinentes (encriptación de credenciales, control de sesiones, protección contra accesos no autorizados) con el objetivo de preservar la confidencialidad de los datos comerciales y la información sensible de los clientes registrados.
+- El usuario (preventista, distribuidor o administrador) debe poder ingresar al sistema utilizando Oauth o alguna otra librería similar que permita autenticarse utilizando una cuenta de Google.
+
+Detalles de Desarrollo
+
+- Tanto la vista del preventor como la del distribuidor se deben realizar utilizando React, mientras que la página institucional y el panel administrativo deben utilizar Thymeleaf. En cualquier caso, todas las vistas se alimentan de una API REST implementada con Spring Boot. 
+- Deben utilizarse patrones de diseño para priorizar la modularidad, sencillez y correctitud del código. En particular:
+1. El Patrón MVC
+2. El Patrón Template Method para clases Controladoras y clases de Servicio.
+3. El Patrón DTO, o librería que permita hacer algo equivalente, para el pasaje de información entre las clases de Controlador y las clases de Servicio.
+4. Seleccionar, adicionalmente a los patrones indicados anteriormente, un patrón de cada categoría (creacional / estructural / comportamiento) que resulte especialmente útil para implementar alguna de las funcionalidades detalladas anteriormente.
+- Para los mapas utilizados por el preventista y el distribuidor, hacer uso de OpenStreetMap.
+- Se debe utilzar Jenkins como herramienta de integración continua, y Docker para el despliegue.
+- Como base de datos principal de persistencia, utilizaremos Postgress, aunque el proyecto debe poder adaptarse a otros motores de base de datos fácilmente debido a los patrones utilizados.

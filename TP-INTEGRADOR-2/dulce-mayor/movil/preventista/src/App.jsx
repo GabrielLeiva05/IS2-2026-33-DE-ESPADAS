@@ -1,121 +1,258 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './App.css'
 
+const API = import.meta.env.VITE_API_URL || ''
+const SESSION_KEY = 'dulce-mayor-preventista-session'
+const PENDING_ORDER_KEY = `${SESSION_KEY}-pending-order`
+const money = (value) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Number(value) || 0)
+const describeError = (error) => error instanceof Error ? error.message : 'Ocurrió un error inesperado.'
+
+async function api(path, { token, ...options } = {}) {
+  const response = await fetch(`${API}${path}`, {
+    ...options,
+    headers: {
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
+  })
+  if (!response.ok) {
+    const detail = await response.json().catch(() => null)
+    throw new Error(detail?.mensaje || detail?.message || `La solicitud falló (${response.status}).`)
+  }
+  if (response.status === 204) return null
+  return response.json()
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [session, setSession] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null') } catch { return null }
+  })
+  const [screen, setScreen] = useState('cartera')
+  const [cartera, setCartera] = useState([])
+  const [catalogo, setCatalogo] = useState([])
+  const [pedidos, setPedidos] = useState([])
+  const [puntoId, setPuntoId] = useState('')
+  const [pedidoPendienteId, setPedidoPendienteId] = useState(() => sessionStorage.getItem(PENDING_ORDER_KEY) || '')
+  const [cantidades, setCantidades] = useState({})
+  const [busqueda, setBusqueda] = useState('')
+  const [pedidoPendiente, setPedidoPendiente] = useState(null)
+  const [login, setLogin] = useState({ correo: '', clave: '' })
+  const [nuevoPunto, setNuevoPunto] = useState({ nombreCliente: '', apellidoCliente: '', correoContactoCliente: '', tipoDocumentoCliente: 'DNI', numeroDocumentoCliente: '', nombreComercial: '', telefono: '', emailContacto: '', calle: '', numeracion: '', barrio: '', referencia: '', latitud: '', longitud: '', idLocalidad: '' })
+  const [localidades, setLocalidades] = useState([])
+  const [cargando, setCargando] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [error, setError] = useState('')
+  const [aviso, setAviso] = useState('')
+
+  const cargarDatos = useCallback(async () => {
+    if (!session?.token) return
+    setCargando(true)
+    setError('')
+    try {
+      const [puntos, productos, misPedidos, departamentosApi] = await Promise.all([
+        api('/api/preventista/puntos-venta', { token: session.token }),
+        api('/api/catalogo', { token: session.token }),
+        api('/api/preventista/pedidos', { token: session.token }),
+        api('/api/departamentos', { token: session.token }),
+      ])
+      const localidadesApi = (await Promise.all(departamentosApi.map((departamento) => api(`/api/localidades/departamento/${departamento.id}`, { token: session.token })))).flat()
+      setCartera(puntos)
+      setCatalogo(productos)
+      setPedidos(misPedidos)
+      const pedidoPendienteActual = misPedidos.find((pedido) => pedido.id === pedidoPendienteId)
+      setPedidoPendiente(pedidoPendienteActual || null)
+      if (pedidoPendienteId && (!pedidoPendienteActual || pedidoPendienteActual.estado !== 'BORRADOR')) {
+        sessionStorage.removeItem(PENDING_ORDER_KEY)
+        setPedidoPendienteId('')
+        if (pedidoPendienteActual) setCantidades({})
+      }
+      setLocalidades(localidadesApi)
+      setPuntoId((actual) => puntos.some((punto) => punto.id === actual) ? actual : puntos[0]?.id || '')
+    } catch (requestError) {
+      setError(describeError(requestError))
+    } finally {
+      setCargando(false)
+    }
+  }, [session, pedidoPendienteId])
+
+  useEffect(() => { queueMicrotask(cargarDatos) }, [cargarDatos])
+
+  const productosFiltrados = useMemo(() => catalogo.filter((producto) =>
+    `${producto.nombre} ${producto.codigo} ${producto.categoria} ${producto.subCategoria}`.toLowerCase().includes(busqueda.toLowerCase())), [catalogo, busqueda])
+  const lineas = useMemo(() => catalogo.filter((producto) => Number(cantidades[producto.id]) > 0)
+    .map((producto) => ({ idProducto: producto.id, cantidadPresentaciones: Number(cantidades[producto.id]) })), [catalogo, cantidades])
+  const totalBorrador = useMemo(() => catalogo.reduce((total, producto) =>
+    total + (Number(cantidades[producto.id]) || 0) * Number(producto.precio || 0), 0), [catalogo, cantidades])
+
+  async function iniciarSesion(event) {
+    event.preventDefault()
+    setGuardando(true)
+    setError('')
+    try {
+      const sesion = await api('/api/auth/login', { method: 'POST', body: JSON.stringify(login) })
+      if (sesion.usuario?.rol !== 'PREVENTISTA') throw new Error('La cuenta no tiene permisos para ingresar a la app preventista.')
+      if (sesion.usuario.debeCambiarClave) throw new Error('La cuenta debe cambiar su contraseña antes de continuar. Ingresá desde el portal web.')
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(sesion))
+      setSession(sesion)
+      setAviso('Ingresaste correctamente.')
+    } catch (requestError) { setError(describeError(requestError)) } finally { setGuardando(false) }
+  }
+
+  function cerrarSesion() {
+    sessionStorage.removeItem(SESSION_KEY)
+    sessionStorage.removeItem(PENDING_ORDER_KEY)
+    setPedidoPendienteId('')
+    setPedidoPendiente(null)
+    setSession(null)
+    setCartera([])
+    setPedidos([])
+    setAviso('')
+    setError('')
+  }
+
+  async function guardarPunto(event) {
+    event.preventDefault()
+    setGuardando(true)
+    setError('')
+    setAviso('')
+    try {
+      const payload = {
+        nombreCliente: nuevoPunto.nombreCliente,
+        apellidoCliente: nuevoPunto.apellidoCliente,
+        correoContactoCliente: nuevoPunto.correoContactoCliente,
+        tipoDocumentoCliente: nuevoPunto.tipoDocumentoCliente || null,
+        numeroDocumentoCliente: nuevoPunto.numeroDocumentoCliente || null,
+        nombreComercial: nuevoPunto.nombreComercial,
+        telefono: nuevoPunto.telefono || null,
+        emailContacto: nuevoPunto.emailContacto || null,
+        direccion: {
+          calle: nuevoPunto.calle,
+          numeracion: nuevoPunto.numeracion,
+          barrio: nuevoPunto.barrio || null,
+          referencia: nuevoPunto.referencia || null,
+          latitud: nuevoPunto.latitud === '' ? null : Number(nuevoPunto.latitud),
+          longitud: nuevoPunto.longitud === '' ? null : Number(nuevoPunto.longitud),
+          idLocalidad: nuevoPunto.idLocalidad,
+        },
+      }
+      await api('/api/preventista/puntos-venta', { token: session.token, method: 'POST', body: JSON.stringify(payload) })
+      setNuevoPunto({ nombreCliente: '', apellidoCliente: '', correoContactoCliente: '', tipoDocumentoCliente: 'DNI', numeroDocumentoCliente: '', nombreComercial: '', telefono: '', emailContacto: '', calle: '', numeracion: '', barrio: '', referencia: '', latitud: '', longitud: '', idLocalidad: '' })
+      setAviso('Punto de venta registrado en la cartera.')
+      await cargarDatos()
+      setScreen('cartera')
+    } catch (requestError) { setError(describeError(requestError)) } finally { setGuardando(false) }
+  }
+
+  async function guardarPedido(event) {
+    event.preventDefault()
+    if (!puntoId || lineas.length === 0) { setError('Elegí un comercio y al menos un producto para continuar.'); return }
+    setGuardando(true)
+    setError('')
+    setAviso('')
+    try {
+      const pedido = pedidoPendienteId
+        ? await api(`/api/preventista/pedidos/${pedidoPendienteId}/lineas`, { token: session.token, method: 'PUT', body: JSON.stringify({ idPuntoVenta: puntoId, lineas }) })
+        : await api('/api/preventista/pedidos', { token: session.token, method: 'POST', body: JSON.stringify({ idPuntoVenta: puntoId, lineas }) })
+      sessionStorage.setItem(PENDING_ORDER_KEY, pedido.id)
+      setPedidoPendienteId(pedido.id)
+      await confirmarPedido(pedido.id)
+    } catch (requestError) { setError(describeError(requestError)) } finally { setGuardando(false) }
+  }
+
+  function ajustarPedidoPendiente() {
+    if (!pedidoPendiente || pedidoPendiente.estado !== 'BORRADOR') {
+      setError('Actualizá los datos para verificar el estado del pedido antes de editarlo.')
+      return
+    }
+    setPuntoId(pedidoPendiente.idPuntoVenta)
+    setCantidades(Object.fromEntries(pedidoPendiente.lineas.map((linea) => [linea.idProducto, String(linea.cantidadPresentaciones)])))
+    setScreen('pedido')
+    setError('')
+  }
+
+  async function confirmarPedido(idPedido = pedidoPendienteId) {
+    if (!idPedido) return
+    setGuardando(true)
+    setError('')
+    try {
+      await api(`/api/preventista/pedidos/${idPedido}/confirmar`, { token: session.token, method: 'POST' })
+      sessionStorage.removeItem(PENDING_ORDER_KEY)
+      setPedidoPendienteId('')
+      setPedidoPendiente(null)
+      const pedidosActualizados = await api('/api/preventista/pedidos', { token: session.token })
+      setPedidos(pedidosActualizados)
+      setCantidades({})
+      setAviso('Pedido confirmado y reserva de stock realizada.')
+      await cargarDatos()
+      setScreen('pedidos')
+    } catch (requestError) {
+      setError(describeError(requestError))
+      await cargarDatos()
+    } finally { setGuardando(false) }
+  }
+
+  if (!session) return (
+    <main className="login-shell">
+      <form className="login-card" onSubmit={iniciarSesion}>
+        <div className="brand-mark">DM</div>
+        <p className="eyebrow">DULCE MAYOR · EQUIPO COMERCIAL</p>
+        <h1>App Preventista</h1>
+        <p className="muted">Ingresá para gestionar tu cartera y registrar pedidos.</p>
+        {error && <p className="notice error" role="alert">{error}</p>}
+        <label>Correo electrónico<input type="email" autoComplete="username" required value={login.correo} onChange={(event) => setLogin({ ...login, correo: event.target.value })} /></label>
+        <label>Contraseña<input type="password" autoComplete="current-password" required value={login.clave} onChange={(event) => setLogin({ ...login, clave: event.target.value })} /></label>
+        <button className="button primary full" disabled={guardando}>{guardando ? 'Ingresando…' : 'Ingresar a mi cuenta'}</button>
+        <p className="login-foot">Acceso exclusivo para personal preventista.</p>
+      </form>
+    </main>
+  )
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <div className="app-layout">
+      <aside className="sidebar">
+        <a className="brand" href="#inicio" onClick={() => setScreen('cartera')}><span className="brand-mark">DM</span><span>Dulce Mayor<small>Fuerza de ventas</small></span></a>
+        <p className="nav-caption">GESTIÓN COMERCIAL</p>
+        <nav aria-label="Navegación principal">
+          {[['cartera', 'Cartera', '▦'], ['nuevo-punto', 'Nuevo comercio', '+'], ['pedido', 'Nuevo pedido', '＋'], ['pedidos', 'Pedidos', '≡']].map(([id, titulo, icono]) => <button key={id} className={`nav-link ${screen === id ? 'active' : ''}`} onClick={() => { setScreen(id); setError(''); setAviso('') }}><span>{icono}</span>{titulo}{id === 'pedidos' && pedidos.length > 0 && <b>{pedidos.length}</b>}</button>)}
+        </nav>
+        <div className="sidebar-footer"><div className="avatar">{session.usuario?.nombre?.[0] || 'P'}</div><div className="profile"><strong>{session.usuario?.nombre || 'Preventista'} {session.usuario?.apellido || ''}</strong><small>{session.usuario?.correo}</small></div><button className="logout" aria-label="Cerrar sesión" title="Cerrar sesión" onClick={cerrarSesion}>↪</button></div>
+      </aside>
+      <main className="main-content">
+        <header className="topbar"><div><p className="eyebrow">{new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}</p><strong>Hola, {session.usuario?.nombre || 'equipo comercial'}</strong></div><button className="icon-button" aria-label="Actualizar datos" title="Actualizar datos" onClick={cargarDatos} disabled={cargando}>↻</button></header>
+        <section className="page-content">
+          {error && <p className="notice error" role="alert">{error}<button aria-label="Cerrar aviso" onClick={() => setError('')}>×</button></p>}
+          {aviso && <p className="notice success" role="status">{aviso}<button aria-label="Cerrar aviso" onClick={() => setAviso('')}>×</button></p>}
+          {pedidoPendienteId && <div className="notice info" role="alert"><span>La confirmación no se completó. Revisá el estado; si sigue en borrador, podés ajustar el carrito y volver a confirmar.</span><button type="button" disabled={guardando || cargando || pedidoPendiente?.estado !== 'BORRADOR'} onClick={ajustarPedidoPendiente}>Ajustar pedido</button></div>}
+          {cargando && <p className="loading" role="status">Sincronizando con Dulce Mayor…</p>}
+          {screen === 'cartera' && <>
+            <div className="page-heading"><div><p className="eyebrow">TU OPERACIÓN</p><h1>Cartera de clientes</h1><p className="muted">Comercios asignados a tu zona de trabajo.</p></div><button className="button primary" onClick={() => setScreen('nuevo-punto')}>＋ Nuevo comercio</button></div>
+            <div className="stats-grid"><article className="stat-card"><span>Comercios activos</span><strong>{cartera.length}</strong><small>En tu cartera</small></article><article className="stat-card"><span>Pedidos registrados</span><strong>{pedidos.length}</strong><small>Historial de ventas</small></article><article className="stat-card"><span>Productos disponibles</span><strong>{catalogo.length}</strong><small>Con stock y precio vigente</small></article></div>
+            <section className="panel"><div className="panel-heading"><div><h2>Comercios asignados</h2><p>Datos de contacto y ubicación</p></div><span className="count-badge">{cartera.length} comercios</span></div>
+              {cartera.length === 0 && !cargando ? <div className="empty-state"><span>⌖</span><h3>Tu cartera empieza acá</h3><p>Registrá un comercio para poder cargar su próximo pedido.</p><button className="button secondary" onClick={() => setScreen('nuevo-punto')}>Registrar comercio</button></div> : <div className="table-wrap"><table><thead><tr><th>COMERCIO</th><th>RESPONSABLE</th><th>CONTACTO</th><th>LOCALIDAD</th><th></th></tr></thead><tbody>{cartera.map((punto) => <tr key={punto.id}><td><strong>{punto.nombreComercial}</strong><small className="table-sub">{punto.direccion?.calle} {punto.direccion?.numeracion}</small></td><td>{punto.nombreCliente} {punto.apellidoCliente}</td><td>{punto.telefono || punto.emailContacto || '—'}</td><td>{punto.direccion?.localidad || '—'}</td><td><button className="button tiny" onClick={() => { setPuntoId(punto.id); setScreen('pedido') }}>Cargar pedido</button></td></tr>)}</tbody></table></div>}
+            </section>
+          </>}
+          {screen === 'nuevo-punto' && <>
+            <div className="page-heading"><div><p className="eyebrow">CARTERA DE CLIENTES</p><h1>Registrar comercio</h1><p className="muted">El punto quedará asignado automáticamente a tu cartera.</p></div></div>
+            <form className="panel form-panel" onSubmit={guardarPunto}>
+              <p className="notice info">La ubicación es obligatoria para registrar el punto. Ingresá las coordenadas del comercio.</p>
+              <div className="form-section"><h2>Responsable del comercio</h2><p>Datos de contacto de la persona titular.</p><div className="form-grid"><label>Nombre<input required value={nuevoPunto.nombreCliente} onChange={(e) => setNuevoPunto({ ...nuevoPunto, nombreCliente: e.target.value })} /></label><label>Apellido<input required value={nuevoPunto.apellidoCliente} onChange={(e) => setNuevoPunto({ ...nuevoPunto, apellidoCliente: e.target.value })} /></label><label>Correo de contacto<input type="email" required value={nuevoPunto.correoContactoCliente} onChange={(e) => setNuevoPunto({ ...nuevoPunto, correoContactoCliente: e.target.value })} /></label><label>Tipo de documento<select value={nuevoPunto.tipoDocumentoCliente} onChange={(e) => setNuevoPunto({ ...nuevoPunto, tipoDocumentoCliente: e.target.value })}><option>DNI</option><option>CUIL</option><option>CUIT</option><option>PASAPORTE</option><option value="">Sin dato</option></select></label><label>Número de documento<input value={nuevoPunto.numeroDocumentoCliente} onChange={(e) => setNuevoPunto({ ...nuevoPunto, numeroDocumentoCliente: e.target.value })} /></label></div></div>
+              <div className="form-section"><h2>Datos del comercio</h2><p>Información para identificar y contactar el punto de venta.</p><div className="form-grid"><label className="wide-field">Nombre comercial<input required value={nuevoPunto.nombreComercial} onChange={(e) => setNuevoPunto({ ...nuevoPunto, nombreComercial: e.target.value })} /></label><label>Teléfono<input type="tel" value={nuevoPunto.telefono} onChange={(e) => setNuevoPunto({ ...nuevoPunto, telefono: e.target.value })} /></label><label>Correo del comercio<input type="email" value={nuevoPunto.emailContacto} onChange={(e) => setNuevoPunto({ ...nuevoPunto, emailContacto: e.target.value })} /></label></div></div>
+              <div className="form-section"><h2>Dirección y ubicación</h2><p>La ubicación ayuda a planificar la visita.</p><div className="form-grid"><label>Calle<input required value={nuevoPunto.calle} onChange={(e) => setNuevoPunto({ ...nuevoPunto, calle: e.target.value })} /></label><label>Altura<input required value={nuevoPunto.numeracion} onChange={(e) => setNuevoPunto({ ...nuevoPunto, numeracion: e.target.value })} /></label><label>Barrio<input value={nuevoPunto.barrio} onChange={(e) => setNuevoPunto({ ...nuevoPunto, barrio: e.target.value })} /></label><label>Localidad<select required value={nuevoPunto.idLocalidad} onChange={(e) => setNuevoPunto({ ...nuevoPunto, idLocalidad: e.target.value })}><option value="">Seleccionar localidad</option>{localidades.map((localidad) => <option key={localidad.id} value={localidad.id}>{localidad.nombre}{localidad.codigoPostal ? ` · CP ${localidad.codigoPostal}` : ''}</option>)}</select></label><label>Latitud<input type="number" step="any" required value={nuevoPunto.latitud} onChange={(e) => setNuevoPunto({ ...nuevoPunto, latitud: e.target.value })} /></label><label>Longitud<input type="number" step="any" required value={nuevoPunto.longitud} onChange={(e) => setNuevoPunto({ ...nuevoPunto, longitud: e.target.value })} /></label><label className="wide-field">Referencias<input value={nuevoPunto.referencia} onChange={(e) => setNuevoPunto({ ...nuevoPunto, referencia: e.target.value })} /></label></div></div>
+              <div className="form-actions"><button type="button" className="button secondary" onClick={() => setScreen('cartera')}>Cancelar</button><button className="button primary" disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar comercio'}</button></div>
+            </form>
+          </>}
+          {screen === 'pedido' && <>
+            <div className="page-heading"><div><p className="eyebrow">VENTAS</p><h1>Nuevo pedido</h1><p className="muted">Ajustá el carrito y revisá el total antes de reservar stock.</p></div></div>
+            {cartera.length === 0 ? <section className="panel empty-state"><span>⌖</span><h3>Primero necesitás un comercio</h3><p>Registrá el punto de venta antes de cargar un pedido.</p><button type="button" className="button primary" onClick={() => setScreen('nuevo-punto')}>Registrar comercio</button></section> : <form className="order-layout" onSubmit={guardarPedido}><section className="panel order-products"><label className="search-label">Buscar producto<input type="search" placeholder="Nombre, categoría o código…" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></label><div className="product-list">{productosFiltrados.map((producto) => <article className="product-row" key={producto.id}><div className="product-art">{producto.idsImagen?.[0] ? <img src={`${API}/api/imagenes/${producto.idsImagen[0]}/contenido`} alt="" /> : 'DM'}</div><div className="product-info"><strong>{producto.nombre}</strong><small>{producto.codigo} · {producto.presentacion} · {producto.unidadesPorPresentacion} unidades</small><span>{money(producto.precio)} <small>/ presentación</small></span><em>{producto.stockDisponible} unidades disponibles</em></div><label className="quantity-control">Presentaciones<input type="number" min="0" max="999" step="1" inputMode="numeric" value={cantidades[producto.id] || ''} onChange={(e) => setCantidades({ ...cantidades, [producto.id]: e.target.value })} aria-label={`Cantidad de ${producto.nombre}`} /></label></article>)}{productosFiltrados.length === 0 && <div className="empty-state"><h3>No hay productos para mostrar</h3><p>Probá con otro término de búsqueda.</p></div>}</div></section>
+              <aside className="panel order-summary"><h2>Resumen</h2><label>Comercio<select required value={puntoId} onChange={(e) => setPuntoId(e.target.value)}><option value="">Seleccionar comercio</option>{cartera.map((punto) => <option key={punto.id} value={punto.id}>{punto.nombreComercial}</option>)}</select></label><div className="summary-line"><span>Productos</span><strong>{lineas.length}</strong></div><div className="summary-total"><span>Total estimado</span><strong>{money(totalBorrador)}</strong></div><p className="summary-hint">El servidor recalcula precios y verifica stock al confirmar. Podés poner una cantidad en cero para quitar ese producto.</p><button className="button primary full" disabled={guardando || lineas.length === 0}>{guardando ? (pedidoPendienteId ? 'Actualizando y confirmando…' : 'Confirmando…') : 'Confirmar pedido'}</button><button type="button" className="button secondary full" onClick={() => setCantidades({})}>Vaciar selección</button></aside>
+            </form>}
+          </>}
+          {screen === 'pedidos' && <><div className="page-heading"><div><p className="eyebrow">ACTIVIDAD</p><h1>Pedidos</h1><p className="muted">Seguimiento de los pedidos de tu cartera.</p></div><button className="button primary" onClick={() => setScreen('pedido')}>＋ Nuevo pedido</button></div><section className="panel"><div className="panel-heading"><div><h2>Historial de pedidos</h2><p>Más recientes primero</p></div><span className="count-badge">{pedidos.length} pedidos</span></div>{pedidos.length === 0 ? <div className="empty-state"><span>≡</span><h3>Todavía no hay pedidos</h3><p>Cuando registres un pedido, lo vas a encontrar acá.</p></div> : <div className="table-wrap"><table><thead><tr><th>COMERCIO</th><th>FECHA</th><th>PRODUCTOS</th><th>ESTADO</th><th className="align-right">TOTAL</th></tr></thead><tbody>{[...pedidos].reverse().map((pedido) => <tr key={pedido.id}><td><strong>{pedido.nombreComercial}</strong></td><td>{pedido.fechaConfirmacion ? new Date(pedido.fechaConfirmacion).toLocaleDateString('es-AR') : new Date(pedido.fechaCreacion).toLocaleDateString('es-AR')}</td><td>{pedido.lineas?.reduce((total, linea) => total + linea.cantidadPresentaciones, 0) || 0} presentaciones</td><td><span className={`status status-${String(pedido.estado).toLowerCase()}`}>{pedido.estado}</span></td><td className="align-right">{money(pedido.total)}</td></tr>)}</tbody></table></div>}</section></>}
+        </section>
+        <footer className="footer">Dulce Mayor <span>·</span> Herramienta de gestión comercial</footer>
+      </main>
+    </div>
   )
 }
 

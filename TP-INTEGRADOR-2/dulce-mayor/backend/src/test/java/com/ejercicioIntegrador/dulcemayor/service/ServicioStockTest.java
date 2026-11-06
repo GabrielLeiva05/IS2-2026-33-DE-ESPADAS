@@ -6,6 +6,7 @@ import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.OperacionNoPermitidaException;
 import com.ejercicioIntegrador.dulcemayor.model.Producto;
 import com.ejercicioIntegrador.dulcemayor.model.Stock;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioReservaStock;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioStock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ class ServicioStockTest {
     void setUp() throws MiException {
         repositorio = mock(RepositorioStock.class);
         ServicioProducto servicioProducto = mock(ServicioProducto.class);
-        servicio = new ServicioStock(repositorio, servicioProducto);
+        servicio = new ServicioStock(repositorio, servicioProducto, mock(RepositorioReservaStock.class));
 
         alfajor = Datos.producto("prod-1", "ALF-001", "Alfajor triple", null);
         when(servicioProducto.obtenerEntidad("prod-1")).thenReturn(alfajor);
@@ -64,6 +65,8 @@ class ServicioStockTest {
     @Test
     void descontarRestaLaCantidadYMarcaBajoMinimo() throws MiException {
         Stock stock = Datos.stock("s-1", alfajor, 12, 10);
+        when(repositorio.findByProducto_IdAndEliminadoFalse("prod-1")).thenReturn(Optional.of(stock));
+        when(repositorio.sumarReservasActivas("prod-1")).thenReturn(0L);
         when(repositorio.buscarParaActualizarPorProducto("prod-1")).thenReturn(Optional.of(stock));
 
         StockResponseDTO resultado = servicio.descontarStock("prod-1", 5);
@@ -103,6 +106,15 @@ class ServicioStockTest {
 
         assertTrue(servicio.hayStockSuficiente("prod-1", 4));
         assertFalse(servicio.hayStockSuficiente("prod-1", 5));
+    }
+
+    @Test
+    void disponibilidadParaPedidoExcluyeSuReservaYConservaLasDemas() {
+        when(repositorio.findByProducto_IdAndEliminadoFalse("prod-1"))
+                .thenReturn(Optional.of(Datos.stock("s-1", alfajor, 20, 0)));
+        when(repositorio.sumarReservasActivasExceptoPedido("prod-1", "pedido-1")).thenReturn(12L);
+
+        assertEquals(8, servicio.cantidadDisponibleParaPedido("prod-1", "pedido-1"));
     }
 
     @Test

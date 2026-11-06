@@ -43,7 +43,10 @@ dulce-mayor/
 ├── backend/             API REST (Spring Boot 4.1, Java 25, JPA, Spring Security, JWT, OAuth2 Client) — puerto 8080
 ├── admin-web/           Sistema administrativo (Spring MVC + Thymeleaf)                               — puerto 8081
 ├── institucional-web/   Sitio institucional para clientes (Spring MVC + Thymeleaf)                    — puerto 8082
-├── movil/               Reservado para las apps React de preventista y distribuidor (no se desarrollan en esta etapa)
+├── movil/               Apps React del preventista y distribuidor
+├── docker-compose.yml   PostgreSQL local para desarrollo
+├── Jenkinsfile          Pipeline de validación de los cuatro clientes y el backend
+├── .gitignore
 ├── README.md
 └── CONFIGURACION-OAUTH.md
 ```
@@ -82,7 +85,7 @@ service/       ServicioUsuario, ServicioEmpleado, ServicioCliente, ServicioAuten
 ### Requisitos
 
 - JDK 25 y conexión a Maven Central (cada proyecto trae su `mvnw`).
-- MySQL 8 (o PostgreSQL, cambiando `DB_URL`). La base se crea sola con `createDatabaseIfNotExist=true`.
+- PostgreSQL 17 (recomendado; para desarrollo local puede iniciarse con Docker Compose, ver abajo). MySQL sigue disponible configurando explícitamente `DB_URL` y usando credenciales válidas.
 
 ### Configuración del backend
 
@@ -92,7 +95,7 @@ service/       ServicioUsuario, ServicioEmpleado, ServicioCliente, ServicioAuten
 
 | Variable | Para qué | Valor por defecto (desarrollo) |
 |---|---|---|
-| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Base de datos | `jdbc:mysql://localhost:3306/dulcemayor…`, `root`, vacío |
+| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Base de datos | `jdbc:postgresql://localhost:5432/dulcemayor`, `dulcemayor`, `dulcemayor_dev` (solo desarrollo local) |
 | `JWT_SECRET` | Firma de los tokens (HS256) | valor de ejemplo, solo para desarrollo |
 | `JWT_EXPIRATION_MS` | Duración del token | `28800000` (8 h) |
 | `JEFE_INICIAL_CORREO` | Correo del jefe que se crea al iniciar | `jefe@dulcemayor.com.ar` |
@@ -112,6 +115,17 @@ service/       ServicioUsuario, ServicioEmpleado, ServicioCliente, ServicioAuten
 | `OAUTH_GOOGLE_HABILITADO` / `OAUTH_FACEBOOK_HABILITADO` | — | `false` / `false` |
 | `COOKIE_SECURE` | `false` (poner `true` con HTTPS) | ídem |
 
+### Base de desarrollo PostgreSQL con Docker Compose
+
+Requiere Docker Desktop iniciado. Desde la raíz del repositorio:
+
+```bat
+docker compose up -d postgres
+docker compose ps
+```
+
+Compose conserva los datos en el volumen `dulce-mayor_postgres-data`. Para eliminar la base y volver a empezar, ejecutar explícitamente `docker compose down -v` (borra los datos). Usuario/base/contraseña por defecto son únicamente para desarrollo local y pueden sustituirse con `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` y `POSTGRES_PORT` en el entorno.
+
 ### Arranque (Windows)
 
 ```bat
@@ -119,6 +133,8 @@ cd backend           && mvnw.cmd spring-boot:run
 cd admin-web         && mvnw.cmd spring-boot:run
 cd institucional-web && mvnw.cmd spring-boot:run
 ```
+
+El backend toma PostgreSQL local de `application.properties` de forma predeterminada. Si se configura `backend/.env`, establecer `DB_URL=jdbc:postgresql://localhost:5432/dulcemayor`, `DB_USERNAME=dulcemayor` y `DB_PASSWORD=dulcemayor_dev`, o los valores que se hayan configurado en Compose. En entornos persistentes existentes mantener `JPA_DDL_AUTO=update` hasta que haya migraciones revisadas; no usar `create` salvo que se quiera borrar/recrear el esquema.
 
 ### Primer ingreso
 
@@ -135,7 +151,10 @@ Es idempotente: si los datos ya existen, no los duplica.
 ```bat
 cd backend && mvnw.cmd test
 cd admin-web && mvnw.cmd test
+cd institucional-web && mvnw.cmd test
 ```
+
+El `Jenkinsfile` ejecuta `mvnw.cmd -B -ntp verify` para los tres proyectos Java y `npm ci`, lint y build para ambas apps móviles. Requiere un agente Jenkins Windows con JDK 25, Node.js/npm instalados y acceso a los repositorios de dependencias. No configura ni almacena credenciales.
 
 ---
 
@@ -286,6 +305,8 @@ incluidos los módulos que todavía no existen.
 | `GET /api/auth/yo`, `PUT /api/auth/clave` | | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `GET` catálogo, categorías, subcategorías, contenido de imágenes | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `GET /api/productos/**`, `GET /api/stock/producto/{id}/disponibilidad` | | | ✔ | | ✔ | ✔ |
+| `/api/preventista/puntos-venta/**`, `/api/preventista/pedidos/**` (cartera y pedidos propios) | | | ✔ | | | ✔ |
+| `POST /api/pedidos/{id}/completar`, `POST /api/pedidos/{id}/cancelar` (cierre autorizado de la reserva) | | | | | ✔ | ✔ |
 | Gestión de categorías, subcategorías, productos, imágenes, precios y stock | | | | | ✔ | ✔ |
 | `GET` países, provincias, departamentos, localidades | | | ✔ | ✔ | ✔ | ✔ |
 | Alta, modificación y baja de ubicaciones | | | | | ✔ | ✔ |
@@ -294,7 +315,7 @@ incluidos los módulos que todavía no existen.
 | `GET`/`PUT /api/clientes/yo` | | ✔ | | | | |
 | `GET /api/clientes/**` | | | | | ✔ | ✔ |
 | `DELETE /api/clientes/{id}` | | | | | | ✔ |
-| Cualquier otra ruta (pedidos, rutas, promociones, facturación, pagos…) | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
+| Cualquier otra ruta (rutas, promociones, facturación, pagos…) | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
 
 Con la contraseña temporal pendiente, cualquier rol queda limitado a la segunda fila y a lo público.
 
@@ -303,8 +324,8 @@ Con la contraseña temporal pendiente, cualquier rol queda limitado a la segunda
 | Rol | Lectura | Creación | Modificación | Eliminación | Pendiente (módulos futuros) |
 |---|---|---|---|---|---|
 | **JEFE** | Todo lo del administrativo; empleados y usuarios | Empleados (todos los roles menos JEFE); todo lo del administrativo | Empleados (sin cambiar rol ni correo); todo lo del administrativo | Empleados (no al jefe); clientes; todo lo del administrativo | Reportes, aprobación de promociones |
-| **ADMINISTRATIVO** | Catálogo, stock, precios, ubicaciones, clientes | Categorías, subcategorías, productos, imágenes, precios, stock, ubicaciones | Ídem | Bajas lógicas de lo mismo | Pedidos, facturación, pagos, promociones, rutas, puntos de venta |
-| **PREVENTISTA** | Productos, disponibilidad de stock, ubicaciones, su sesión | — | Su contraseña | — | Toma de pedidos, puntos de venta, registro de clientes en la visita |
+| **ADMINISTRATIVO** | Catálogo, stock, precios, ubicaciones, clientes | Categorías, subcategorías, productos, imágenes, precios, stock, ubicaciones | Ídem; cierre de pedidos confirmados (completar/cancelar) | Bajas lógicas de lo mismo | Bandeja de pedidos, facturación, pagos, promociones, rutas, sucursales |
+| **PREVENTISTA** | Productos, disponibilidad de stock, ubicaciones, su cartera y sus pedidos, su sesión | Puntos de venta propios y pedidos de su cartera | Su contraseña y los borradores propios | — | Mapa y ruta de visitas, promociones |
 | **DISTRIBUIDOR** | Ubicaciones, su sesión | — | Su contraseña | — | Hoja de ruta, entregas, cobros |
 | **CLIENTE** | Catálogo público, sus datos | Su cuenta (registro) | Sus datos personales y su contraseña (si es local) | — | Pedidos online, seguimiento |
 
@@ -335,6 +356,9 @@ Todos responden JSON; los errores usan el `ErrorDTO` de siempre (`estado`, `erro
 | `/api/paises`, `/api/provincias`, `/api/departamentos`, `/api/localidades` | CRUD (`BaseController`) + `/buscar?nombre=` |
 | `GET /api/provincias/pais/{id}`, `/api/departamentos/provincia/{id}`, `/api/localidades/departamento/{id}` | Activos por padre (selects en cascada); `…/todas` incluye bajas |
 | `GET /api/localidades/codigo-postal/{cp}` | Búsqueda por código postal |
+| `GET/POST /api/preventista/puntos-venta`, `GET /api/preventista/puntos-venta/cliente/{idCliente}` | Cartera propia del preventista: alta del responsable con uno o varios puntos de venta |
+| `GET/POST /api/preventista/pedidos`, `PUT /api/preventista/pedidos/{id}/lineas`, `POST …/confirmar`, `POST …/cancelar` | Pedido presencial: borrador, ajuste de líneas con recálculo en el servidor, confirmación con reserva de stock y liberación |
+| `POST /api/pedidos/{id}/completar`, `POST /api/pedidos/{id}/cancelar` | Cierre autorizado por ADMINISTRATIVO: consume o libera la reserva del pedido confirmado |
 
 Ejemplo:
 
@@ -414,8 +438,8 @@ simuladas: las rutas no existen y la API las deniega. En las vistas figuran como
 
 | Pendiente | Por qué todavía no |
 |---|---|
-| Alta de puntos de venta | Excluida expresamente de esta etapa |
-| Pedidos (preventista y online) | Módulo de Pedidos no desarrollado |
+| Pedidos online desde el portal del cliente | En esta versión el cliente solo consulta; el pedido lo carga el preventista |
+| Cuenta del responsable con verificación de correo | El alta del preventista todavía no crea una cuenta utilizable |
 | Promociones | Módulo no desarrollado |
 | Rutas, hoja de ruta y entregas | Módulo de Logística no desarrollado |
 | Facturación y pagos (QR, billeteras, transferencias) | Dependen de Pedidos |
