@@ -8,8 +8,9 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.io.IOException;
 
 /**
- * El sitio es público salvo "Mi cuenta". Sin sesión, se deriva al ingreso.
- * La API vuelve a exigir el rol CLIENTE en /api/clientes/yo.
+ * El sitio es público salvo "Mi cuenta" y "Mis pedidos". Sin sesión, se deriva al ingreso recordando la
+ * página pedida (así el enlace a un pedido vuelve a ese pedido después de ingresar). La API vuelve a exigir
+ * el rol CLIENTE y verifica que el pedido sea del cliente.
  */
 @Component
 public class InterceptorAcceso implements HandlerInterceptor {
@@ -25,6 +26,11 @@ public class InterceptorAcceso implements HandlerInterceptor {
             throws IOException {
         if (gestorSesion.actual(request).isPresent()) {
             return true;
+        }
+        if ("GET".equalsIgnoreCase(request.getMethod())) {
+            String ruta = request.getRequestURI().substring(request.getContextPath().length());
+            gestorSesion.recordarDestino(request, request.getQueryString() == null ? ruta
+                    : ruta + "?" + request.getQueryString());
         }
         response.sendRedirect(request.getContextPath() + "/ingresar");
         return false;

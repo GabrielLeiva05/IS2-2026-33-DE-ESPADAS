@@ -14,9 +14,9 @@ public class ConfiguracionWeb implements WebMvcConfigurer {
         this.interceptorAcceso = interceptorAcceso;
     }
 
-    /** Solo "Mi cuenta" requiere sesión; el resto del sitio es público. */
+    /** "Mi cuenta" y "Mis pedidos" requieren sesión; el resto del sitio es público. */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(interceptorAcceso).addPathPatterns("/mi-cuenta", "/mi-cuenta/**");
+        registry.addInterceptor(interceptorAcceso).addPathPatterns("/mi-cuenta", "/mi-cuenta/**", "/mis-pedidos", "/mis-pedidos/**");
     }
 }

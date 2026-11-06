@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Pedido N.º ' + ${pedido.numeroPedido})}"></head>
+<body class="app-sitio">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<th:block th:replace="~{fragments/base :: cabecera}"></th:block>
+
+<main class="sitio-main">
+    <div class="contenedor seccion">
+        <p class="migas"><a th:href="@{/mis-pedidos}"><svg class="icono icono-sm"><use href="#i-volver"/></svg>Mis pedidos</a></p>
+        <div class="seccion-titulo">
+            <h1 class="mb-0" th:text="'Pedido N.º ' + ${pedido.numeroPedido}">Pedido</h1>
+            <span class="insignia" th:classappend="${pedido.estadoTono}" th:text="${pedido.estadoLegible}">Estado</span>
+        </div>
+
+        <div th:replace="~{fragments/base :: alertas}"></div>
+
+        <div class="grilla-cuenta mt-4">
+            <section class="tarjeta" style="padding:0;overflow:hidden">
+                <div class="tarjeta-encabezado" style="padding:1rem 1rem 0"><h2>Productos</h2>
+                    <span class="texto-secundario texto-chico" th:text="${pedido.cantidadBultos} + ' bultos'">0 bultos</span></div>
+                <table class="tabla tabla-apilable">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr></thead>
+                    <tbody>
+                    <tr th:each="d : ${pedido.detalles}">
+                        <td class="celda-principal"><span><strong th:text="${d.nombreProducto}">Producto</strong><br>
+                            <small class="texto-secundario" th:text="${d.presentacionLegible}">Caja x 24</small></span></td>
+                        <td data-label="Cantidad" th:text="${d.cantidad}">1</td>
+                        <td data-label="Precio" th:text="'$ ' + ${#numbers.formatDecimal(d.precioUnitario, 1, 'POINT', 2, 'COMMA')}">$</td>
+                        <td data-label="Subtotal"><strong th:text="'$ ' + ${#numbers.formatDecimal(d.subtotal, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="barra-fila" style="display:flex;justify-content:space-between;padding:1rem;border-top:1px solid var(--dm-borde, #eee)">
+                    <strong>Total</strong>
+                    <strong class="producto-precio" th:text="'$ ' + ${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}">$</strong>
+                </div>
+            </section>
+
+            <div class="pila">
+                <section class="tarjeta">
+                    <div class="tarjeta-encabezado"><h2>Datos del pedido</h2></div>
+                    <p class="mb-0"><strong th:text="${pedido.nombreFantasia}">Comercio</strong></p>
+                    <p class="texto-secundario" th:text="${pedido.direccion}">Dirección</p>
+                    <ul class="lista-modulos" style="padding:0">
+                        <li><svg class="icono"><use href="#i-reloj"/></svg><span th:text="'Cargado el ' + ${pedido.cargaLegible}">Cargado</span></li>
+                        <li th:if="${pedido.nombrePreventista != null}"><svg class="icono"><use href="#i-usuario"/></svg>
+                            <span th:text="'Preventista: ' + ${pedido.nombrePreventista}">Preventista</span></li>
+                        <li th:if="${pedido.confirmacionLegible != null}"><svg class="icono"><use href="#i-ok"/></svg>
+                            <span th:text="'Confirmado el ' + ${pedido.confirmacionLegible}">Confirmado</span></li>
+                        <li th:if="${pedido.entregaLegible != null}"><svg class="icono"><use href="#i-camion"/></svg>
+                            <span th:text="'Entregado el ' + ${pedido.entregaLegible}">Entregado</span></li>
+                    </ul>
+                </section>
+
+                <section class="tarjeta" th:if="${pedido.puedeConfirmarse or pedido.puedeAnularse}">
+                    <div class="tarjeta-encabezado"><h2>¿Lo confirmás?</h2></div>
+                    <p class="texto-secundario">Al confirmarlo sale a reparto y lo pagás al recibirlo. Si lo anulás, la mercadería
+                        reservada vuelve al depósito.</p>
+                    <form th:if="${pedido.puedeConfirmarse}" th:action="@{/mis-pedidos/{id}/confirmar(id=${pedido.id})}" method="post"
+                          data-envio-unico class="mb-4">
+                        <button type="submit" class="btn btn-primario btn-bloque"><svg class="icono icono-sm"><use href="#i-ok"/></svg>Confirmar pedido</button>
+                    </form>
+                    <form th:if="${pedido.puedeAnularse}" th:action="@{/mis-pedidos/{id}/anular(id=${pedido.id})}" method="post"
+                          th:data-confirmar="'¿Anular el pedido N.º ' + ${pedido.numeroPedido} + '? Esta acción no se puede deshacer.'" data-envio-unico>
+                        <button type="submit" class="btn btn-peligro btn-bloque"><svg class="icono icono-sm"><use href="#i-baja"/></svg>Anular pedido</button>
+                    </form>
+                </section>
+
+                <div class="alerta alerta-info" role="note" th:if="${pedido.estado == 'PENDIENTE_DE_ENTREGA'}">
+                    <svg class="icono"><use href="#i-camion"/></svg>
+                    <span>Tu pedido está en reparto. Si no se puede entregar hoy, vuelve a salir en el próximo recorrido.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/base :: pie}"></footer>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

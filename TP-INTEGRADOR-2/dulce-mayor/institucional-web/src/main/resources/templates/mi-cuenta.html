@@ -71,8 +71,9 @@
                 </section>
 
                 <section class="tarjeta">
-                    <div class="tarjeta-encabezado"><h2>Mis pedidos</h2><span class="insignia insignia-gris">Próximamente</span></div>
-                    <p class="texto-secundario mb-0">Pronto vas a poder hacer y seguir tus pedidos desde aquí.</p>
+                    <div class="tarjeta-encabezado"><h2>Mis pedidos</h2></div>
+                    <p class="texto-secundario">Revisá los pedidos que te cargó tu preventista: confirmalos o anulalos.</p>
+                    <a class="btn btn-secundario btn-bloque" th:href="@{/mis-pedidos}"><svg class="icono icono-sm"><use href="#i-pedido"/></svg>Ver mis pedidos</a>
                 </section>
 
                 <form th:action="@{/salir}" method="post">

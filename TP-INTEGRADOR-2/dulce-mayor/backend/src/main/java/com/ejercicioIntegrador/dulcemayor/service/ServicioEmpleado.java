@@ -11,6 +11,7 @@ import com.ejercicioIntegrador.dulcemayor.exceptions.RecursoNoEncontradoExceptio
 import com.ejercicioIntegrador.dulcemayor.model.Distribuidor;
 import com.ejercicioIntegrador.dulcemayor.model.Empleado;
 import com.ejercicioIntegrador.dulcemayor.model.Preventista;
+import com.ejercicioIntegrador.dulcemayor.model.Usuario;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioEmpleado;
 import com.ejercicioIntegrador.dulcemayor.service.base.BaseService;
 import com.ejercicioIntegrador.dulcemayor.service.base.BaseUseCaseService;
@@ -216,6 +217,19 @@ public class ServicioEmpleado extends BaseService<Empleado, EmpleadoRequestDTO, 
     @Transactional(readOnly = true)
     public Optional<Empleado> buscarPorUsuario(String idUsuario) {
         return repositorioEmpleado.findFirstByUsuario_Id(idUsuario);
+    }
+
+    /**
+     * Empleado activo dueño de la cuenta autenticada (correo del token). Las rutas y los pedidos lo usan
+     * para identificar al preventista o distribuidor sin aceptar ids enviados por la app.
+     */
+    @Transactional(readOnly = true)
+    public Empleado obtenerEmpleadoPorCorreo(String correo) throws MiException {
+        Usuario usuario = servicioUsuario.buscarActivoPorNombreUsuario(correo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No existe la cuenta indicada"));
+        return repositorioEmpleado.findFirstByUsuario_Id(usuario.getId())
+                .filter(empleado -> !empleado.isEliminado())
+                .orElseThrow(() -> new RecursoNoEncontradoException("La cuenta no pertenece a un empleado activo"));
     }
 
     @Transactional(readOnly = true)

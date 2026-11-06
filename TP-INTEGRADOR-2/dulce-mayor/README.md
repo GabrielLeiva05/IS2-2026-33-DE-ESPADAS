@@ -1,455 +1,546 @@
-# Dulce Mayor — Etapa 2: Personas, Usuarios, Autenticación y Autorización
+# Dulce Mayor — Ola 2: Rutas y Pedidos
 
-Continuación del proyecto del Trabajo Práctico Integrador N.º 2 (mayorista de golosinas, Mendoza).
-Esta etapa suma, sobre el módulo de **Catálogo y Stock** ya existente:
+Mayorista de golosinas de Mendoza. Esta entrega agrega los módulos de **Rutas** y **Pedidos** sobre lo ya
+construido (Catálogo y Stock; Personas, Usuarios, Autenticación y Autorización) y completa el flujo de punta a punta:
 
-- **HU-07** Alta de empleados (administrativo, preventista y distribuidor) con su cuenta, rol y contraseña temporal.
-- **HU-06** Cambio obligatorio de la contraseña temporal, **aplicado en el backend**.
-- **HU-09** Registro de clientes desde el sitio institucional, con su propia contraseña y rol CLIENTE fijo.
-- Ingreso con correo y contraseña (JWT), autorización por roles con Spring Security y una matriz de permisos protegida en el servidor.
-- Ingreso de **clientes** con Google (OpenID Connect) y Facebook (OAuth 2.0), preparado y documentado; los empleados no pueden usarlo.
-- Vistas Thymeleaf de **admin-web** (panel administrativo) e **institucional-web** (sitio comercial), responsive y con apariencia de aplicación en celulares.
+1. Administración arma la ruta de visitas de cada preventista.
+2. El preventista, desde su celular, sigue la ruta en el mapa, da de alta comercios y carga pedidos (el stock se reserva).
+3. El cliente entra al sitio, ve su pedido y lo **confirma** o lo **anula** (si lo anula, el stock vuelve al depósito).
+4. Administración asigna los pedidos confirmados a un distribuidor.
+5. El distribuidor arma su ruta de entregas y registra cada entrega; lo que no se pudo entregar vuelve en la ruta del día siguiente.
 
-La configuración de Google y Facebook está explicada paso a paso en [`CONFIGURACION-OAUTH.md`](CONFIGURACION-OAUTH.md).
-
-> **Importante sobre la verificación:** en el entorno donde se desarrolló esta etapa no había acceso a Maven Central,
-> así que **no se pudo ejecutar `mvnw`, levantar Spring Boot ni correr las pruebas JUnit**. Lo que sí se ejecutó
-> y lo que queda por ejecutar está detallado en la [sección 12](#12-qué-se-verificó-y-qué-no). Antes de la entrega,
-> el equipo tiene que correr `mvnw test` en los tres proyectos.
-
----
+> La documentación de la etapa anterior (autenticación, JWT, OAuth, matriz de permisos de personas) quedó en
+> [`docs/README-etapa2.md`](docs/README-etapa2.md) y la configuración de Google/Facebook en
+> [`CONFIGURACION-OAUTH.md`](CONFIGURACION-OAUTH.md).
+>
+> **Importante sobre la verificación:** en el entorno donde se desarrolló no había acceso a Maven Central, así que
+> **no se pudieron ejecutar** `mvnw test` ni levantar Spring Boot. Lo que sí se ejecutó y lo que falta ejecutar está
+> detallado en la [sección 24](#24-qué-se-verificó-y-qué-no). Antes de la entrega hay que correr las pruebas del backend.
 
 ## Índice
 
-1. [Estructura del proyecto](#1-estructura-del-proyecto)
-2. [Cómo ejecutar](#2-cómo-ejecutar)
-3. [Funcionalidades implementadas](#3-funcionalidades-implementadas)
-4. [Clases reutilizadas, modificadas y nuevas](#4-clases-reutilizadas-modificadas-y-nuevas)
-5. [Integración con Catálogo y Stock](#5-integración-con-catálogo-y-stock)
-6. [Autenticación](#6-autenticación)
-7. [Autorización y matriz de permisos](#7-autorización-y-matriz-de-permisos)
-8. [Endpoints nuevos](#8-endpoints-nuevos)
-9. [Vistas: escritorio y celular](#9-vistas-escritorio-y-celular)
-10. [Decisiones de diseño](#10-decisiones-de-diseño)
-11. [Funcionalidades pendientes](#11-funcionalidades-pendientes)
-12. [Qué se verificó y qué no](#12-qué-se-verificó-y-qué-no)
+1. [Funcionalidades implementadas](#1-funcionalidades-implementadas)
+2. [Historias de usuario HU-15 a HU-21](#2-historias-de-usuario-hu-15-a-hu-21)
+3. [HU-17 según el backlog](#3-hu-17-según-el-backlog)
+4. [Módulos de Rutas y Pedidos (modelo y cambios al diagrama)](#4-módulos-de-rutas-y-pedidos)
+5. [Integración con OpenStreetMap](#5-integración-con-openstreetmap)
+6. [Bibliotecas y servicios externos](#6-bibliotecas-y-servicios-externos)
+7. [Ubicación del usuario](#7-ubicación-del-usuario)
+8. [Geocodificación](#8-geocodificación)
+9. [Cálculo del recorrido](#9-cálculo-del-recorrido)
+10. [Registro de visitas](#10-registro-de-visitas)
+11. [Registro de pedidos](#11-registro-de-pedidos)
+12. [Confirmación y cancelación por el cliente](#12-confirmación-y-cancelación-por-el-cliente)
+13. [Reserva y devolución de stock](#13-reserva-y-devolución-de-stock)
+14. [Inicio del proceso de pago](#14-inicio-del-proceso-de-pago)
+15. [Entregas](#15-entregas)
+16. [Reprogramación de entregas](#16-reprogramación-de-entregas)
+17. [Alta de clientes y puntos de venta en campo](#17-alta-de-clientes-y-puntos-de-venta-en-campo)
+18. [Endpoints nuevos y permisos](#18-endpoints-nuevos-y-permisos)
+19. [Aplicaciones React: cómo ejecutarlas](#19-aplicaciones-react-cómo-ejecutarlas)
+20. [Backend y aplicaciones web: cómo ejecutar](#20-backend-y-aplicaciones-web-cómo-ejecutar)
+21. [Variables de entorno](#21-variables-de-entorno)
+22. [Seguridad: propiedad de los recursos](#22-seguridad-propiedad-de-los-recursos)
+23. [Funcionalidades pendientes](#23-funcionalidades-pendientes)
+24. [Qué se verificó y qué no](#24-qué-se-verificó-y-qué-no)
 
 ---
 
-## 1. Estructura del proyecto
+## Estructura del proyecto
 
 ```
 dulce-mayor/
-├── backend/             API REST (Spring Boot 4.1, Java 25, JPA, Spring Security, JWT, OAuth2 Client) — puerto 8080
-├── admin-web/           Sistema administrativo (Spring MVC + Thymeleaf)                               — puerto 8081
-├── institucional-web/   Sitio institucional para clientes (Spring MVC + Thymeleaf)                    — puerto 8082
-├── movil/               Reservado para las apps React de preventista y distribuidor (no se desarrollan en esta etapa)
+├── backend/             API REST (Spring Boot 4.1, Java 25, JPA, Spring Security + JWT)       — puerto 8080
+├── admin-web/           Sistema administrativo (Spring MVC + Thymeleaf)                       — puerto 8081
+├── institucional-web/   Sitio para clientes (Spring MVC + Thymeleaf)                          — puerto 8082
+├── movil/
+│   ├── comun/           Código React compartido: cliente Axios, sesión, mapa, ubicación, estilos
+│   ├── preventista/     App React del preventista (Vite)                                     — puerto 5173
+│   └── distribuidor/    App React del distribuidor (Vite)                                    — puerto 5174
+├── docs/                Documentación de la etapa 2 y capturas
 ├── README.md
 └── CONFIGURACION-OAUTH.md
 ```
 
-La arquitectura se mantiene: **cliente-servidor**, **MVC**, **tres capas** y **REST**. Las dos aplicaciones web son
-clientes de la API: no tienen base de datos propia.
-
-| Capa | backend | admin-web / institucional-web |
-|---|---|---|
-| Controlador | `controller/*` — recibe el pedido, delega en un servicio, devuelve DTO. Sin lógica de negocio ni repositorios. | `controller/*` — recibe el formulario, delega en un servicio, elige la vista. |
-| Servicio | `service/*` — toda la lógica y las validaciones. Usa **solo su repositorio**; para otras entidades llama al servicio correspondiente. | `service/*` — arma las solicitudes y las respuestas para las vistas. |
-| Datos | `repository/*` — solo persistencia (Spring Data JPA). | `cliente/ClienteApi` — acceso a la API (cumple el rol del repositorio). |
-
-### Paquetes nuevos o ampliados del backend (`com.ejercicioIntegrador.dulcemayor`)
-
-```
-config/        SecurityConfig (reemplaza la provisoria), SeguridadOAuth2Config, ConfiguracionAutenticacion, InicializadorDatos
-controller/    ControladorAutenticacion, ControladorEmpleado, ControladorCliente, ControladorUsuario,
-               ControladorPais, ControladorProvincia, ControladorDepartamento, ControladorLocalidad
-dto/           Requests/Responses de personas, usuarios, ubicación y sesión (ver sección 4)
-enumeraciones/ RolUsuario, ProveedorAutenticacion, TipoDocumento
-model/         Persona (abstracta), Empleado, Preventista, Distribuidor, Cliente, Usuario,
-               Pais, Provincia, Departamento, Localidad, Direccion
-repository/    Un repositorio por entidad nueva
-security/      JwtService, JwtAuthenticationFilter, DetallesUsuarioService, ManejadorSeguridadJson,
-               AutoridadesSeguridad, CodigosCanjeOAuth2, OAuth2ExitoHandler, OAuth2FalloHandler
-service/       ServicioUsuario, ServicioEmpleado, ServicioCliente, ServicioAutenticacion,
-               ServicioPais, ServicioProvincia, ServicioDepartamento, ServicioLocalidad, ServicioDireccion,
-               ValidacionesPersona
-```
+La arquitectura no cambia: **cliente-servidor**, **MVC**, **tres capas**, **REST** y **DTO**. Los servicios nuevos
+heredan de `BaseService` (patrón **Template Method**: `crearEntidad`, `validar`, `actualizarEntidad`,
+`convertirAResponse` y los ganchos `preAlta`/`postAlta`) y los controladores de `BaseController`. Los controladores no
+tienen lógica ni repositorios; cada servicio usa **solo su repositorio** y llega a las demás entidades a través de
+sus servicios (por ejemplo, `ServicioPedido` descuenta stock con `ServicioStock` y marca la visita con `ServicioRuta`).
+Las apps React y las web Thymeleaf son clientes de la API: ninguna accede a la base.
 
 ---
 
-## 2. Cómo ejecutar
+## 1. Funcionalidades implementadas
 
-### Requisitos
-
-- JDK 25 y conexión a Maven Central (cada proyecto trae su `mvnw`).
-- MySQL 8 (o PostgreSQL, cambiando `DB_URL`). La base se crea sola con `createDatabaseIfNotExist=true`.
-
-### Configuración del backend
-
-1. Copiar `backend/.env.example` como `backend/.env` y completarlo. **El `.env` no se sube al repositorio** (ya figura en `.gitignore`).
-2. Generar un secreto propio para el JWT (mínimo 32 caracteres), por ejemplo `openssl rand -base64 48`, y ponerlo en `JWT_SECRET`.
-   Si no se define, en desarrollo se usa un valor de ejemplo y la API muestra una advertencia en el log; **con el perfil `prod` la API no arranca sin él**.
-
-| Variable | Para qué | Valor por defecto (desarrollo) |
+| Quién | Dónde | Qué puede hacer |
 |---|---|---|
-| `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` | Base de datos | `jdbc:mysql://localhost:3306/dulcemayor…`, `root`, vacío |
-| `JWT_SECRET` | Firma de los tokens (HS256) | valor de ejemplo, solo para desarrollo |
-| `JWT_EXPIRATION_MS` | Duración del token | `28800000` (8 h) |
-| `JEFE_INICIAL_CORREO` | Correo del jefe que se crea al iniciar | `jefe@dulcemayor.com.ar` |
-| `CORS_ALLOWED_ORIGINS` | Orígenes permitidos | `http://localhost:5173,…:5174,…:8081,…:8082` |
-| `OAUTH2_REDIRECT_CLIENTE` | Página del sitio que recibe el código tras Google/Facebook | `http://localhost:8082/ingresar/oauth2` |
-| `SPRING_PROFILES_ACTIVE` | `oauth-google`, `oauth-facebook`, `prod` (combinables) | ninguno |
-| `GOOGLE_CLIENT_ID/SECRET`, `FACEBOOK_CLIENT_ID/SECRET` | Credenciales de los proveedores | sin valor |
+| Administrativo | admin-web → **Rutas** | Ver las rutas de un día con el estado de cada punto, armar la ruta de visitas de un preventista (fecha + comercios), darla de baja si nadie la empezó. |
+| Administrativo | admin-web → **Entregas** | Ver los pedidos confirmados sin distribuidor, asignarlos a un distribuidor y ver los asignados que siguen pendientes. |
+| Preventista | app React (celular) | Ingresar (cambio de clave obligatorio en el primer ingreso), ver su ruta del día en el mapa y en lista, ordenarla por cercanía desde su ubicación, ver el detalle de un comercio, tomar un pedido con el catálogo (buscador, categorías, stock, precio vigente), ver el resumen y cargarlo, ver el siguiente punto sugerido, registrar una visita sin pedido con motivo, dar de alta un cliente (que escribe su correo y su contraseña) y su punto de venta con ubicación en el mapa, consultar el catálogo y sus pedidos. |
+| Cliente | institucional-web → **Mis pedidos** | Ver sus pedidos y su detalle; **confirmar** o **anular** los que están en estado CARGADO. Si entra por un enlace a un pedido sin sesión, después de ingresar vuelve a ese pedido. |
+| Distribuidor | app React (celular) | Ingresar, armar su ruta de entregas del día (comercios con pedidos asignados, ordenados por cercanía), ver cada parada con sus pedidos y el monto a cobrar, registrar **Entregado** o **No se pudo entregar** (con motivo), ver sus pedidos pendientes. |
 
-### Configuración de las aplicaciones web
+Capturas (datos de ejemplo, ver sección 24) en [`docs/capturas/ola2/`](docs/capturas/ola2/).
 
-| Variable | admin-web | institucional-web |
+| Preventista: ruta | Tomar pedido | Pedido cargado | Distribuidor: entregas |
+|---|---|---|---|
+| ![Ruta](docs/capturas/ola2/preventista-ruta.jpg) | ![Pedido](docs/capturas/ola2/preventista-pedido.jpg) | ![Cargado](docs/capturas/ola2/preventista-cargado.jpg) | ![Entregas](docs/capturas/ola2/distribuidor-entregas.jpg) |
+
+---
+
+## 2. Historias de usuario HU-15 a HU-21
+
+| HU | Estado | Dónde | Notas |
+|---|---|---|---|
+| **HU-15** Catálogo público | Implementada (etapa de Catálogo; se mantiene) | institucional-web `/catalogo`, `GET /api/catalogo` | Foto, descripción, presentación y precio vigente; filtro por categoría y buscador; los productos sin stock o sin precio vigente no se muestran. |
+| **HU-16** Catálogo móvil | Implementada | App preventista → Catálogo y Tomar pedido | Buscador (con espera de 350 ms mientras se escribe), chips de categoría, precio vigente y stock disponible en bultos. Reutiliza `GET /api/catalogo` y `GET /api/categorias`. |
+| **HU-17** Alta de punto de venta | Implementada según el backlog (sección 3) | App preventista → “+” en Ruta del día | |
+| **HU-18** Armar ruta | Implementada | admin-web `/rutas/nueva`, `POST /api/rutas` | El administrativo elige preventista, fecha y puntos. Una ruta por preventista por día y por tipo; no se arma para fechas pasadas; el empleado tiene que ser preventista. El orden lo calcula la app desde la ubicación del preventista (“admin asigna, app ordena”). |
+| **HU-19** Ver ruta en el mapa | Implementada | App preventista → Mi ruta | Mapa con pines numerados por orden y coloreados por estado, lista con el estado de cada punto y trazado del recorrido. El componente `MapaRuta` está en `movil/comun` y lo usa también la app del distribuidor. |
+| **HU-20** Siguiente punto | Implementada | App preventista | Al cargar un pedido, el punto queda visitado (CON_PEDIDO) en la misma transacción y se sugiere el **no visitado más cercano** (Haversine) con su distancia y el trazado hasta él; se puede elegir otro. También se puede pasar al siguiente **sin pedido**, con motivo. |
+| **HU-21** Cargar pedido | Implementada | App preventista → Tomar pedido → Resumen | Punto de venta, productos y cantidades; subtotales y total con precio vigente (lo calcula el backend); no permite superar el stock disponible (control en la app y en el backend); queda **CARGADO** con fecha y hora. |
+
+---
+
+## 3. HU-17 según el backlog
+
+> “Como preventista, quiero dar de alta un punto de venta con su ubicación en el mapa… Datos del comercio (nombre
+> de fantasía, razón social, CUIT, condición de IVA) y del responsable; Ubicación marcada en el mapa (latitud y
+> longitud); CUIT único.”
+
+Implementación (pantallas en dos pasos, como sugiere el prototipo adaptado):
+
+1. **Responsable** (`NuevoCliente.jsx`): se busca el correo con `GET /api/clientes/buscar`. Si ya tiene cuenta, se
+   le asocia el comercio; si no, el propio cliente escribe nombre, apellido, documento (opcional) y **su contraseña**
+   en el celular del preventista (`POST /api/clientes/campo`). La cuenta queda con rol CLIENTE; no hay campo de rol.
+2. **Comercio** (`NuevoPuntoVenta.jsx`): nombre de fantasía, razón social, CUIT, condición de IVA
+   (`RESPONSABLE_INSCRIPTO`, `MONOTRIBUTISTA`, `EXENTO`, `CONSUMIDOR_FINAL`), dirección (calle, número,
+   departamento y localidad de Mendoza, barrio, referencia) y **ubicación en el mapa**.
+
+Validaciones en `ServicioPuntoVenta` (backend):
+
+- **CUIT válido** (11 dígitos y dígito verificador módulo 11) y **único** entre los puntos de venta activos. Se guarda solo con dígitos.
+- Nombre de fantasía (≤ 120), razón social (≤ 150) y condición de IVA obligatorios; cliente activo.
+- **Latitud y longitud obligatorias y en rango**: sin ubicación no se guarda. No hay coordenadas por defecto.
+- La dirección del comercio es propia (no se reutiliza la dirección particular del cliente).
+
+---
+
+## 4. Módulos de Rutas y Pedidos
+
+### Clases del diagrama implementadas (backend `model/`)
+
+| Clase | Tabla | Detalle |
 |---|---|---|
-| `SERVER_PORT` | `8081` | `8082` |
-| `API_BASE_URL` (llamadas servidor → API) | `http://localhost:8080` | `http://localhost:8080` |
-| `API_PUBLIC_URL` (navegador → API: imágenes y botones sociales) | `http://localhost:8080` | `http://localhost:8080` |
-| `SITIO_URL` | `http://localhost:8082` | — |
-| `OAUTH_GOOGLE_HABILITADO` / `OAUTH_FACEBOOK_HABILITADO` | — | `false` / `false` |
-| `COOKIE_SECURE` | `false` (poner `true` con HTTPS) | ídem |
+| `PuntoVenta` | `puntos_venta` | nombreFantasia, razonSocial, cuit, condicionIva; `Direccion` 1 (propia, con lat/lon); `Cliente` (un cliente 1..* puntos de venta). |
+| `Ruta` | `rutas` | fecha, tipoRuta (`VISITA`/`ENTREGA`), empleado (preventista o distribuidor), puntos (composición). |
+| `PuntoRuta` | `ruta_puntos` | `@Embeddable` dentro de la ruta: orden, fechaHoraVisita, punto de venta **+ resultado y motivo** (ver abajo). |
+| `Pedido` | `pedidos` | numeroPedido (único, desde 1001), fechaHoraCarga, fechaFacturacion, fechaDespacho, fechaEntrega, subtotal, descuento, total, estado, punto de venta, preventista, distribuidor (0..1), detalles (composición). |
+| `DetallePedido` | `detalles_pedido` | cantidad, precioUnitario (el vigente al cargar), subtotal, producto. |
 
-### Arranque (Windows)
+Enumeraciones nuevas: `CondicionIva`, `TipoRuta`, `EstadoPedido` (`CARGADO`, `PENDIENTE_DE_ENTREGA`, `ENTREGADO`,
+`ANULADO`) y `ResultadoVisita`.
+
+### Cambios respecto del diagrama (para actualizarlo)
+
+- **`PuntoRuta.visitado` se reemplazó por `resultado` + `motivo`.** El diagrama no tenía dónde registrar una
+  visita sin pedido ni una entrega fallida. `resultado` toma `PENDIENTE`, `CON_PEDIDO`, `SIN_PEDIDO` (rutas de
+  visita) o `ENTREGADO`, `NO_ENTREGADO` (rutas de entrega); `motivo` (≤ 255) es obligatorio para `NO_ENTREGADO`.
+  “Visitado” se deriva: `resultado != PENDIENTE` (`PuntoRuta.isVisitado()`).
+- **“Confirmado” no es un estado**: se registra con `fechaFacturacion` (la API la expone como `fechaConfirmacion`).
+  Como todavía no hay pagos (sección 14), al confirmar el pedido pasa directo a `PENDIENTE_DE_ENTREGA` (cobro contra entrega).
+- Notas del diagrama que quedaron desactualizadas: “solo pedidos LISTO_PARA_DESPACHO” → ahora se asignan pedidos
+  `PENDIENTE_DE_ENTREGA`; “se descuenta al facturar” → el stock **se reserva al cargar** el pedido.
+- `Promocion` (0..1 en `Pedido`) no se implementó en esta ola: `descuento` queda en 0.
+
+### Estados del pedido
+
+```
+            cliente confirma (fechaFacturacion)            distribuidor: Entregado
+CARGADO ───────────────────────────────────► PENDIENTE_DE_ENTREGA ───────────────────► ENTREGADO
+   │                                              │   ▲
+   │ cliente anula (stock vuelve)                 │   └── No se pudo entregar: sigue pendiente y vuelve
+   ▼                                              │       en la ruta del día siguiente
+ANULADO                                           └── administración asigna distribuidor (fechaDespacho)
+```
+
+### Servicios nuevos
+
+`ServicioPuntoVenta`, `ServicioRuta`, `ServicioPedido` (los tres con `BaseService`), `ServicioMapas` (integración
+externa, sin entidad) y `CalculoDistancia` (Haversine). Se ampliaron `ServicioCliente` (alta en campo, búsqueda por
+correo) y `ServicioEmpleado` (empleado por correo). En admin-web: `ServicioRutas`, `ServicioEntregas`,
+`ControladorRutas`, `ControladorEntregas`. En institucional-web: `ServicioPedidos`, `ControladorPedidos`.
+
+---
+
+## 5. Integración con OpenStreetMap
+
+| Uso | Servicio | Desde dónde |
+|---|---|---|
+| Mapa (teselas) | `https://tile.openstreetmap.org` con **Leaflet** / **react-leaflet** | Navegador (apps React) |
+| Buscar una dirección → coordenadas | **Nominatim** | Backend (`ServicioMapas`), expuesto en `GET /api/mapas/geocodificar` |
+| Coordenadas tocadas → dirección | **Nominatim** (inversa) | Backend, `GET /api/mapas/geocodificacion-inversa` |
+| Trazado por calles | **OSRM** (`/route/v1/driving`) | Backend (`ServicioMapas.trazar`) |
+
+Nominatim y OSRM se llaman desde el **backend** y no desde el navegador para: respetar el límite de Nominatim
+(1 consulta por segundo, con espera sincronizada y caché de 300 consultas), enviar un `User-Agent` identificable
+como exige su política, tener tiempo de espera (4 s de conexión, 8 s de lectura) y un único lugar para cambiar de
+proveedor. El mapa muestra siempre la atribución “© colaboradores de OpenStreetMap”.
+
+**Políticas de uso:** los servidores públicos de OSM son para uso moderado. Para producción hace falta una instancia
+propia o un proveedor contratado (Nominatim y OSRM se pueden instalar; se configuran con `NOMINATIM_URL` y `OSRM_URL`).
+El servidor de OSRM `router.project-osrm.org` es de demostración y no garantiza disponibilidad.
+
+---
+
+## 6. Bibliotecas y servicios externos
+
+| Biblioteca / servicio | Versión | Para qué |
+|---|---|---|
+| React | 19.3 | Interfaz de las apps móviles (componentes, estados, efectos, hooks propios y contexto). |
+| React Router (`react-router`) | 8.5 | Rutas de pantalla, `Link`/`NavLink`, `useNavigate`, `useParams`, `useLocation`, rutas protegidas. |
+| **Axios** | 1.21 | Todas las llamadas a la API: instancia única con interceptores (token JWT, 401 → sesión vencida, 403 + `X-Accion-Requerida` → cambio de clave). |
+| Leaflet + react-leaflet | 1.9.4 / 5.0 | Mapa, pines numerados (`divIcon`), recorrido (`Polyline`), selección de ubicación. |
+| Vite | 8.3 | Servidor de desarrollo y compilación. |
+| Nominatim, OSRM, teselas OSM | servicios | Sección 5. |
+| Spring `RestClient` | (Spring Boot) | Llamadas del backend a Nominatim y OSRM. |
+
+No se usaron servicios pagos ni claves de API.
+
+---
+
+## 7. Ubicación del usuario
+
+Hook `movil/comun/src/hooks/useUbicacion.js` sobre la API de geolocalización del navegador:
+
+- `watchPosition` con alta precisión mientras la pantalla de la ruta está abierta (un solo `getCurrentPosition` en la
+  pantalla de pedido cargado).
+- Si el usuario no da permiso, el GPS falla o el dispositivo no informa ubicación, la pantalla lo explica y ofrece
+  **marcar el punto de partida tocando el mapa**. La ruta también se puede ver sin ubicación (con el orden guardado).
+- **Nunca se usa una coordenada inventada.** El único valor fijo es el centro con el que se abre un mapa vacío
+  (zona de Mendoza) para que el usuario toque su ubicación; ese valor no se envía ni se guarda.
+- La ubicación del preventista **no se almacena**: se envía solo para ordenar la ruta y calcular el siguiente punto.
+- La geolocalización exige **HTTPS** (o `localhost`). Para probar desde un celular real hay que servir las apps por
+  HTTPS (ver sección 19).
+
+---
+
+## 8. Geocodificación
+
+- **Directa** (`GET /api/mapas/geocodificar?direccion=…`, 4 a 200 caracteres): la app arma “calle número, localidad,
+  departamento, Mendoza”, Nominatim devuelve hasta 5 resultados restringidos a Argentina (`countrycodes=ar`) y el
+  preventista elige el correcto. Si el resultado trae el departamento, se preselecciona.
+- **Inversa** (`GET /api/mapas/geocodificacion-inversa?lat=…&lon=…`): al tocar el mapa o usar el GPS se muestra la
+  dirección aproximada como ayuda; **se guardan las coordenadas tocadas**, no las de Nominatim.
+- Si Nominatim no responde, la API devuelve **503** con el mensaje “El servicio de búsqueda de direcciones no
+  respondió. Marcá la ubicación tocando el mapa.” y el alta sigue siendo posible tocando el mapa.
+
+---
+
+## 9. Cálculo del recorrido
+
+Se dice con precisión qué se calcula:
+
+- **Orden de visita: heurística del vecino más cercano**, no una ruta óptima. Desde la ubicación actual se elige el
+  punto pendiente más cercano (distancia **Haversine**, en línea recta sobre la esfera), desde ese el siguiente más
+  cercano, y así. Los puntos ya visitados quedan primero, en el orden en que se visitaron. El orden se guarda en
+  `PuntoRuta.orden` (`POST /api/rutas/mia/ordenar`). No se resuelve el problema del viajante ni se consideran
+  tránsito, sentido de las calles ni horarios.
+- **Trazado en el mapa:** con los pendientes en ese orden se pide a **OSRM** un recorrido por calles; se muestra la
+  línea, los kilómetros y los minutos estimados que devuelve OSRM, y se informa la fuente.
+- **Si OSRM no responde**, se dibuja una **línea recta punteada** entre los puntos y el texto lo dice (“Línea recta
+  entre puntos (el servicio de recorridos por calles no respondió)”). Las distancias del “siguiente punto” son siempre
+  en línea recta (Haversine).
+
+---
+
+## 10. Registro de visitas
+
+- Ruta de visitas del día: `GET /api/rutas/mia` (solo lectura) y `POST /api/rutas/mia/ordenar` (ordena desde la ubicación).
+- **Con pedido:** al cargar un pedido para un comercio de la ruta de hoy, `ServicioPedido.postAlta` marca la parada
+  `CON_PEDIDO` con fecha y hora, **en la misma transacción** que el pedido (si algo falla, no queda ni pedido ni visita).
+- **Sin pedido:** `POST /api/rutas/mia/puntos/{idPuntoVenta}/sin-pedido` con motivo opcional → `SIN_PEDIDO`. Si
+  después se carga un pedido para ese comercio el mismo día, la parada pasa a `CON_PEDIDO`.
+- Un pedido para un comercio fuera de la ruta se permite y no modifica la ruta.
+- Una parada ya registrada no se puede volver a registrar (salvo la mejora `SIN_PEDIDO` → `CON_PEDIDO`).
+- Administración ve el resultado y el motivo de cada parada en `/rutas` y puede dar de baja una ruta sin visitas.
+  La API también permite agregar o quitar puntos pendientes de una ruta ya armada
+  (`POST`/`DELETE /api/rutas/{id}/puntos/{idPuntoVenta}`); falta la pantalla en admin-web.
+
+---
+
+## 11. Registro de pedidos
+
+`POST /api/pedidos/preventista` con `{ idPuntoVenta, detalles: [{ idProducto, cantidad }] }`:
+
+1. El preventista se toma del token (no del cuerpo).
+2. Las líneas del mismo producto se agrupan; las cantidades tienen que ser positivas.
+3. El precio unitario es el **vigente** (`ServicioCatalogo.consultarProductoDisponible`); si el producto no tiene stock
+   o precio vigente se rechaza con su nombre.
+4. Se valida que la cantidad no supere el **stock disponible** y se **reserva** (sección 13).
+5. Número de pedido correlativo (último + 1, desde 1001; columna única), estado `CARGADO`, `fechaHoraCarga`,
+   subtotal y total redondeados a centavos; descuento 0.
+6. Se marca la visita (sección 10).
+
+El preventista ve solo sus pedidos (`GET /api/pedidos/preventista`, filtros Todos/Hoy/Esta semana en la app).
+
+---
+
+## 12. Confirmación y cancelación por el cliente
+
+institucional-web → **Mis pedidos** (`/mis-pedidos`, `/mis-pedidos/{id}`):
+
+- Muestra el estado en palabras (“Pendiente de tu confirmación”, “Confirmado, pendiente de entrega”, …), productos,
+  precios, total, preventista y fechas.
+- **Confirmar** y **Anular** son formularios **POST** (`/mis-pedidos/{id}/confirmar`, `/anular`) que llaman a
+  `POST /api/pedidos/mis-pedidos/{id}/confirmar|anular`. **Ninguna acción se ejecuta por GET.** Anular pide
+  confirmación en el navegador.
+- Los botones se muestran según `puedeConfirmarse`/`puedeAnularse`, que calcula el backend; aun así, el backend vuelve
+  a validar: solo se confirma o anula un pedido **CARGADO** y **propio**, con bloqueo pesimista de la fila para que
+  dos solicitudes simultáneas no lo procesen dos veces.
+- **Retorno al pedido después del ingreso:** si alguien abre `/mis-pedidos/{id}` sin sesión, el interceptor guarda esa
+  página (solo rutas internas: empieza con `/`, sin `//`, `\`, `:`, llaves ni caracteres de control) y después del
+  ingreso — con contraseña o con Google/Facebook — vuelve a ella. Esto deja listo el enlace que irá en el correo.
+- **Correos:** por decisión del equipo, esta ola **no envía correos** (ni al cargar ni al confirmar).
+
+---
+
+## 13. Reserva y devolución de stock
+
+- **Al cargar el pedido** se descuenta el stock de cada renglón con `ServicioStock.descontarStock` (bloqueo pesimista
+  sobre el registro de stock). Si un renglón no alcanza, se revierte todo el pedido.
+- **Al anular** (solo en `CARGADO`) se repone con `ServicioStock.reponerStock`, una sola vez: el pedido se bloquea y
+  pasa a `ANULADO` en la misma transacción, por lo que una segunda anulación se rechaza.
+- Confirmar, asignar o entregar **no** mueven stock (ya estaba reservado).
+
+---
+
+## 14. Inicio del proceso de pago
+
+**No implementado en esta ola**, por decisión del equipo. Lo que hay:
+
+- Al confirmar, el pedido pasa directo a `PENDIENTE_DE_ENTREGA` y se **cobra contra entrega**; la app del distribuidor
+  muestra el total a cobrar por parada.
+- `fechaFacturacion` queda registrada al confirmar, para que el módulo de facturación cree la `FacturaCliente`
+  (`PENDIENTE_PAGO`) y, con transferencia o billetera, el pedido pase a `PENDIENTE_DE_ENTREGA` recién cuando la
+  factura quede `PAGADA` (regla acordada; pendiente).
+
+---
+
+## 15. Entregas
+
+1. **Asignación** (admin-web `/entregas` → `POST /api/pedidos/asignacion`): solo pedidos `PENDIENTE_DE_ENTREGA` y a
+   un empleado que sea distribuidor; registra `fechaDespacho`.
+2. **Ruta de entregas** (`POST /api/pedidos/entregas/ruta` con la ubicación opcional): crea la ruta `ENTREGA` del día
+   del distribuidor con los comercios de sus pedidos pendientes o agrega los que falten (sin volver a agregar los ya
+   atendidos hoy) y la ordena por cercanía. Sin pedidos asignados → 404 “No tenés entregas asignadas para hoy”.
+3. **Entregado** (`POST /api/pedidos/entregas/{idPuntoVenta}/entregado`): todos los pedidos pendientes del
+   distribuidor en ese comercio pasan a `ENTREGADO` con `fechaEntrega`; la parada queda `ENTREGADO`.
+4. **No se pudo entregar** (`POST …/no-entregado` con motivo **obligatorio**): la parada queda `NO_ENTREGADO`; los
+   pedidos **no cambian** (sección 16).
+
+---
+
+## 16. Reprogramación de entregas
+
+No hay un proceso aparte: un pedido no entregado **sigue en `PENDIENTE_DE_ENTREGA` y asignado** al mismo distribuidor.
+Al día siguiente, cuando el distribuidor abre la app, `POST /api/pedidos/entregas/ruta` arma la ruta nueva con todos
+sus pedidos pendientes, incluidos los de días anteriores. La ruta del día en que falló conserva el motivo como
+historial. Si administración quiere que lo lleve otro distribuidor, lo reasigna desde `/entregas`.
+
+---
+
+## 17. Alta de clientes y puntos de venta en campo
+
+Ver sección 3. Detalles adicionales:
+
+- La contraseña la escribe el cliente; viaja a la API por la conexión de la app y no se guarda en el teléfono.
+  Valen las mismas reglas que el registro web (8 a 72 caracteres, letras y números, correo único).
+- `POST /api/clientes/campo` lo pueden usar administrativos y preventistas; no acepta rol (siempre CLIENTE).
+- El preventista puede **dar de alta** puntos de venta, pero no editarlos ni darlos de baja (eso queda para administración).
+
+---
+
+## 18. Endpoints nuevos y permisos
+
+Todos devuelven y reciben JSON (DTO). Los errores siguen el formato `ErrorDTO` (`estado`, `error`, `mensaje`, `fecha`);
+503 si un servicio de mapas no responde.
+
+| Método y ruta | Rol | Descripción |
+|---|---|---|
+| `POST /api/clientes/campo` | ADMINISTRATIVO, PREVENTISTA | Alta de cliente desde el celular del preventista. |
+| `GET /api/clientes/buscar?correo=` | ADMINISTRATIVO, PREVENTISTA | Cliente activo por correo. |
+| `GET /api/puntos-venta`, `/{id}`, `/cuit/{cuit}`, `/cliente/{idCliente}` | ADMINISTRATIVO, PREVENTISTA, DISTRIBUIDOR | Consultas. |
+| `POST /api/puntos-venta` | ADMINISTRATIVO, PREVENTISTA | Alta (HU-17). |
+| `PUT`, `DELETE /api/puntos-venta/{id}` | ADMINISTRATIVO | Modificación y baja lógica. |
+| `GET /api/mapas/geocodificar?direccion=` | ADMINISTRATIVO, PREVENTISTA, DISTRIBUIDOR | Nominatim directa. |
+| `GET /api/mapas/geocodificacion-inversa?lat=&lon=` | ídem | Nominatim inversa (404 si no hay resultado). |
+| `GET /api/rutas`, `/{id}`, `GET /api/rutas/fecha?fecha=` | ADMINISTRATIVO | Consultas de rutas. |
+| `POST /api/rutas`, `DELETE /api/rutas/{id}` | ADMINISTRATIVO | Armar (HU-18) y dar de baja (si no hay visitas). |
+| `POST`/`DELETE /api/rutas/{id}/puntos/{idPuntoVenta}` | ADMINISTRATIVO | Agregar/quitar un punto pendiente. |
+| `GET /api/rutas/mia?lat=&lon=` | PREVENTISTA | Ruta de visitas de hoy + siguiente sugerido + trazado. |
+| `POST /api/rutas/mia/ordenar` | PREVENTISTA | Ordena los pendientes desde `{latitud, longitud}`. |
+| `POST /api/rutas/mia/puntos/{idPuntoVenta}/sin-pedido` | PREVENTISTA | Visita sin pedido (`{motivo}` opcional). 204. |
+| `POST /api/pedidos/preventista` | PREVENTISTA | Cargar pedido (HU-21). 201. |
+| `GET /api/pedidos/preventista`, `/{id}` | PREVENTISTA | Sus pedidos. |
+| `GET /api/pedidos/mis-pedidos`, `/{id}` | CLIENTE | Sus pedidos. |
+| `POST /api/pedidos/mis-pedidos/{id}/confirmar` | CLIENTE | Confirmar (CARGADO → PENDIENTE_DE_ENTREGA). |
+| `POST /api/pedidos/mis-pedidos/{id}/anular` | CLIENTE | Anular (CARGADO → ANULADO, devuelve stock). |
+| `GET /api/pedidos`, `/{id}`, `GET /api/pedidos/estado/{estado}` | ADMINISTRATIVO | Consultas. |
+| `POST /api/pedidos/asignacion` | ADMINISTRATIVO | `{idDistribuidor, idsPedido}`. |
+| `GET /api/pedidos/entregas/pendientes` | DISTRIBUIDOR | Sus pedidos pendientes. |
+| `POST /api/pedidos/entregas/ruta` | DISTRIBUIDOR | Arma/actualiza y ordena su ruta de entregas de hoy. |
+| `GET /api/pedidos/entregas/ruta?lat=&lon=` | DISTRIBUIDOR | Consulta la ruta de entregas de hoy. |
+| `POST /api/pedidos/entregas/{idPuntoVenta}/entregado` | DISTRIBUIDOR | Registrar entrega. |
+| `POST /api/pedidos/entregas/{idPuntoVenta}/no-entregado` | DISTRIBUIDOR | Entrega no concretada (`{motivo}` obligatorio). 204. |
+| `GET /api/empleados/rol/{rol}` | ADMINISTRATIVO (antes solo JEFE) | Para elegir preventista o distribuidor. |
+
+Los pedidos no tienen `PUT` ni `DELETE`: no se modifican completos y no se dan de baja (se anulan).
+Con `JEFE` se accede a todo lo de `ADMINISTRATIVO` y `PREVENTISTA` por la jerarquía de roles de la etapa anterior.
+
+---
+
+## 19. Aplicaciones React: cómo ejecutarlas
+
+Requisitos: Node.js 20.19+ o 22.12+ (lo exige Vite 8).
 
 ```bat
-cd backend           && mvnw.cmd spring-boot:run
+cd movil\preventista
+copy .env.example .env        &rem  VITE_API_URL=http://localhost:8080
+npm install
+npm run dev                   &rem  http://localhost:5173
+
+cd movil\distribuidor
+copy .env.example .env
+npm install
+npm run dev                   &rem  http://localhost:5174
+```
+
+- `npm run build` genera `dist/`; `npm run lint` revisa el código.
+- El código compartido está en `movil/comun/src` y se importa con el alias `@comun` (configurado en cada
+  `vite.config.js`, con `resolve.dedupe` para que React, el router, Axios y Leaflet se carguen una sola vez).
+- La sesión (token + datos del usuario) se guarda en `sessionStorage`: se pierde al cerrar la pestaña. Cada app
+  acepta solo su rol; la API vuelve a controlar el rol en cada endpoint.
+- **Desde un celular real:** el celular tiene que llegar al backend por la red (usar la IP del equipo en
+  `VITE_API_URL` y agregar el origen en `CORS_ALLOWED_ORIGINS`) y, para que funcione el GPS, la app tiene que
+  servirse por **HTTPS** (por ejemplo, un túnel HTTPS o un certificado local). Por HTTP el navegador niega la ubicación
+  y la app ofrece marcar el inicio en el mapa.
+
+Pantallas: `src/paginas/*` en cada app; componentes compartidos en `movil/comun/src/componentes`
+(`MapaRuta`, `SelectorUbicacion`, `Interfaz`, `FormularioMotivo`, `Icono`, `Logo`), páginas compartidas
+(`Ingresar`, `CambiarClave`, `Perfil`), `api/cliente.js` (Axios), `auth/AuthContext.jsx`, `auth/RequireAuth.jsx`.
+
+---
+
+## 20. Backend y aplicaciones web: cómo ejecutar
+
+```bat
+cd backend           && copy .env.example .env && mvnw.cmd spring-boot:run
 cd admin-web         && mvnw.cmd spring-boot:run
 cd institucional-web && mvnw.cmd spring-boot:run
 ```
 
-### Primer ingreso
+Pruebas: `mvnw.cmd test` en `backend`, `admin-web` e `institucional-web`.
 
-Al iniciar, `InicializadorDatos` carga (a través de los servicios, con sus validaciones) Argentina, Mendoza, sus 18
-departamentos con la localidad cabecera de cada uno, y el **jefe administrativo inicial**:
-
-- Correo: el de `JEFE_INICIAL_CORREO` (por defecto `jefe@dulcemayor.com.ar`).
-- Contraseña temporal: `dulcemayor`. Al ingresar en <http://localhost:8081> se lo lleva a cambiarla y no puede hacer nada más hasta hacerlo.
-
-Es idempotente: si los datos ya existen, no los duplica.
-
-### Pruebas
-
-```bat
-cd backend && mvnw.cmd test
-cd admin-web && mvnw.cmd test
-```
+Datos para probar el flujo completo: el jefe inicial (`JEFE_INICIAL_CORREO`, clave temporal `dulcemayor`) da de alta
+un administrativo, un preventista y un distribuidor en admin-web; carga productos con stock y precio; el preventista
+da de alta un cliente y su comercio desde la app; administración arma la ruta con ese comercio; el preventista carga
+el pedido; el cliente lo confirma en <http://localhost:8082/mis-pedidos>; administración lo asigna en `/entregas`;
+el distribuidor lo entrega desde su app.
 
 ---
 
-## 3. Funcionalidades implementadas
+## 21. Variables de entorno
 
-### HU-07 — Alta de empleados (jefe administrativo)
+Backend (`backend/.env`, ver `backend/.env.example`). Nuevas en esta ola:
 
-- Formulario en **admin-web → Empleados → Nuevo empleado** y endpoint `POST /api/empleados`.
-- Datos: nombre, apellido, tipo y número de documento, fecha de nacimiento, correo, rol, legajo (opcional: se genera `EMP-00001`, `EMP-00002`…), fecha de ingreso (por defecto hoy) y dirección completa (país → provincia → departamento → localidad, calle, número, barrio, manzana/piso, casa/depto., referencia).
-- Datos según el rol: **zona** para el preventista; **vehículo y patente** (formato `ABC123` o `AB123CD`) para el distribuidor.
-- Validaciones en `ServicioEmpleado` y `ValidacionesPersona`: obligatorios, formato de correo, documento según su tipo (DNI 7–8 dígitos, CUIL/CUIT 11, pasaporte 6–9 alfanuméricos), mayoría de edad, localidad activa, **correo duplicado** (entre cuentas activas) y **documento duplicado**.
-- Rol: se instancia la subclase que corresponde (`Empleado`, `Preventista`, `Distribuidor`). CLIENTE no es un rol de empleado.
-- **El jefe puede dar de alta todos los roles menos JEFE**: el formulario ofrece Administrativo, Preventista y Distribuidor, y la API rechaza un segundo JEFE mientras exista uno activo. El jefe tampoco se puede dar de baja.
-- Se crea el **usuario** asociado (`nombreUsuario` = correo) con la contraseña temporal **`dulcemayor`**, guardada con **BCrypt**, y `debeCambiarClave = true`.
-- Modificación (sin cambiar rol ni correo, que identifican la cuenta) y baja lógica, que **deshabilita la cuenta**.
-- Si una validación falla después de crear el usuario o la dirección, la transacción (`@Transactional(rollbackFor = Exception.class)`) deshace todo.
-
-### HU-06 — Cambio obligatorio de contraseña
-
-- El login con la contraseña temporal devuelve el token igual, pero con `debeCambiarClave: true`.
-- Mientras la cuenta tenga la contraseña pendiente, **en cada pedido** el filtro JWT le asigna una única autoridad, `CAMBIO_CLAVE_PENDIENTE`, en lugar de su rol. Con ella solo puede usar `GET /api/auth/yo`, `PUT /api/auth/clave` y lo público. Cualquier otro endpoint responde **403** con el encabezado `X-Accion-Requerida: CAMBIAR_CLAVE`. No alcanza con guardar un token viejo o llamar a otro endpoint: las autoridades se recalculan desde la base en cada pedido.
-- `PUT /api/auth/clave` exige la contraseña actual, la confirmación y la política (8–72 caracteres, letras y números, distinta de `dulcemayor` y del correo); apaga `debeCambiarClave` y devuelve un **token nuevo** con los permisos del rol.
-- En admin-web, el interceptor también redirige a `/cambiar-clave` hasta que se complete.
-
-### HU-09 — Registro de clientes
-
-- Formulario en **institucional-web → Crear cuenta** y endpoint público `POST /api/auth/registro`.
-- El cliente **elige su contraseña** (misma política) y la confirma; **no queda obligado a cambiarla**.
-- `RegistroClienteDTO` **no tiene campo rol**: la API asigna siempre CLIENTE. Si alguien envía `"rol": "JEFE"` en el JSON, se ignora.
-- Documento y fecha de nacimiento son opcionales; si se informan, se validan (y el documento no puede repetirse).
-- Tras registrarse queda con la sesión iniciada.
-- En **Mi cuenta** el cliente edita sus datos personales (`PUT /api/clientes/yo`, con `DatosPersonalesDTO`, que no tiene correo, clave ni rol) y puede cambiar su contraseña voluntariamente.
-
-### Ingreso con Google y Facebook (solo clientes)
-
-Implementado en la API con `spring-boot-starter-security-oauth2-client`. Se activa con los perfiles `oauth-google` /
-`oauth-facebook` y las credenciales en variables de entorno. **Hasta que el equipo cree las credenciales en las
-consolas de Google y Meta, no está operativo**: el código está listo, pero falta esa configuración externa.
-
-Reglas (`ServicioAutenticacion.ingresarConRedSocial`):
-
-| Situación | Resultado |
-|---|---|
-| Google informa el correo **no verificado** | Rechazado |
-| Correo nuevo | Se crea un CLIENTE sin contraseña local, con el proveedor registrado |
-| Correo de un cliente que ya ingresó con **ese mismo** proveedor | Ingresa a su cuenta |
-| Correo de una cuenta **local** (correo y contraseña) | Rechazado: «Ya existe una cuenta con ese correo: ingresá con tu contraseña» |
-| Correo de un cliente de **otro** proveedor | Rechazado: «… ingresá con Google» (o Facebook) |
-| Correo de un **empleado** | Rechazado: «Los empleados ingresan con correo y contraseña desde el sistema administrativo» |
-| Cuenta dada de baja | Rechazado |
-
-Así no se duplican cuentas ni se vincula una cuenta existente por el solo hecho de que un proveedor externo diga
-tener ese correo. Facebook no informa si el correo está verificado: por eso **solo puede crear cuentas nuevas**,
-nunca tomar una existente.
-
-El token **no viaja en la URL**: al terminar, la API redirige al sitio con un **código de un solo uso**
-(256 bits aleatorios, vence a los 60 segundos) y el sitio lo canjea por el token con `POST /api/auth/oauth2/canje`.
-
----
-
-## 4. Clases reutilizadas, modificadas y nuevas
-
-### Reutilizadas sin cambios (de la etapa de Catálogo y Stock)
-
-`BaseEntity`, `BaseResponseDTO`, `ErrorDTO`, `BaseController`, `BaseUseCaseController`, `BaseUseCaseService`,
-`MiException`, `RecursoNoEncontradoException`, `OperacionNoPermitidaException`, y todo el módulo de catálogo y stock.
-
-Todos los servicios nuevos (`ServicioUsuario`, `ServicioEmpleado`, `ServicioCliente`, `ServicioPais`,
-`ServicioProvincia`, `ServicioDepartamento`, `ServicioLocalidad`, `ServicioDireccion`) **extienden `BaseService`**
-e implementan sus pasos (`crearEntidad`, `actualizarEntidad`, `validar`, `convertirAResponse`, `nombreEntidad`)
-y los ganchos que necesitan (`preAlta` para cifrar la clave, `postBaja` para deshabilitar la cuenta).
-Todos los controladores de recursos **extienden `BaseController`** y usan `operacionHabilitada` para cerrar las
-operaciones que no corresponden (por ejemplo, `ControladorCliente` no permite alta ni modificación genérica, y
-`ControladorUsuario` es de solo lectura). `ServicioAutenticacion` no hereda de `BaseService` porque no administra
-una entidad propia: orquesta a los demás servicios.
-
-### Modificadas, con justificación
-
-| Clase | Cambio | Por qué |
+| Variable | Para qué | Por defecto |
 |---|---|---|
-| `BaseService` | `alta(dto)` ahora delega en un nuevo método plantilla público `altaEntidad(dto)` que devuelve la **entidad** guardada (mismos pasos, mismo orden). | Un servicio necesita crear una entidad de otro servicio para asociarla (el empleado crea su `Usuario` y su `Direccion`). Antes solo existía `alta`, que devuelve el DTO, y obligaba a duplicar el algoritmo o a volver a buscar la entidad. El algoritmo sigue definido en un único lugar. |
-| `ManejadorErrores` | Dos manejadores nuevos: `BadCredentialsException` → 401 «Correo o contraseña incorrectos» y `AccountStatusException` → 401. | El login necesita respuestas uniformes en formato `ErrorDTO` que no revelen si el correo existe. |
-| `SecurityConfig` | Reemplaza la configuración provisoria (todo permitido) por la matriz de la sección 7. | Era el punto previsto para esta etapa. |
-| `pom.xml` (backend) | jjwt 0.12.6, OAuth2 Client, H2 y `spring-boot-starter-data-jpa-test` para pruebas. | JWT, ingreso social y pruebas de integración sin MySQL. |
+| `NOMINATIM_URL` | Servidor de geocodificación | `https://nominatim.openstreetmap.org` |
+| `OSRM_URL` | Servidor de recorridos | `https://router.project-osrm.org` (demo) |
+| `MAPAS_USER_AGENT` | Identificación ante Nominatim (exige un contacto real) | `DulceMayor/1.0 (… contacto: completar-correo)` → **completar con el correo del equipo** |
+| `CORS_ALLOWED_ORIGINS` | Ya existía; incluye `http://localhost:5173` y `:5174` | — |
 
-### Nuevas en la API
+Las de la etapa anterior (base de datos, `JWT_SECRET`, OAuth, etc.) siguen igual: ver [`docs/README-etapa2.md`](docs/README-etapa2.md).
 
-- **Modelo:** `Persona` (abstracta, herencia `JOINED`), `Empleado`, `Preventista`, `Distribuidor`, `Cliente`, `Usuario`; y las de ubicación del Integrador 1 adaptadas: `Pais`, `Provincia`, `Departamento`, `Localidad`, `Direccion`.
-- **DTO:** `EmpleadoRequestDTO/ResponseDTO`, `ClienteRequestDTO/ResponseDTO`, `RegistroClienteDTO`, `DatosPersonalesDTO`, `UsuarioRequestDTO/ResponseDTO` (sin clave), `LoginRequestDTO`, `CambioClaveRequestDTO`, `SesionDTO`, `UsuarioSesionDTO`, `CanjeCodigoDTO`, `IdentidadExternaDTO`, y Request/Response de país, provincia, departamento, localidad y dirección.
-- **Seguridad:** `JwtService`, `JwtAuthenticationFilter`, `DetallesUsuarioService`, `AutoridadesSeguridad`, `ManejadorSeguridadJson`, `CodigosCanjeOAuth2`, `OAuth2ExitoHandler`, `OAuth2FalloHandler`, `ConfiguracionAutenticacion`, `SeguridadOAuth2Config`, `InicializadorDatos`.
+Apps React (`movil/*/.env`, ver `.env.example`): `VITE_API_URL` (por defecto `http://localhost:8080`).
 
-### Nuevas en las aplicaciones web
-
-| admin-web (`com.dulcemayor.admin`) | institucional-web (`com.dulcemayor.institucional`) |
-|---|---|
-| `cliente/ClienteApi`, `ApiException` | ídem |
-| `seguridad/SesionUsuario`, `GestorSesion`, `InterceptorAcceso` | `SesionCliente`, `GestorSesion`, `InterceptorAcceso` |
-| `service/ServicioAcceso`, `ServicioEmpleados`, `ServicioUbicacion`, `ServicioCatalogo`, `ServicioClientes`, `ServicioPanel` | `ServicioAcceso`, `ServicioCuenta`, `ServicioCatalogo` |
-| `controller/ControladorAcceso`, `ControladorInicio`, `ControladorEmpleados`, `ControladorUbicacion`, `ControladorCatalogo`, `ControladorClientes`, `AtributosComunes`, `ManejadorErroresWeb` | `ControladorAcceso`, `ControladorInicio`, `ControladorCatalogo`, `ControladorCuenta`, `AtributosComunes`, `ManejadorErroresWeb` |
-| DTO de respuesta (clases), de solicitud (records) y de formulario | ídem |
-
-Patrones: solo **Template Method** y **DTO**, como se pidió. No se agregaron otros.
+**Secretos:** el ZIP no incluye ningún `.env`. El `backend/.env` que circulaba con el proyecto tenía la contraseña
+de la base, el `JWT_SECRET` y los secretos de Google y Facebook: **conviene regenerarlos** (nuevo `JWT_SECRET`,
+nuevos secretos de cliente en Google Cloud y Meta) porque ya se compartieron.
 
 ---
 
-## 5. Integración con Catálogo y Stock
+## 22. Seguridad: propiedad de los recursos
 
-- Los endpoints del módulo quedan protegidos: el **catálogo público** (`/api/catalogo`, categorías, subcategorías e imágenes) sigue abierto; la **gestión** (productos, imágenes, vigencias de precio, stock) pasa a requerir ADMINISTRATIVO (o JEFE); el **preventista** puede consultar productos y la disponibilidad de stock (`GET /api/productos/**`, `GET /api/stock/producto/{id}/disponibilidad`), que es lo que necesitará para tomar pedidos.
-- `Persona.imagen` reutiliza la entidad `Imagen` del catálogo (tipo `PERSONA`); el servicio de empleados la obtiene a través de `ServicioImagen`.
-- admin-web muestra el catálogo publicado con precio y stock y arma el panel con datos reales de stock (alertas bajo mínimo y sin stock).
-- institucional-web muestra el catálogo público (portada, ofertas, filtros por categoría, búsqueda).
-- Las pruebas del módulo anterior no se modificaron.
+Todo se controla en el **backend**; las apps solo ocultan opciones por comodidad.
 
----
-
-## 6. Autenticación
-
-```
-admin-web / institucional-web            API (8080)
-  formulario de ingreso  ──POST /api/auth/login {correo, clave}──▶  AuthenticationManager (BCrypt)
-                         ◀── 200 {token, usuario{rol, debeCambiarClave,…}}
-  guarda el token en la HttpSession (servidor)
-  cada pedido: Authorization: Bearer <token> ──▶ JwtAuthenticationFilter
-                                                  ├─ valida firma y vencimiento
-                                                  ├─ vuelve a leer la cuenta (activa, rol, debeCambiarClave)
-                                                  └─ autoridades: ROLE_<rol>  o  CAMBIO_CLAVE_PENDIENTE
-```
-
-- **Contraseñas:** BCrypt. Las respuestas nunca incluyen la clave ni su hash (`UsuarioResponseDTO`, `EmpleadoResponseDTO`, `UsuarioSesionDTO` no tienen ese campo).
-- **JWT:** HS256 con `JWT_SECRET`; contiene el correo, el rol y el id de usuario; vence en 8 h. Como las autoridades se recalculan desde la base, una baja o un cambio de clave pendiente surten efecto en el siguiente pedido, aunque el token siga vigente.
-- **API sin estado:** la cadena `/api/**` es `STATELESS` y sin CSRF (no usa cookies). Solo el flujo OAuth2 (`/oauth2/**`, `/login/oauth2/**`) usa una sesión breve para el `state`.
-- **Aplicaciones web:** el token queda en la **sesión del servidor**; el navegador solo recibe una cookie `HttpOnly`, `SameSite=Lax`, con nombre propio por aplicación (`DM_ADMIN_SESION`, `DM_SITIO_SESION`), porque los navegadores comparten cookies entre puertos de `localhost`. Al ingresar se descarta la sesión anterior y se crea una nueva (evita la fijación de sesión).
-- **Separación de accesos:** admin-web no abre sesión para cuentas CLIENTE e institucional-web no la abre para empleados, aunque la API las autentique. El login de empleados **no tiene botones sociales**; los de Google y Facebook están solo en el ingreso y registro de clientes, y solo se muestran si el proveedor está habilitado.
+- **Rol por endpoint** en `SecurityConfig` (tabla de la sección 18) y regla final `denyAll`.
+- **Propiedad por el token, no por la URL:** el cliente, el preventista y el distribuidor se obtienen del usuario
+  autenticado. Un pedido de otro cliente (`/api/pedidos/mis-pedidos/{id}`, también al confirmar o anular) o de otro
+  preventista (`/api/pedidos/preventista/{id}`) responde **404** (no se revela que existe). Registrar una visita o
+  una entrega en un comercio que no está en la ruta propia, o sin pedidos asignados al distribuidor, responde **400**
+  (“El punto de venta no está en tu ruta de hoy”, “No tenés pedidos pendientes para entregar en ese comercio”) y no
+  modifica nada.
+- Las rutas del preventista y del distribuidor se buscan por el usuario del token (`/mia`, `/entregas/…`): no reciben
+  identificador de empleado.
+- Confirmar, anular, entregar y registrar visitas son **POST**; ninguna acción de estado se hace por GET.
+- Los cambios de estado de un pedido usan **bloqueo pesimista** para evitar dobles confirmaciones o anulaciones.
+- La vuelta al pedido después del ingreso solo acepta rutas internas del sitio (sin redirecciones abiertas).
+- Las respuestas no incluyen claves, hashes ni tokens de terceros.
 
 ---
 
-## 7. Autorización y matriz de permisos
+## 23. Funcionalidades pendientes
 
-Spring Security aplica las reglas en el servidor (`SecurityConfig`). Jerarquía de roles: **JEFE ⊃ ADMINISTRATIVO** y
-**JEFE ⊃ PREVENTISTA** (`RoleHierarchy`). Lo que no está expresamente permitido queda **denegado** (`denyAll`),
-incluidos los módulos que todavía no existen.
-
-### Matriz por endpoint
-
-| Recurso | Público | CLIENTE | PREVENTISTA | DISTRIBUIDOR | ADMINISTRATIVO | JEFE |
-|---|:-:|:-:|:-:|:-:|:-:|:-:|
-| `POST /api/auth/login`, `/registro`, `/oauth2/canje` | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| `GET /api/auth/yo`, `PUT /api/auth/clave` | | ✔ | ✔ | ✔ | ✔ | ✔ |
-| `GET` catálogo, categorías, subcategorías, contenido de imágenes | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
-| `GET /api/productos/**`, `GET /api/stock/producto/{id}/disponibilidad` | | | ✔ | | ✔ | ✔ |
-| Gestión de categorías, subcategorías, productos, imágenes, precios y stock | | | | | ✔ | ✔ |
-| `GET` países, provincias, departamentos, localidades | | | ✔ | ✔ | ✔ | ✔ |
-| Alta, modificación y baja de ubicaciones | | | | | ✔ | ✔ |
-| `/api/empleados/**` (alta, consulta, modificación, baja) | | | | | | ✔ |
-| `/api/usuarios/**` (solo lectura) | | | | | | ✔ |
-| `GET`/`PUT /api/clientes/yo` | | ✔ | | | | |
-| `GET /api/clientes/**` | | | | | ✔ | ✔ |
-| `DELETE /api/clientes/{id}` | | | | | | ✔ |
-| Cualquier otra ruta (pedidos, rutas, promociones, facturación, pagos…) | ✖ | ✖ | ✖ | ✖ | ✖ | ✖ |
-
-Con la contraseña temporal pendiente, cualquier rol queda limitado a la segunda fila y a lo público.
-
-### Resumen por rol
-
-| Rol | Lectura | Creación | Modificación | Eliminación | Pendiente (módulos futuros) |
-|---|---|---|---|---|---|
-| **JEFE** | Todo lo del administrativo; empleados y usuarios | Empleados (todos los roles menos JEFE); todo lo del administrativo | Empleados (sin cambiar rol ni correo); todo lo del administrativo | Empleados (no al jefe); clientes; todo lo del administrativo | Reportes, aprobación de promociones |
-| **ADMINISTRATIVO** | Catálogo, stock, precios, ubicaciones, clientes | Categorías, subcategorías, productos, imágenes, precios, stock, ubicaciones | Ídem | Bajas lógicas de lo mismo | Pedidos, facturación, pagos, promociones, rutas, puntos de venta |
-| **PREVENTISTA** | Productos, disponibilidad de stock, ubicaciones, su sesión | — | Su contraseña | — | Toma de pedidos, puntos de venta, registro de clientes en la visita |
-| **DISTRIBUIDOR** | Ubicaciones, su sesión | — | Su contraseña | — | Hoja de ruta, entregas, cobros |
-| **CLIENTE** | Catálogo público, sus datos | Su cuenta (registro) | Sus datos personales y su contraseña (si es local) | — | Pedidos online, seguimiento |
-
-En las vistas, el menú se arma según el rol (`SesionUsuario`), y el interceptor de admin-web aplica la misma matriz
-para la navegación; pero **la autorización que vale es la de la API**: aunque alguien escriba una URL a mano, la API
-responde 401/403.
+- **Pagos** y **facturación** (`FacturaCliente`, `PENDIENTE_PAGO`/`PAGADA`): no implementados por decisión del equipo (sección 14).
+- **Correos** (aviso al cliente con el enlace a su pedido): no implementados por decisión del equipo; el enlace
+  `/mis-pedidos/{id}` con retorno tras el ingreso ya funciona.
+- **Promociones** y descuentos en el pedido.
+- Edición de un pedido CARGADO por el preventista (hoy se anula y se carga de nuevo — la anulación es del cliente).
+- Numeración de pedidos bajo alta concurrencia: es “último + 1” con columna única; si dos preventistas cargan en el
+  mismo instante, uno recibe un error de restricción y tiene que reintentar. Una secuencia de base de datos lo resolvería.
+- Ruta óptima real (problema del viajante) o un proveedor de optimización: hoy es vecino más cercano.
+- Instancias propias de Nominatim/OSRM para producción.
+- Funcionamiento sin conexión de las apps móviles.
+- Pantallas de administración para editar puntos de venta y para agregar/quitar puntos de una ruta ya armada (la API lo permite; faltan las vistas).
 
 ---
 
-## 8. Endpoints nuevos
-
-Todos responden JSON; los errores usan el `ErrorDTO` de siempre (`estado`, `error`, `mensaje`, `fecha`).
-
-| Método y ruta | Descripción |
-|---|---|
-| `POST /api/auth/login` | Ingreso con `{correo, clave}` → `SesionDTO` |
-| `POST /api/auth/registro` | Registro de cliente (`RegistroClienteDTO`) → 201 + `SesionDTO` |
-| `GET /api/auth/yo` | Datos de la cuenta autenticada |
-| `PUT /api/auth/clave` | Cambio de contraseña `{claveActual, nuevaClave, confirmarClave}` → token nuevo |
-| `POST /api/auth/oauth2/canje` | Canje del código de un solo uso `{codigo}` → `SesionDTO` |
-| `GET /oauth2/authorization/{google\|facebook}` | Inicio del ingreso social (con el perfil activo) |
-| `GET /login/oauth2/code/{google\|facebook}` | Retorno del proveedor (lo maneja Spring Security) |
-| `GET/POST /api/empleados`, `GET/PUT/DELETE /api/empleados/{id}`, `GET /api/empleados/todos` | CRUD de empleados (`BaseController`) |
-| `GET /api/empleados/rol/{rol}`, `GET /api/empleados/legajo/{legajo}` | Búsquedas |
-| `GET /api/usuarios`, `/{id}`, `/todos`, `/buscar?correo=` | Consulta de cuentas (sin clave) |
-| `GET /api/clientes`, `/{id}`, `/todos`, `DELETE /api/clientes/{id}` | Consulta y baja de clientes |
-| `GET/PUT /api/clientes/yo` | Datos del cliente autenticado |
-| `/api/paises`, `/api/provincias`, `/api/departamentos`, `/api/localidades` | CRUD (`BaseController`) + `/buscar?nombre=` |
-| `GET /api/provincias/pais/{id}`, `/api/departamentos/provincia/{id}`, `/api/localidades/departamento/{id}` | Activos por padre (selects en cascada); `…/todas` incluye bajas |
-| `GET /api/localidades/codigo-postal/{cp}` | Búsqueda por código postal |
-
-Ejemplo:
-
-```bash
-curl -s -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" \
-     -d "{\"correo\":\"jefe@dulcemayor.com.ar\",\"clave\":\"dulcemayor\"}"
-# -> {"token":"…","tipo":"Bearer","expiraEnSegundos":28800,"usuario":{"rol":"JEFE","debeCambiarClave":true,…}}
-
-curl -s http://localhost:8080/api/empleados -H "Authorization: Bearer <token>"
-# -> 403 y encabezado X-Accion-Requerida: CAMBIAR_CLAVE (hasta cambiar la contraseña)
-```
-
----
-
-## 9. Vistas: escritorio y celular
-
-Tecnologías: **Thymeleaf + HTML + CSS + JavaScript propio**, sin frameworks nuevos (el proyecto no usaba Bootstrap,
-así que no se agregó). No es una PWA ni requiere instalación.
-
-### Identidad visual común
-
-Las maquetas de referencia se usaron como guía de paleta, tipografía y composición, sin copiar componentes que no
-tienen datos todavía (ventas, pedidos, promociones, sucursales).
-
-- **Estilos centralizados** en `static/css/dulcemayor.css`, con tokens (`--dm-*`) para colores, tipografía, espaciados, bordes y sombras. El archivo es **idéntico** en ambas aplicaciones, igual que `static/js/dulcemayor.js` y `templates/fragments/iconos.html`; si se modifica, hay que copiarlo en las dos.
-- **Paleta:** magenta `#d10f8c`, violeta `#7a35e0`, azul `#1f6feb` y amarillo `#ffc52e` de acento; degradado magenta→violeta→azul para acciones principales; verde, naranja y rojo para éxito, advertencia y error.
-- **Tipografía:** Poppins (títulos) e Inter (texto), con fuentes del sistema como respaldo.
-- **Componentes:** botones (primario, secundario, acento, fantasma, peligro, social) con estados; campos de 48 px de alto; tarjetas; insignias; alertas; tablas; indicadores; íconos SVG propios en un sprite (sin librerías externas).
-
-### admin-web (escritorio: dashboard)
-
-Menú lateral fijo con las secciones del rol y los **módulos futuros marcados como «Pronto»**, barra superior con el
-usuario, indicadores calculados con datos reales de la API, control de stock, catálogo por categoría (gráfico de dona
-en CSS), personal por rol y accesos rápidos. Pantallas: ingreso, cambio de contraseña, panel, empleados (lista con
-filtros por rol, alta, edición, baja), catálogo y clientes.
-
-### institucional-web (escritorio: comercial)
-
-Cinta superior, cabecera con buscador, menú (Inicio, Catálogo mayorista, Ofertas, Nosotros), portada con categorías,
-ofertas y productos, ventajas del mayorista y pie. Pantallas: inicio, catálogo con filtros, ingresar, crear cuenta y
-mi cuenta. Los productos **no tienen botón de compra**: los pedidos online todavía no existen, y el sitio lo aclara.
-
-### En celulares (≤ 991 px en admin-web, ≤ 899 px en el sitio)
-
-- **Barra de navegación inferior** tipo aplicación (Inicio, Catálogo, Empleados/Clientes u Ofertas, Cuenta, Menú) y encabezado compacto; en admin-web el menú lateral se convierte en un cajón deslizable.
-- Pantallas de acceso a pantalla completa con encabezado de color, campos amplios y botones de ancho completo.
-- Las **tablas se transforman en tarjetas** (cada fila apila sus datos con su etiqueta): no hay desplazamiento horizontal de la página. Las únicas filas deslizables son las pestañas de filtro y las categorías, a propósito.
-- En formularios largos, la barra de acciones (Cancelar / Guardar) queda fija sobre la navegación inferior.
-- Respeta las zonas seguras del celular (`env(safe-area-inset-*)`), `inputmode`/`autocomplete` adecuados en cada campo y `prefers-reduced-motion`.
-- No hay vistas duplicadas: es la misma plantilla con media queries (mobile-first).
-
-### Capturas
-
-En `docs/capturas/` hay capturas de escritorio (1440 px) y celular (390 px). **Son vistas previas con datos de
-ejemplo**, generadas con el renderizador de prueba descripto en la sección 12, no con la aplicación en ejecución.
-En las de celular de página completa, la barra inferior aparece a mitad de la imagen porque es fija.
-
----
-
-## 10. Decisiones de diseño
-
-- **`nombreUsuario` = correo.** Es el identificador de ingreso y se normaliza (minúsculas, sin espacios).
-- **Unicidad del correo entre cuentas activas.** Una cuenta dada de baja conserva su historial; si la persona vuelve (por ejemplo, un reingreso), se le crea una cuenta nueva con contraseña temporal.
-- **Un solo jefe administrativo** creado al iniciar; el jefe crea a los demás. No se puede crear otro jefe ni dar de baja al actual desde el sistema.
-- **Contraseña temporal fija `dulcemayor`**, como pide la HU-06; el riesgo se acota porque no sirve para otra cosa que cambiarla.
-- **Ingreso social existente: «rechazar y avisar»**, sin vinculación automática de cuentas.
-- **Códigos de canje en memoria.** Sirven para una única instancia de la API; si se escala a varias, hay que moverlos a un almacenamiento compartido (ver `CONFIGURACION-OAUTH.md`).
-- **CSRF en las apps web:** no se agregó Spring Security a admin-web ni a institucional-web (habría sido una dependencia nueva); los formularios se protegen con la cookie de sesión `SameSite=Lax`, que el navegador no envía en envíos de formularios desde otros sitios. Si se quiere una defensa adicional, el paso siguiente es sumar Spring Security con CSRF en esas apps.
-- **Duración:** el token dura 8 h, la sesión web vence a los 30 min de inactividad.
-
----
-
-## 11. Funcionalidades pendientes
-
-No se implementaron porque pertenecen a módulos que todavía no existen. No hay métodos vacíos ni respuestas
-simuladas: las rutas no existen y la API las deniega. En las vistas figuran como «Próximamente».
-
-| Pendiente | Por qué todavía no |
-|---|---|
-| Alta de puntos de venta | Excluida expresamente de esta etapa |
-| Pedidos (preventista y online) | Módulo de Pedidos no desarrollado |
-| Promociones | Módulo no desarrollado |
-| Rutas, hoja de ruta y entregas | Módulo de Logística no desarrollado |
-| Facturación y pagos (QR, billeteras, transferencias) | Dependen de Pedidos |
-| Registro de clientes por el preventista durante la visita | Depende de Puntos de venta |
-| Apps React del preventista y del distribuidor (`movil/`) | Fuera de alcance de esta etapa; hoy pueden ingresar a admin-web para cambiar su contraseña y (el preventista) consultar el catálogo |
-| Recuperación de contraseña por correo | Requiere un servidor de correo; hoy el jefe puede dar de baja y volver a dar de alta |
-| Reportes, contacto | Fuera de alcance |
-| Facebook en producción | Requiere crear la app en Meta y, para usuarios reales, su revisión; ver `CONFIGURACION-OAUTH.md` |
-
----
-
-## 12. Qué se verificó y qué no
+## 24. Qué se verificó y qué no
 
 ### Lo que **sí** se ejecutó
 
-| Verificación | Resultado |
-|---|---|
-| Compilación de **todo** el backend (código y pruebas) y de las dos apps web con `javac`, contra *stubs* de las APIs de Spring/Jakarta/jjwt escritos para esa verificación (Lombok emulado) | Sin errores |
-| **Arnés de escenarios de Personas y Autenticación**: los servicios reales (`ServicioUsuario`, `ServicioEmpleado`, `ServicioCliente`, `ServicioAutenticacion`, ubicación, `InicializadorDatos`, `CodigosCanjeOAuth2`) sobre repositorios en memoria, con *rollback* emulado | **81 / 81** escenarios correctos: datos iniciales, login, cambio obligatorio y sus validaciones, alta de cada rol, duplicados, edad, documento, patente, segundo JEFE, baja y deshabilitación, registro de cliente, rol inmutable, ingreso social (las 7 reglas), código de un solo uso |
-| Arnés del módulo **Catálogo y Stock** (regresión por el cambio en `BaseService`) | **45 / 45** |
-| Matriz de **navegación de admin-web** (`InterceptorAcceso` compilado, con pedidos simulados) | **21 / 21** |
-| **Vistas**: las 14 pantallas renderizadas con **datos de ejemplo** por un renderizador de prueba en Python que interpreta el subconjunto de Thymeleaf usado, y abiertas en Chromium a 1440 px y 390 px | Sin desbordes horizontales de página; capturas revisadas. Así se encontraron y corrigieron cuatro errores de estilo |
-| JavaScript en Chromium: campos según rol y selects en cascada (con respuestas `/ubicacion/…` interceptadas) | Correcto |
+- **Compilación** de `backend` (código y pruebas), `admin-web` e `institucional-web` con `javac` contra
+  implementaciones mínimas (stubs) de Spring/JPA/Lombok, porque Maven Central no era accesible.
+- **93 escenarios** del backend (Rutas y Pedidos) con los servicios reales y repositorios en memoria: alta de cliente
+  en campo; HU-17 (CUIT inválido/duplicado, sin coordenadas, sin cliente); HU-18 (fecha pasada, rol incorrecto, ruta
+  duplicada); orden por cercanía y trazado en línea recta sin OSRM; visita sin pedido; carga de pedido con precio
+  vigente, agrupación de líneas, reserva de stock, visita CON_PEDIDO y **reversión completa** si falta stock;
+  propiedad de pedidos (cliente y preventista ajenos → 404); anulación que devuelve el stock **una sola vez**;
+  confirmación sin tocar stock; asignación solo de pendientes; ruta de entregas solo con comercios asignados; entrega
+  fallida que mantiene el pedido pendiente y su reprogramación al día siguiente; entrega final. **93 OK.**
+- Regresión de las etapas anteriores con el mismo método: 45/45 (catálogo) y 81/81 (personas).
+- Pruebas unitarias nuevas ejecutadas con JUnit simulado: `ServicioPuntoVentaTest` (CUIT), `ServicioRutaTest`
+  (vecino más cercano y Haversine), `GestorSesionTest` (destinos internos). Todas OK.
+- **Apps React:** `npm install`, `vite build` y `eslint` sin errores en las dos apps y en `movil/comun`.
+- **Navegación de las apps React en Chromium (Playwright)** con la API **simulada** (respuestas de ejemplo fijas,
+  solo para la prueba): ingreso, ruta, detalle, tomar pedido, resumen, pedido cargado, visita sin pedido, mis
+  pedidos, alta de cliente y punto de venta, catálogo; ruta de entregas, detalle, no entregado y pendientes. Sirvió
+  para corregir dos errores (redirección al cargar el pedido y un asterisco mal ubicado).
+- Plantillas nuevas de admin-web e institucional-web renderizadas con datos de ejemplo y revisadas en escritorio y
+  celular (sin desbordes horizontales).
 
-### Lo que **no** se pudo ejecutar (sin acceso a Maven Central)
+### Lo que **no** se pudo ejecutar
 
-- `mvnw` en cualquiera de los tres proyectos: **ni la compilación con las dependencias reales, ni las pruebas JUnit, ni el arranque de Spring Boot**.
-- Las pruebas escritas para esta etapa, que el equipo debe correr: `ServicioUsuarioTest`, `ServicioEmpleadoTest`, `ServicioClienteTest`, `ServicioAutenticacionTest`, `CodigosCanjeOAuth2Test`, `DetallesUsuarioServiceTest`, `FlujoSeguridadIntegrationTest` (Spring Boot + H2 + filtros de seguridad reales: 401/403, `X-Accion-Requerida`, hash BCrypt, jerarquía de roles, rol ignorado en el registro) y `InterceptorAccesoTest` (admin-web).
-- **La matriz de permisos con Spring Security real** (se revisó el orden de las reglas, pero solo `FlujoSeguridadIntegrationTest` la ejecuta).
-- **Thymeleaf real** y la conexión de las apps web con la API (`RestClient`, Jackson 3). El renderizador de prueba no reemplaza a Thymeleaf.
-- **MySQL** y el esquema generado por Hibernate.
-- **Google y Facebook**: requieren credenciales reales; no se probaron.
+- `mvnw test` real (Spring, Hibernate, H2, Spring Security): incluye `FlujoPedidosIntegrationTest` (flujo completo
+  del preventista al distribuidor, anulación con devolución de stock y matriz de acceso por rol) y las pruebas de las
+  etapas anteriores. **Hay que correrlas antes de entregar.**
+- Arranque real con MySQL, las vistas Thymeleaf con el motor real y las apps React contra la API real.
+- Llamadas reales a Nominatim, OSRM y a las teselas de OpenStreetMap (sin salida a esos sitios desde el entorno; el
+  respaldo “línea recta” sí se probó).
+- GPS en un celular real.
 
-Lista mínima para el equipo antes de entregar: `mvnw test` en backend y admin-web; levantar las tres apps; ingresar
-como jefe, cambiar la clave, dar de alta un preventista, ingresar con él y cambiar su clave; registrar un cliente en
-el sitio; verificar en un celular real (o con las herramientas de desarrollador) las pantallas de ingreso, alta de
-empleado, registro y mi cuenta.
+Las capturas de `docs/capturas/ola2/` usan **datos de ejemplo**; el mapa aparece gris porque las teselas no estaban
+accesibles al tomarlas.

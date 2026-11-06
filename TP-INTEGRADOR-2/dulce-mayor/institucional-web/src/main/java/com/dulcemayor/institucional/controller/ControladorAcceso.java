@@ -40,7 +40,7 @@ public class ControladorAcceso {
                            Model model) {
         try {
             gestorSesion.iniciar(request, servicioAcceso.ingresar(formulario));
-            return "redirect:/mi-cuenta";
+            return "redirect:" + gestorSesion.tomarDestino(request);
         } catch (ApiException e) {
             formulario.setClave(null);
             model.addAttribute("error", e.getMessage());
@@ -63,7 +63,7 @@ public class ControladorAcceso {
         }
         try {
             gestorSesion.iniciar(request, servicioAcceso.canjearCodigo(codigo));
-            return "redirect:/mi-cuenta";
+            return "redirect:" + gestorSesion.tomarDestino(request);
         } catch (ApiException e) {
             redireccion.addFlashAttribute("error", e.getMessage());
             return "redirect:/ingresar";

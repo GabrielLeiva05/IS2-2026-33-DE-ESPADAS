@@ -51,6 +51,7 @@
                 <a th:href="@{/}" th:classappend="${rutaActual == '/'} ? 'activo'">Inicio</a>
                 <a th:href="@{/catalogo}" th:classappend="${rutaActual == '/catalogo' and !(ofertas ?: false)} ? 'activo'">Catálogo mayorista</a>
                 <a th:href="@{/catalogo(ofertas=true)}" th:classappend="${rutaActual == '/catalogo' and (ofertas ?: false)} ? 'activo'">Ofertas</a>
+                <a th:if="${sesion != null}" th:href="@{/mis-pedidos}" th:classappend="${#strings.startsWith(rutaActual, '/mis-pedidos')} ? 'activo'">Mis pedidos</a>
                 <a th:href="@{/} + '#nosotros'">Nosotros</a>
             </nav>
         </div>
@@ -70,8 +71,10 @@
         <svg class="icono"><use href="#i-inicio"/></svg>Inicio</a>
     <a th:href="@{/catalogo}" th:classappend="${rutaActual == '/catalogo' and !(ofertas ?: false)} ? 'activo'">
         <svg class="icono"><use href="#i-catalogo"/></svg>Catálogo</a>
-    <a th:href="@{/catalogo(ofertas=true)}" th:classappend="${rutaActual == '/catalogo' and (ofertas ?: false)} ? 'activo'">
+    <a th:if="${sesion == null}" th:href="@{/catalogo(ofertas=true)}" th:classappend="${rutaActual == '/catalogo' and (ofertas ?: false)} ? 'activo'">
         <svg class="icono"><use href="#i-etiqueta"/></svg>Ofertas</a>
+    <a th:if="${sesion != null}" th:href="@{/mis-pedidos}" th:classappend="${#strings.startsWith(rutaActual, '/mis-pedidos')} ? 'activo'">
+        <svg class="icono"><use href="#i-pedido"/></svg>Pedidos</a>
     <a th:href="${sesion != null} ? @{/mi-cuenta} : @{/ingresar}"
        th:classappend="${#strings.startsWith(rutaActual, '/mi-cuenta') or rutaActual == '/ingresar' or rutaActual == '/registro'} ? 'activo'">
         <svg class="icono"><use href="#i-usuario"/></svg><span th:text="${sesion != null} ? 'Mi cuenta' : 'Ingresar'">Cuenta</span></a>
@@ -90,14 +93,14 @@
                 <li><a th:href="@{/catalogo}">Catálogo mayorista</a></li>
                 <li><a th:href="@{/catalogo(ofertas=true)}">Ofertas</a></li>
                 <li><a th:href="${sesion != null} ? @{/mi-cuenta} : @{/registro}" th:text="${sesion != null} ? 'Mi cuenta' : 'Crear cuenta'">Crear cuenta</a></li>
+                <li><a th:href="@{/mis-pedidos}">Mis pedidos</a></li>
             </ul>
         </div>
         <div>
             <h4>Próximamente</h4>
             <ul>
-                <li>Pedidos online</li>
+                <li>Pago online de pedidos</li>
                 <li>Promociones por volumen</li>
-                <li>Seguimiento de entregas</li>
             </ul>
         </div>
     </div>
@@ -111,7 +114,7 @@
         <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
 </div>
 
-<!-- Tarjeta de producto (sin botón de compra: los pedidos online todavía no están implementados) -->
+<!-- Tarjeta de producto (sin botón de compra: los pedidos los carga el preventista en el comercio) -->
 <article th:fragment="producto(p)" class="producto">
     <div class="producto-imagen">
         <img th:if="${p.primeraImagen != null}" th:src="${apiPublica} + '/api/imagenes/' + ${p.primeraImagen} + '/contenido'"

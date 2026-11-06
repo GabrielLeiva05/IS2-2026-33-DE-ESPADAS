@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Rutas de visita')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Rutas')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Rutas del día</h1>
+                    <p>Cada preventista tiene una ruta por día. La app la ordena por cercanía desde su ubicación.</p>
+                </div>
+                <a class="btn btn-primario" th:href="@{/rutas/nueva}"><svg class="icono icono-sm"><use href="#i-ruta"/></svg>Armar ruta</a>
+            </div>
+
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <form class="tarjeta filtros mt-4" th:action="@{/rutas}" method="get">
+                <div class="campo">
+                    <label for="fecha">Fecha</label>
+                    <input class="control" id="fecha" name="fecha" type="date" th:value="${fecha}" data-auto-envio>
+                </div>
+                <button type="submit" class="btn btn-azul">Ver</button>
+            </form>
+
+            <div class="vacio tarjeta mt-4" th:if="${rutas.isEmpty()}">
+                <svg class="icono"><use href="#i-ruta"/></svg>
+                <p>No hay rutas para esta fecha.</p>
+                <a class="btn btn-secundario" th:href="@{/rutas/nueva}">Armar una ruta</a>
+            </div>
+
+            <div class="grilla-panel mt-4" th:unless="${rutas.isEmpty()}">
+                <section class="tarjeta" th:each="r : ${rutas}">
+                    <div class="tarjeta-encabezado">
+                        <div>
+                            <h2 th:text="${r.nombreEmpleado}">Preventista</h2>
+                            <span class="texto-secundario texto-chico" th:text="${r.tipoRuta == 'VISITA'} ? 'Ruta de visitas' : 'Ruta de entregas'">Ruta</span>
+                        </div>
+                        <span class="insignia" th:classappend="${r.pendientes == 0} ? 'insignia-verde' : 'insignia-naranja'"
+                              th:text="${r.visitados} + ' de ' + ${r.puntos.size()} + ' atendidos'">0 de 3</span>
+                    </div>
+                    <ol class="lista-modulos" style="padding:0">
+                        <li th:each="p : ${r.puntos}">
+                            <span class="avatar" style="width:30px;height:30px" th:text="${p.orden}">1</span>
+                            <span><strong th:text="${p.nombreFantasia}">Comercio</strong><br>
+                                <small class="texto-secundario" th:text="${p.direccion}">Dirección</small>
+                                <small class="texto-secundario" th:if="${p.motivo != null}" th:text="' · ' + ${p.motivo}">motivo</small></span>
+                            <th:block th:switch="${p.resultado}">
+                                <span th:case="'PENDIENTE'" class="insignia insignia-gris" th:text="${p.resultadoLegible}">Pendiente</span>
+                                <span th:case="'CON_PEDIDO'" class="insignia insignia-verde" th:text="${p.resultadoLegible}">Con pedido</span>
+                                <span th:case="'ENTREGADO'" class="insignia insignia-verde" th:text="${p.resultadoLegible}">Entregado</span>
+                                <span th:case="*" class="insignia insignia-naranja" th:text="${p.resultadoLegible}">Sin pedido</span>
+                            </th:block>
+                        </li>
+                    </ol>
+                    <form class="mt-4" th:if="${r.visitados == 0}" th:action="@{/rutas/{id}/baja(id=${r.id}, fecha=${fecha})}" method="post"
+                          th:data-confirmar="'¿Dar de baja la ruta de ' + ${r.nombreEmpleado} + '?'">
+                        <button type="submit" class="btn btn-peligro btn-chico"><svg class="icono icono-sm"><use href="#i-baja"/></svg>Dar de baja</button>
+                    </form>
+                </section>
+            </div>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

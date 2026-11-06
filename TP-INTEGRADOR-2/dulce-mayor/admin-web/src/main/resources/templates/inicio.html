@@ -15,8 +15,8 @@
                 <h2 th:text="'Hola, ' + ${sesion.nombreCompleto}">Hola</h2>
                 <p th:if="${sesion.jefe}">Gestioná el personal, revisá el stock y el catálogo publicado.</p>
                 <p th:if="${sesion.administrativo and !sesion.jefe}">Revisá el catálogo publicado, las alertas de stock y los clientes registrados.</p>
-                <p th:if="${sesion.preventista}">Consultá el catálogo con precios y disponibilidad. La aplicación móvil para tus visitas está en desarrollo.</p>
-                <p th:if="${sesion.distribuidor}">Tu cuenta ya está activa. La aplicación móvil de entregas y rutas está en desarrollo.</p>
+                <p th:if="${sesion.preventista}">Tu ruta, tus clientes y la carga de pedidos están en la aplicación del preventista.</p>
+                <p th:if="${sesion.distribuidor}">Tu ruta de entregas está en la aplicación del distribuidor.</p>
             </section>
 
             <!-- Indicadores calculados con datos reales de la API -->
@@ -96,11 +96,9 @@
                 <section class="tarjeta">
                     <div class="tarjeta-encabezado"><h2>Próximos módulos</h2></div>
                     <ul class="lista-modulos">
-                        <li><svg class="icono"><use href="#i-pedido"/></svg>Pedidos de preventistas<span class="insignia insignia-gris">En desarrollo</span></li>
-                        <li><svg class="icono"><use href="#i-ruta"/></svg>Rutas y entregas<span class="insignia insignia-gris">En desarrollo</span></li>
                         <li><svg class="icono"><use href="#i-etiqueta"/></svg>Promociones<span class="insignia insignia-gris">En desarrollo</span></li>
                         <li><svg class="icono"><use href="#i-factura"/></svg>Facturación y pagos<span class="insignia insignia-gris">En desarrollo</span></li>
-                        <li><svg class="icono"><use href="#i-tienda"/></svg>Puntos de venta<span class="insignia insignia-gris">En desarrollo</span></li>
+                        <li><svg class="icono"><use href="#i-grafico"/></svg>Reportes<span class="insignia insignia-gris">En desarrollo</span></li>
                     </ul>
                 </section>
             </div>
@@ -111,8 +109,10 @@
                         <span class="kpi-icono tono-magenta"><svg class="icono"><use href="#i-usuario-mas"/></svg></span>Alta de empleado</a>
                     <a class="acceso-rapido" th:if="${sesion.puedeVerCatalogo}" th:href="@{/catalogo}">
                         <span class="kpi-icono tono-azul"><svg class="icono"><use href="#i-catalogo"/></svg></span>Ver catálogo</a>
-                    <a class="acceso-rapido" th:if="${sesion.administrativo}" th:href="@{/clientes}">
-                        <span class="kpi-icono tono-violeta"><svg class="icono"><use href="#i-tienda"/></svg></span>Clientes</a>
+                    <a class="acceso-rapido" th:if="${sesion.administrativo}" th:href="@{/rutas/nueva}">
+                        <span class="kpi-icono tono-violeta"><svg class="icono"><use href="#i-ruta"/></svg></span>Armar ruta</a>
+                    <a class="acceso-rapido" th:if="${sesion.administrativo}" th:href="@{/entregas}">
+                        <span class="kpi-icono tono-azul"><svg class="icono"><use href="#i-camion"/></svg></span>Asignar entregas</a>
                     <a class="acceso-rapido" th:href="@{/cambiar-clave}">
                         <span class="kpi-icono tono-amarillo"><svg class="icono"><use href="#i-llave"/></svg></span>Mi contraseña</a>
                 </div>

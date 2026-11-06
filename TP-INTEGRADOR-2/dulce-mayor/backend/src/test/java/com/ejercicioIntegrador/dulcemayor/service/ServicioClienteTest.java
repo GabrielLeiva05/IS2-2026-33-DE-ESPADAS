@@ -32,7 +32,7 @@ class ServicioClienteTest {
     void setUp() throws MiException {
         repositorio = mock(RepositorioCliente.class);
         servicioUsuario = mock(ServicioUsuario.class);
-        servicio = new ServicioCliente(repositorio, servicioUsuario);
+        servicio = new ServicioCliente(repositorio, servicioUsuario, mock(ServicioDireccion.class));
         when(repositorio.save(any(Cliente.class))).then(returnsFirstArg());
         when(repositorio.findFirstByTipoDocumentoAndNumeroDocumentoAndEliminadoFalse(any(), any())).thenReturn(Optional.empty());
         when(servicioUsuario.crearUsuario(anyString(), any(), any(), any())).thenAnswer(invocacion ->

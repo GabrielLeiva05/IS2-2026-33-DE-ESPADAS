@@ -1,5 +1,6 @@
 package com.ejercicioIntegrador.dulcemayor.service;
 
+import com.ejercicioIntegrador.dulcemayor.dto.ClienteCampoDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.ClienteRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.ClienteResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.DatosPersonalesDTO;
@@ -28,11 +29,14 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
 
     private final RepositorioCliente repositorioCliente;
     private final ServicioUsuario servicioUsuario;
+    private final ServicioDireccion servicioDireccion;
 
-    public ServicioCliente(RepositorioCliente repositorioCliente, ServicioUsuario servicioUsuario) {
+    public ServicioCliente(RepositorioCliente repositorioCliente, ServicioUsuario servicioUsuario,
+                           ServicioDireccion servicioDireccion) {
         super(repositorioCliente);
         this.repositorioCliente = repositorioCliente;
         this.servicioUsuario = servicioUsuario;
+        this.servicioDireccion = servicioDireccion;
     }
 
     // ------------------------------------------------------------------
@@ -131,6 +135,41 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
                 ValidacionesPersona.nombreValido(nombre, ValidacionesPersona.nombreValido(nombrePorDefecto, "Cliente")),
                 ValidacionesPersona.nombreValido(apellido, "Sin apellido"),
                 null, null, null, correo, null, proveedor));
+    }
+
+    /**
+     * Alta de un cliente desde el celular del preventista (Ola 2): el cliente escribe su correo y su contraseña,
+     * por lo que la cuenta queda LOCAL, con rol CLIENTE y sin cambio obligatorio (las mismas reglas que HU-09).
+     * La dirección particular es opcional y se crea por ServicioDireccion, en la misma transacción.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ClienteResponseDTO registrarClienteEnCampo(ClienteCampoDTO alta) throws MiException {
+        if (alta == null) {
+            throw new MiException("Debe indicar los datos del cliente");
+        }
+        Cliente cliente = registrarCliente(new RegistroClienteDTO(alta.nombre(), alta.apellido(), alta.correo(),
+                alta.clave(), alta.confirmacionClave(), alta.tipoDocumento(), alta.numeroDocumento(),
+                alta.fechaNacimiento()));
+        if (alta.direccion() != null) {
+            cliente.setDireccion(servicioDireccion.crearDireccion(alta.direccion()));
+            cliente = repositorioCliente.save(cliente);
+        }
+        return convertirAResponse(cliente);
+    }
+
+    /** Busca un cliente activo por el correo de su cuenta (para asociarle un punto de venta). */
+    @Transactional(readOnly = true)
+    public ClienteResponseDTO buscarClientePorCorreo(String correo) throws MiException {
+        if (estaVacio(correo)) {
+            throw new MiException("Debe indicar el correo a buscar");
+        }
+        return convertirAResponse(clienteDeLaCuenta(ServicioUsuario.normalizarCorreo(correo)));
+    }
+
+    /** Cliente dueño de la cuenta autenticada. Lo usan los pedidos para verificar la propiedad. */
+    @Transactional(readOnly = true)
+    public Cliente obtenerClientePorCorreo(String correo) throws MiException {
+        return clienteDeLaCuenta(correo);
     }
 
     /** buscarClientePorUsuario(idUsuario) del diagrama. */

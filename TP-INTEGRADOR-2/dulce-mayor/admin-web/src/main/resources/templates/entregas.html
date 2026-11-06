@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Entregas')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Entregas')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Pedidos para entregar</h1>
+                    <p>Pedidos confirmados por el cliente. Asignalos a un distribuidor: su app arma la ruta de entregas del día.</p>
+                </div>
+            </div>
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <form class="form-pagina mt-4" th:action="@{/entregas/asignar}" method="post" data-envio-unico>
+                <section class="tarjeta tarjeta-tabla">
+                    <div class="tarjeta-encabezado" style="padding:var(--dm-e-4) var(--dm-e-4) 0">
+                        <h2>Sin asignar</h2>
+                        <span class="insignia insignia-naranja" th:text="${sinAsignar.size()} + ' pedidos'">0</span>
+                    </div>
+                    <div class="vacio" th:if="${sinAsignar.isEmpty()}">
+                        <svg class="icono"><use href="#i-ok"/></svg><p class="mb-0">No hay pedidos confirmados esperando distribuidor.</p>
+                    </div>
+                    <table class="tabla tabla-apilable" th:unless="${sinAsignar.isEmpty()}">
+                        <thead><tr><th>Pedido</th><th>Comercio</th><th>Preventista</th><th>Total</th></tr></thead>
+                        <tbody>
+                        <tr th:each="p : ${sinAsignar}">
+                            <td class="celda-principal">
+                                <label class="persona" style="cursor:pointer">
+                                    <input type="checkbox" name="idsPedido" th:value="${p.id}" style="width:22px;height:22px;accent-color:var(--dm-magenta)">
+                                    <span><strong th:text="'N.º ' + ${p.numeroPedido}">N.º</strong><small th:text="${p.cargaLegible}">fecha</small></span>
+                                </label>
+                            </td>
+                            <td data-label="Comercio"><span th:text="${p.nombreFantasia}">Comercio</span><br><small class="texto-secundario" th:text="${p.direccion}">dir</small></td>
+                            <td data-label="Preventista" th:text="${p.nombrePreventista}">Preventista</td>
+                            <td data-label="Total"><strong th:text="'$ ' + ${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+                <div class="barra-acciones" th:unless="${sinAsignar.isEmpty()}">
+                    <select class="control" name="idDistribuidor" required style="max-width:320px">
+                        <option value="">Elegí un distribuidor</option>
+                        <option th:each="d : ${distribuidores}" th:value="${d.id}"
+                                th:text="${d.nombreCompleto} + (${d.patente != null} ? ' · ' + ${d.patente} : '')">Distribuidor</option>
+                    </select>
+                    <button type="submit" class="btn btn-primario"><svg class="icono icono-sm"><use href="#i-camion"/></svg>Asignar</button>
+                </div>
+            </form>
+
+            <section class="tarjeta tarjeta-tabla mt-4">
+                <div class="tarjeta-encabezado" style="padding:var(--dm-e-4) var(--dm-e-4) 0"><h2>Asignados, pendientes de entrega</h2></div>
+                <div class="vacio" th:if="${asignados.isEmpty()}"><p class="mb-0">No hay pedidos en reparto.</p></div>
+                <table class="tabla tabla-apilable" th:unless="${asignados.isEmpty()}">
+                    <thead><tr><th>Pedido</th><th>Comercio</th><th>Distribuidor</th><th>Total</th></tr></thead>
+                    <tbody>
+                    <tr th:each="p : ${asignados}">
+                        <td class="celda-principal"><strong th:text="'N.º ' + ${p.numeroPedido}">N.º</strong></td>
+                        <td data-label="Comercio" th:text="${p.nombreFantasia}">Comercio</td>
+                        <td data-label="Distribuidor" th:text="${p.nombreDistribuidor}">Distribuidor</td>
+                        <td data-label="Total" th:text="'$ ' + ${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')}">$</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>
