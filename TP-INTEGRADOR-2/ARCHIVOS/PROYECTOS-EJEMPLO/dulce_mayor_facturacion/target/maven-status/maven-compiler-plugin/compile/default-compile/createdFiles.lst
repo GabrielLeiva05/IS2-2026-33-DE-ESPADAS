@@ -1,0 +1,9 @@
+com\dulcemayor\facturacion\DulceMayorApplication.class
+com\dulcemayor\facturacion\service\ClienteService.class
+com\dulcemayor\facturacion\model\Cliente.class
+com\dulcemayor\facturacion\repository\PedidoRepository.class
+com\dulcemayor\facturacion\controller\FacturaController.class
+com\dulcemayor\facturacion\repository\ClienteRepository.class
+com\dulcemayor\facturacion\model\Pedido.class
+com\dulcemayor\facturacion\model\DetallePedido.class
+com\dulcemayor\facturacion\service\FacturaService.class

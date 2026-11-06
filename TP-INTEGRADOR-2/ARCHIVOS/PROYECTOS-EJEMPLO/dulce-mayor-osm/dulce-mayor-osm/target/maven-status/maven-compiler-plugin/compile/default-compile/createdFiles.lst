@@ -1,0 +1,12 @@
+ar\com\dulcemayor\osm\service\DemoData.class
+ar\com\dulcemayor\osm\service\NotificacionService.class
+ar\com\dulcemayor\osm\model\PuntoVenta.class
+ar\com\dulcemayor\osm\DulceMayorOsmApplication.class
+ar\com\dulcemayor\osm\service\RutaService$Trayecto.class
+ar\com\dulcemayor\osm\model\Sucursal.class
+ar\com\dulcemayor\osm\repo\SucursalRepository.class
+ar\com\dulcemayor\osm\web\ApiController$RutaDto.class
+ar\com\dulcemayor\osm\web\ApiController.class
+ar\com\dulcemayor\osm\web\ApiController$CompletarDto.class
+ar\com\dulcemayor\osm\repo\PuntoVentaRepository.class
+ar\com\dulcemayor\osm\service\RutaService.class

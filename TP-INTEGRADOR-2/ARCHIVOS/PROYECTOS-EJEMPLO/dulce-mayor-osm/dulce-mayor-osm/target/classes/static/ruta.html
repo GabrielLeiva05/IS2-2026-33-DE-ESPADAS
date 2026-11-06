@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ruta - Dulce Mayor</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+</head><body>
+<header><h1 id="titulo"></h1><a href="index.html">Inicio</a></header>
+<div class="layout">
+  <div id="map"></div>
+  <div class="panel">
+    <div id="gpsEstado" class="muted">📍 Solicitando ubicación…</div>
+    <div id="resumen" class="muted">Cargando…</div>
+    <div id="msg"></div>
+    <button id="btnCompletar" disabled></button>
+    <button class="sec" id="btnRecalcular">Recalcular desde mi posición</button>
+    <button class="sec" id="btnUbicar">📍 Usar mi ubicación</button>
+    <button class="sec" id="btnManual">Elegir inicio en el mapa</button>
+    <ol id="lista"></ol>
+    <details id="alta" hidden>
+      <summary><b>+ Nuevo cliente</b></summary>
+      <input id="nNombre" placeholder="Nombre del comercio">
+      <input id="nDir" placeholder="Dirección (ej: San Martín 1200, Mendoza)">
+      <input id="nMail" type="email" placeholder="Email">
+      <button class="sec" id="btnBuscar">Ubicar dirección</button>
+      <button id="btnGuardar" disabled>Guardar</button>
+      <div class="muted">También podés tocar el mapa o arrastrar el marcador para ajustar la posición.</div>
+    </details>
+  </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="ruta.js"></script>
+</body></html>

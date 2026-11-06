@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dulce Mayor - PoC OpenStreetMap</title><link rel="stylesheet" href="styles.css">
+</head><body>
+<header><h1>Dulce Mayor · PoC OpenStreetMap</h1></header>
+<div class="card">
+  <p class="muted">Prueba de concepto de los requerimientos con mapa. Orden sugerido: 1) Preventor, 2) Despacho.</p>
+  <a href="sucursales.html"><b>Sitio institucional</b><br><span class="muted">Mapa con las sucursales</span></a>
+  <a href="ruta.html?modo=preventor"><b>Portal móvil del preventor</b><br><span class="muted">Ruta óptima, siguiente punto, alta de clientes</span></a>
+  <a href="ruta.html?modo=despacho"><b>Despacho / entregas</b><br><span class="muted">Entregado → siguiente punto + email al próximo cliente</span></a>
+  <button class="sec" onclick="fetch('/api/demo/reset',{method:'POST'}).then(()=>alert('Datos de demo reiniciados'))">Reiniciar datos de demo</button>
+</div></body></html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sucursales - Dulce Mayor</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+</head><body>
+<header><h1>Nuestras sucursales</h1><a href="index.html">Inicio</a></header>
+<div class="layout">
+  <div id="map"></div>
+  <div class="panel">
+    <div id="estado" class="muted">Cargando sucursales…</div>
+    <ul id="lista" style="list-style:none;padding:0;margin:8px 0"></ul>
+  </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const map = L.map('map').setView([-32.9, -68.82], 12);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom: 19, attribution: '&copy; Colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+
+const icono = L.divIcon({className: '', html: '<div class="pin next">🍬</div>', iconSize: [28, 28], iconAnchor: [14, 14]});
+
+function popup(s) {
+  const div = document.createElement('div');
+  const b = document.createElement('b'); b.textContent = s.nombre;
+  const p = document.createElement('div'); p.textContent = s.direccion || '';
+  div.append(b, p);
+  if (s.fotoUrl) {
+    const img = document.createElement('img');
+    img.src = s.fotoUrl; img.width = 240; img.alt = s.nombre;
+    img.onerror = () => img.remove();              // si la foto no carga, no rompe el popup
+    div.append(img);
+  }
+  return div;
+}
+
+fetch('/api/sucursales')
+  .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  .then(list => {
+    if (!list.length) { $('estado').textContent = 'No hay sucursales cargadas.'; return; }
+    $('estado').textContent = list.length + ' sucursales';
+    const bounds = [];
+    list.forEach(s => {
+      const marker = L.marker([s.lat, s.lng], {icon: icono}).addTo(map).bindPopup(popup(s));
+      bounds.push([s.lat, s.lng]);
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.className = 'sec';
+      btn.style.cssText = 'width:100%;text-align:left';
+      btn.textContent = s.nombre + ' — ' + (s.direccion || '');
+      btn.onclick = () => { map.setView([s.lat, s.lng], 15); marker.openPopup(); };
+      li.appendChild(btn);
+      $('lista').appendChild(li);
+    });
+    map.invalidateSize();
+    map.fitBounds(bounds, {padding: [40, 40], maxZoom: 15});
+  })
+  .catch(e => {
+    $('estado').textContent = '⚠️ No se pudieron cargar las sucursales (' + e.message + '). ' +
+      'Probá abrir /api/sucursales en el navegador y revisá la consola del servidor.';
+  });
+</script></body></html>
