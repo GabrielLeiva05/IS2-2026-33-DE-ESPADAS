@@ -5,6 +5,7 @@ const API = import.meta.env.VITE_API_URL || ''
 const SESSION_KEY = 'dulce-mayor-preventista-session'
 const PENDING_ORDER_KEY = `${SESSION_KEY}-pending-order`
 const money = (value) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Number(value) || 0)
+const medioLegible = (medio) => ({ TRANSFERENCIA: 'Transferencia', MERCADO_PAGO: 'Mercado Pago', EFECTIVO: 'Efectivo' }[medio] || medio)
 const describeError = (error) => error instanceof Error ? error.message : 'Ocurrió un error inesperado.'
 
 async function api(path, { token, ...options } = {}) {
@@ -44,6 +45,8 @@ function App() {
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
   const [aviso, setAviso] = useState('')
+  const [cobroPedido, setCobroPedido] = useState(null)
+  const [pagosDelPedido, setPagosDelPedido] = useState([])
 
   const cargarDatos = useCallback(async () => {
     if (!session?.token) return
@@ -192,6 +195,46 @@ function App() {
     } finally { setGuardando(false) }
   }
 
+  async function abrirCobro(pedido) {
+    setError('')
+    setAviso('')
+    setCobroPedido(pedido)
+    setPagosDelPedido([])
+    setScreen('cobro')
+    try {
+      setPagosDelPedido(await api(`/api/preventista/pedidos/${pedido.id}/pagos`, { token: session.token }))
+    } catch (requestError) { setError(describeError(requestError)) }
+  }
+
+  async function iniciarCobro(medio) {
+    if (!cobroPedido) return
+    setGuardando(true)
+    setError('')
+    setAviso('')
+    try {
+      const pago = await api(`/api/preventista/pedidos/${cobroPedido.id}/pagos`, { token: session.token, method: 'POST', body: JSON.stringify({ medio }) })
+      setPagosDelPedido((actuales) => [pago, ...actuales])
+      setAviso(`${medioLegible(medio)}: cobro iniciado. El pedido se completa cuando administración acredita el pago.`)
+    } catch (requestError) { setError(describeError(requestError)) } finally { setGuardando(false) }
+  }
+
+  async function descargarComprobante(idPedido) {
+    setError('')
+    try {
+      const respuesta = await fetch(`${API}/api/preventista/pedidos/${idPedido}/comprobante`, { headers: { Authorization: `Bearer ${session.token}` } })
+      if (!respuesta.ok) {
+        const detalle = await respuesta.json().catch(() => null)
+        throw new Error(detalle?.mensaje || `No se pudo descargar el comprobante (${respuesta.status}).`)
+      }
+      const url = URL.createObjectURL(await respuesta.blob())
+      const enlace = document.createElement('a')
+      enlace.href = url
+      enlace.download = `comprobante-${idPedido}.html`
+      enlace.click()
+      URL.revokeObjectURL(url)
+    } catch (requestError) { setError(describeError(requestError)) }
+  }
+
   if (!session) return (
     <main className="login-shell">
       <form className="login-card" onSubmit={iniciarSesion}>
@@ -248,8 +291,18 @@ function App() {
               <aside className="panel order-summary"><h2>Resumen</h2><label>Comercio<select required value={puntoId} onChange={(e) => setPuntoId(e.target.value)}><option value="">Seleccionar comercio</option>{cartera.map((punto) => <option key={punto.id} value={punto.id}>{punto.nombreComercial}</option>)}</select></label><div className="summary-line"><span>Productos</span><strong>{lineas.length}</strong></div><div className="summary-total"><span>Total estimado</span><strong>{money(totalBorrador)}</strong></div><p className="summary-hint">El servidor recalcula precios y verifica stock al confirmar. Podés poner una cantidad en cero para quitar ese producto.</p><button className="button primary full" disabled={guardando || lineas.length === 0}>{guardando ? (pedidoPendienteId ? 'Actualizando y confirmando…' : 'Confirmando…') : 'Confirmar pedido'}</button><button type="button" className="button secondary full" onClick={() => setCantidades({})}>Vaciar selección</button></aside>
             </form>}
           </>}
-          {screen === 'pedidos' && <><div className="page-heading"><div><p className="eyebrow">ACTIVIDAD</p><h1>Pedidos</h1><p className="muted">Seguimiento de los pedidos de tu cartera.</p></div><button className="button primary" onClick={() => setScreen('pedido')}>＋ Nuevo pedido</button></div><section className="panel"><div className="panel-heading"><div><h2>Historial de pedidos</h2><p>Más recientes primero</p></div><span className="count-badge">{pedidos.length} pedidos</span></div>{pedidos.length === 0 ? <div className="empty-state"><span>≡</span><h3>Todavía no hay pedidos</h3><p>Cuando registres un pedido, lo vas a encontrar acá.</p></div> : <div className="table-wrap"><table><thead><tr><th>COMERCIO</th><th>FECHA</th><th>PRODUCTOS</th><th>ESTADO</th><th className="align-right">TOTAL</th></tr></thead><tbody>{[...pedidos].reverse().map((pedido) => <tr key={pedido.id}><td><strong>{pedido.nombreComercial}</strong></td><td>{pedido.fechaConfirmacion ? new Date(pedido.fechaConfirmacion).toLocaleDateString('es-AR') : new Date(pedido.fechaCreacion).toLocaleDateString('es-AR')}</td><td>{pedido.lineas?.reduce((total, linea) => total + linea.cantidadPresentaciones, 0) || 0} presentaciones</td><td><span className={`status status-${String(pedido.estado).toLowerCase()}`}>{pedido.estado}</span></td><td className="align-right">{money(pedido.total)}</td></tr>)}</tbody></table></div>}</section></>}
-        </section>
+          {screen === 'pedidos' && <><div className="page-heading"><div><p className="eyebrow">ACTIVIDAD</p><h1>Pedidos</h1><p className="muted">Seguimiento de los pedidos de tu cartera.</p></div><button className="button primary" onClick={() => setScreen('pedido')}>＋ Nuevo pedido</button></div><section className="panel"><div className="panel-heading"><div><h2>Historial de pedidos</h2><p>Más recientes primero</p></div><span className="count-badge">{pedidos.length} pedidos</span></div>{pedidos.length === 0 ? <div className="empty-state"><span>≡</span><h3>Todavía no hay pedidos</h3><p>Cuando registres un pedido, lo vas a encontrar acá.</p></div> : <div className="table-wrap"><table><thead><tr><th>COMERCIO</th><th>FECHA</th><th>PRODUCTOS</th><th>ESTADO</th><th className="align-right">TOTAL</th><th>COBRO</th></tr></thead><tbody>{[...pedidos].reverse().map((pedido) => <tr key={pedido.id}><td><strong>{pedido.nombreComercial}</strong></td><td>{pedido.fechaConfirmacion ? new Date(pedido.fechaConfirmacion).toLocaleDateString('es-AR') : new Date(pedido.fechaCreacion).toLocaleDateString('es-AR')}</td><td>{pedido.lineas?.reduce((total, linea) => total + linea.cantidadPresentaciones, 0) || 0} presentaciones</td><td><span className={`status status-${String(pedido.estado).toLowerCase()}`}>{pedido.estado}</span></td><td className="align-right">{money(pedido.total)}</td><td><button type="button" className="button secondary" onClick={() => abrirCobro(pedido)}>Cobrar</button></td></tr>)}</tbody></table></div>}</section></>}
+                    {screen === 'cobro' && cobroPedido && <>
+                      <div className="page-heading"><div><p className="eyebrow">COBRO</p><h1>{cobroPedido.nombreComercial}</h1><p className="muted">Pedido {cobroPedido.estado} · {money(cobroPedido.total)}</p></div><button type="button" className="button secondary" onClick={() => setScreen('pedidos')}>Volver a pedidos</button></div>
+                      <section className="panel">
+                        <div className="panel-heading"><div><h2>Intentos de cobro</h2><p>El pedido se completa cuando administración acredita el pago total.</p></div><span className="count-badge">{pagosDelPedido.length} intentos</span></div>
+                        {pagosDelPedido.length === 0 ? <div className="empty-state"><h3>Sin cobros iniciados</h3><p>Elegí cómo paga el cliente para generar el cobro.</p></div> : <div className="table-wrap"><table><thead><tr><th>MEDIO</th><th>ESTADO</th><th className="align-right">IMPORTE</th><th>DETALLE</th></tr></thead><tbody>{pagosDelPedido.map((pago) => <tr key={pago.id}><td>{medioLegible(pago.medio)}</td><td><span className={`status status-${String(pago.estado).toLowerCase()}`}>{pago.estado}</span></td><td className="align-right">{money(pago.importe)}</td><td>{pago.referenciaExterna || pago.instrucciones || '—'}</td></tr>)}</tbody></table></div>}
+                        {pagosDelPedido.filter((pago) => pago.enlacePago).map((pago) => <p key={`enlace-${pago.id}`}><a href={pago.enlacePago} target="_blank" rel="noreferrer">Abrir el pago de Mercado Pago</a></p>)}
+                        {cobroPedido.estado === 'CONFIRMADO' && <div className="summary-line"><span>Iniciar cobro</span><div><button type="button" className="button secondary" disabled={guardando} onClick={() => iniciarCobro('TRANSFERENCIA')}>Transferencia</button> <button type="button" className="button secondary" disabled={guardando} onClick={() => iniciarCobro('MERCADO_PAGO')}>Mercado Pago</button> <button type="button" className="button secondary" disabled={guardando} onClick={() => iniciarCobro('EFECTIVO')}>Efectivo</button></div></div>}
+                        {pagosDelPedido.some((pago) => pago.estado === 'ACREDITADO') && <button type="button" className="button primary full" onClick={() => descargarComprobante(cobroPedido.id)}>Descargar comprobante</button>}
+                      </section>
+                    </>}
+                  </section>
         <footer className="footer">Dulce Mayor <span>·</span> Herramienta de gestión comercial</footer>
       </main>
     </div>

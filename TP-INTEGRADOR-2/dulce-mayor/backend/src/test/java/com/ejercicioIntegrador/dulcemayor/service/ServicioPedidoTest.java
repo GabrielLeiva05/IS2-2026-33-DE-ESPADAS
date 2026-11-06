@@ -3,16 +3,19 @@ package com.ejercicioIntegrador.dulcemayor.service;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoLineaRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoResponseDTO;
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPago;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.RolUsuario;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.model.LineaPedido;
+import com.ejercicioIntegrador.dulcemayor.model.Pago;
 import com.ejercicioIntegrador.dulcemayor.model.Pedido;
 import com.ejercicioIntegrador.dulcemayor.model.Preventista;
 import com.ejercicioIntegrador.dulcemayor.model.Producto;
 import com.ejercicioIntegrador.dulcemayor.model.PuntoVenta;
 import com.ejercicioIntegrador.dulcemayor.model.ReservaStock;
 import com.ejercicioIntegrador.dulcemayor.model.Usuario;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPago;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPedido;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioReservaStock;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +46,7 @@ class ServicioPedidoTest {
 
     private RepositorioPedido repositorioPedido;
     private RepositorioReservaStock repositorioReservaStock;
+    private RepositorioPago repositorioPago;
     private ServicioPuntoVenta servicioPuntoVenta;
     private ServicioProducto servicioProducto;
     private ServicioVigenciaPrecio servicioVigenciaPrecio;
@@ -59,14 +63,15 @@ class ServicioPedidoTest {
     void setUp() throws MiException {
         repositorioPedido = mock(RepositorioPedido.class);
         repositorioReservaStock = mock(RepositorioReservaStock.class);
+        repositorioPago = mock(RepositorioPago.class);
         servicioPuntoVenta = mock(ServicioPuntoVenta.class);
         servicioProducto = mock(ServicioProducto.class);
         servicioVigenciaPrecio = mock(ServicioVigenciaPrecio.class);
         servicioStock = mock(ServicioStock.class);
         servicioUsuario = mock(ServicioUsuario.class);
         servicioEmpleado = mock(ServicioEmpleado.class);
-        servicio = new ServicioPedido(repositorioPedido, repositorioReservaStock, servicioPuntoVenta, servicioProducto,
-                servicioVigenciaPrecio, servicioStock, servicioUsuario, servicioEmpleado);
+        servicio = new ServicioPedido(repositorioPedido, repositorioReservaStock, repositorioPago, servicioPuntoVenta,
+                servicioProducto, servicioVigenciaPrecio, servicioStock, servicioUsuario, servicioEmpleado);
 
         preventista = new Preventista();
         preventista.setId("prev-1");
@@ -179,6 +184,8 @@ class ServicioPedidoTest {
         ReservaStock reserva = reservaDe(pedido, 48);
         when(repositorioPedido.findByIdAndEliminadoFalse("ped-1")).thenReturn(Optional.of(pedido));
         when(repositorioReservaStock.findByPedido_IdAndEliminadoFalse("ped-1")).thenReturn(List.of(reserva));
+        when(repositorioPago.findFirstByPedido_IdAndEstadoAndEliminadoFalse("ped-1", EstadoPago.ACREDITADO))
+                .thenReturn(Optional.of(pagoAcreditado(pedido)));
 
         PedidoResponseDTO completado = servicio.completarAdministrativo("ped-1");
 
@@ -188,11 +195,26 @@ class ServicioPedidoTest {
     }
 
     @Test
+    void completarRechazaUnPedidoSinPagoAcreditado() throws MiException {
+        Pedido pedido = pedidoEnBorrador(2);
+        pedido.setEstado(EstadoPedido.CONFIRMADO);
+        when(repositorioPedido.findByIdAndEliminadoFalse("ped-1")).thenReturn(Optional.of(pedido));
+        when(repositorioPago.findFirstByPedido_IdAndEstadoAndEliminadoFalse("ped-1", EstadoPago.ACREDITADO))
+                .thenReturn(Optional.empty());
+
+        assertThrows(MiException.class, () -> servicio.completarAdministrativo("ped-1"));
+        assertEquals(EstadoPedido.CONFIRMADO, pedido.getEstado());
+        verify(servicioStock, never()).consumirReserva(anyString(), anyString(), any());
+    }
+
+    @Test
     void completarExigeTodasLasReservasActivas() throws MiException {
         Pedido pedido = pedidoEnBorrador(2);
         pedido.setEstado(EstadoPedido.CONFIRMADO);
         when(repositorioPedido.findByIdAndEliminadoFalse("ped-1")).thenReturn(Optional.of(pedido));
         when(repositorioReservaStock.findByPedido_IdAndEliminadoFalse("ped-1")).thenReturn(List.of());
+        when(repositorioPago.findFirstByPedido_IdAndEstadoAndEliminadoFalse("ped-1", EstadoPago.ACREDITADO))
+                .thenReturn(Optional.of(pagoAcreditado(pedido)));
 
         assertThrows(MiException.class, () -> servicio.completarAdministrativo("ped-1"));
         verify(servicioStock, never()).consumirReserva(anyString(), anyString(), any());
@@ -203,8 +225,37 @@ class ServicioPedidoTest {
     void completarRechazaUnPedidoQueNoEstaConfirmado() throws MiException {
         Pedido pedido = pedidoEnBorrador(1);
         when(repositorioPedido.findByIdAndEliminadoFalse("ped-1")).thenReturn(Optional.of(pedido));
+        when(repositorioPago.findFirstByPedido_IdAndEstadoAndEliminadoFalse("ped-1", EstadoPago.ACREDITADO))
+                .thenReturn(Optional.of(pagoAcreditado(pedido)));
 
         assertThrows(MiException.class, () -> servicio.completarAdministrativo("ped-1"));
+    }
+
+    @Test
+    void cancelarPorVencimientoDePagoLiberaLaReservaUnaSolaVez() throws MiException {
+        Pedido pedido = pedidoEnBorrador(2);
+        pedido.setEstado(EstadoPedido.CONFIRMADO);
+        ReservaStock reserva = reservaDe(pedido, 48);
+        when(repositorioPedido.findByIdAndEliminadoFalse("ped-1")).thenReturn(Optional.of(pedido));
+        when(repositorioReservaStock.findByPedido_IdAndEliminadoFalse("ped-1")).thenReturn(List.of(reserva));
+
+        servicio.cancelarPorVencimientoDePago("ped-1");
+
+        assertEquals(EstadoPedido.CANCELADO, pedido.getEstado());
+        assertNotNull(reserva.getFechaLiberacion());
+
+        // Segunda invocación: el pedido ya no está confirmado, no vuelve a liberar
+        LocalDateTime liberacion = reserva.getFechaLiberacion();
+        servicio.cancelarPorVencimientoDePago("ped-1");
+        assertEquals(liberacion, reserva.getFechaLiberacion());
+    }
+
+    private Pago pagoAcreditado(Pedido pedido) {
+        Pago pago = new Pago();
+        pago.setId("pag-1");
+        pago.setPedido(pedido);
+        pago.setEstado(EstadoPago.ACREDITADO);
+        return pago;
     }
 
     @Test

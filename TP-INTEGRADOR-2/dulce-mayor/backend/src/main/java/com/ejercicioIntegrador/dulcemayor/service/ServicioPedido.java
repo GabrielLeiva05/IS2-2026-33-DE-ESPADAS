@@ -4,6 +4,7 @@ import com.ejercicioIntegrador.dulcemayor.dto.PedidoLineaRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoLineaResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoResponseDTO;
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPago;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.RolUsuario;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
@@ -14,6 +15,7 @@ import com.ejercicioIntegrador.dulcemayor.model.ReservaStock;
 import com.ejercicioIntegrador.dulcemayor.model.Usuario;
 import com.ejercicioIntegrador.dulcemayor.model.VigenciaPrecio;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPedido;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPago;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioReservaStock;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,7 @@ public class ServicioPedido {
     private static final int ESCALA_MONETARIA = 2;
     private final RepositorioPedido repositorioPedido;
     private final RepositorioReservaStock repositorioReservaStock;
+    private final RepositorioPago repositorioPago;
     private final ServicioPuntoVenta servicioPuntoVenta;
     private final ServicioProducto servicioProducto;
     private final ServicioVigenciaPrecio servicioVigenciaPrecio;
@@ -40,11 +43,13 @@ public class ServicioPedido {
     private final ServicioEmpleado servicioEmpleado;
 
     public ServicioPedido(RepositorioPedido repositorioPedido, RepositorioReservaStock repositorioReservaStock,
+                          RepositorioPago repositorioPago,
                           ServicioPuntoVenta servicioPuntoVenta, ServicioProducto servicioProducto,
                           ServicioVigenciaPrecio servicioVigenciaPrecio, ServicioStock servicioStock,
                           ServicioUsuario servicioUsuario, ServicioEmpleado servicioEmpleado) {
         this.repositorioPedido = repositorioPedido;
         this.repositorioReservaStock = repositorioReservaStock;
+        this.repositorioPago = repositorioPago;
         this.servicioPuntoVenta = servicioPuntoVenta;
         this.servicioProducto = servicioProducto;
         this.servicioVigenciaPrecio = servicioVigenciaPrecio;
@@ -160,20 +165,72 @@ public class ServicioPedido {
     public PedidoResponseDTO completarAdministrativo(String idPedido) throws MiException {
         Pedido pedido = repositorioPedido.findByIdAndEliminadoFalse(idPedido)
                 .orElseThrow(() -> new MiException("No existe el pedido indicado"));
+        if (repositorioPago.findFirstByPedido_IdAndEstadoAndEliminadoFalse(idPedido, EstadoPago.ACREDITADO).isEmpty()) {
+            throw new MiException("El pedido no tiene el pago total acreditado: no se puede consumir el stock");
+        }
+        return consumirReservasPorPago(pedido);
+    }
+
+    /** Consumo de stock disparado por la acreditación del pago total (Fase 3, ítem 7). */
+    @Transactional(rollbackFor = Exception.class)
+    public PedidoResponseDTO consumirReservasPorPago(String idPedido) throws MiException {
+        return consumirReservasPorPago(obtenerPedido(idPedido));
+    }
+
+    private PedidoResponseDTO consumirReservasPorPago(Pedido pedido) throws MiException {
         if (pedido.getEstado() != EstadoPedido.CONFIRMADO) {
             throw new MiException("Solo se puede completar un pedido confirmado");
         }
-        List<ReservaStock> reservas = repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).stream()
+        List<ReservaStock> reservas = repositorioReservaStock.findByPedido_IdAndEliminadoFalse(pedido.getId()).stream()
                 .filter(reserva -> reserva.getFechaLiberacion() == null && !reserva.isConsumida()).toList();
         if (reservas.size() != pedido.getLineas().size()) {
             throw new MiException("El pedido no tiene todas sus reservas de stock activas");
         }
         for (ReservaStock reserva : reservas) {
-            servicioStock.consumirReserva(idPedido, reserva.getProducto().getId(), reserva.getCantidad());
+            servicioStock.consumirReserva(pedido.getId(), reserva.getProducto().getId(), reserva.getCantidad());
         }
         pedido.setEstado(EstadoPedido.COMPLETADO);
         pedido.setFechaCompletado(LocalDateTime.now());
         return convertir(repositorioPedido.save(pedido));
+    }
+
+    /** Cancelación idempotente cuando vence el pago: libera la reserva si el pedido sigue confirmado. */
+    @Transactional(rollbackFor = Exception.class)
+    public void cancelarPorVencimientoDePago(String idPedido) throws MiException {
+        Pedido pedido = repositorioPedido.findByIdAndEliminadoFalse(idPedido).orElse(null);
+        if (pedido == null || pedido.getEstado() != EstadoPedido.CONFIRMADO) {
+            return;
+        }
+        if (repositorioPago.findFirstByPedido_IdAndEstadoAndEliminadoFalse(idPedido, EstadoPago.ACREDITADO).isPresent()) {
+            return;
+        }
+        cancelarReservas(pedido);
+    }
+
+    /** Bandeja administrativa: todos los pedidos, los más recientes primero. */
+    @Transactional(readOnly = true)
+    public List<PedidoResponseDTO> listarTodos() {
+        return repositorioPedido.findByEliminadoFalseOrderByFechaCreacionDesc().stream().map(this::convertir).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PedidoResponseDTO obtenerDetalle(String idPedido) throws MiException {
+        return convertir(obtenerPedido(idPedido));
+    }
+
+    /** Pedido de la cartera del preventista autenticado (autorización por ownership). */
+    @Transactional(readOnly = true)
+    public Pedido obtenerPedidoPropio(String idPedido, String correoPreventista) throws MiException {
+        Usuario usuario = usuarioPreventista(correoPreventista);
+        String idPreventista = servicioEmpleado.buscarPorUsuario(usuario.getId()).orElseThrow().getId();
+        return repositorioPedido.findByIdAndPreventista_IdAndEliminadoFalse(idPedido, idPreventista)
+                .orElseThrow(() -> new MiException("El pedido no pertenece al preventista o no existe"));
+    }
+
+    @Transactional(readOnly = true)
+    public Pedido obtenerPedido(String idPedido) throws MiException {
+        return repositorioPedido.findByIdAndEliminadoFalse(idPedido)
+                .orElseThrow(() -> new MiException("No existe el pedido indicado"));
     }
 
     private PedidoResponseDTO cancelarReservas(Pedido pedido) throws MiException {

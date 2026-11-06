@@ -88,6 +88,21 @@ public class ClienteApi {
                 .retrieve().toBodilessEntity());
     }
 
+    /** POST sin cuerpo (acciones cuyo resultado se obtiene del recurso). */
+    public <T> T enviarSinCuerpo(String token, Class<T> tipo, String uri, Object... variables) {
+        return ejecutar(() -> restClient.post().uri(uri, variables)
+                .headers(h -> autorizar(h, token))
+                .retrieve().body(tipo));
+    }
+
+    /** GET de un documento HTML (por ejemplo, el comprobante descargable). */
+    public String obtenerTexto(String token, String uri, Object... variables) {
+        return ejecutar(() -> restClient.get().uri(uri, variables)
+                .headers(h -> autorizar(h, token))
+                .accept(MediaType.TEXT_HTML)
+                .retrieve().body(String.class));
+    }
+
     private void autorizar(HttpHeaders encabezados, String token) {
         if (token != null && !token.isBlank()) {
             encabezados.setBearerAuth(token);

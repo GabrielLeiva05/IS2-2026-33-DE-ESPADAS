@@ -86,10 +86,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/imagenes/*/contenido",
                                 "/api/categorias/**", "/api/subcategorias/**").permitAll()
 
+                        // --- Webhook de Mercado Pago: llega sin JWT, se autentica con la firma HMAC ---
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/mercadopago/notificacion").permitAll()
+
                         // --- Preventista: cartera propia, pedidos y disponibilidad de stock ---
                         .requestMatchers("/api/preventista/puntos-venta/**", "/api/preventista/pedidos/**")
                                 .hasAnyRole(PREVENTISTA, JEFE)
-                        // --- Pedidos: cierre autorizado (consumo o liberación de la reserva) ---
+                        // --- Pagos: conciliación de transferencias, cobro en efectivo y consulta ---
+                        .requestMatchers("/api/pagos/**").hasRole(ADMINISTRATIVO)
+                        // --- Pedidos: bandeja, pagos y cierre autorizado (consumo o liberación) ---
                         .requestMatchers("/api/pedidos/**").hasRole(ADMINISTRATIVO)
                         .requestMatchers(HttpMethod.GET, "/api/stock/producto/*/disponibilidad")
                                 .hasAnyRole(ADMINISTRATIVO, PREVENTISTA)

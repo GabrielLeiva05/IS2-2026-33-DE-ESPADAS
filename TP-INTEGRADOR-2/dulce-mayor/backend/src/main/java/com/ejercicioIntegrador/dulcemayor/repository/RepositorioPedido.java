@@ -21,5 +21,8 @@ public interface RepositorioPedido extends BaseRepository<Pedido> {
     @EntityGraph(attributePaths = {"puntoVenta", "preventista", "lineas"})
     Optional<Pedido> findByIdAndEliminadoFalse(String idPedido);
 
+    @EntityGraph(attributePaths = {"puntoVenta", "preventista", "lineas"})
+    List<Pedido> findByEliminadoFalseOrderByFechaCreacionDesc();
+
     List<Pedido> findByEstadoAndEliminadoFalse(EstadoPedido estado);
 }

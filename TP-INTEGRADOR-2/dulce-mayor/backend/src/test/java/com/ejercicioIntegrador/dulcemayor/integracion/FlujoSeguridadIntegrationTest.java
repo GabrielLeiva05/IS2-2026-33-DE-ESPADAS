@@ -1,11 +1,16 @@
 package com.ejercicioIntegrador.dulcemayor.integracion;
 
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPago;
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
+import com.ejercicioIntegrador.dulcemayor.model.Pago;
 import com.ejercicioIntegrador.dulcemayor.model.ReservaStock;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPago;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPedido;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPuntoVenta;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioReservaStock;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioStock;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioUsuario;
+import com.ejercicioIntegrador.dulcemayor.service.ServicioPago;
 import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +23,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
@@ -30,6 +36,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,6 +69,12 @@ class FlujoSeguridadIntegrationTest {
 
     @Autowired
     private RepositorioReservaStock repositorioReservaStock;
+
+    @Autowired
+    private RepositorioPago repositorioPago;
+
+    @Autowired
+    private ServicioPago servicioPago;
 
     private MockMvc mvc;
 
@@ -288,7 +301,7 @@ class FlujoSeguridadIntegrationTest {
     }
 
     @Test
-    void elPedidoConfirmadoSoloConsumeStockAlCompletarseAdministrativamente() throws Exception {
+    void elPedidoConfirmadoSoloConsumeStockAlAcreditarseElPago() throws Exception {
         String jefe = jefeHabilitado();
         String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "flujo@dulcemayor.test", "30111991", "FlujoSeguro2026");
         String administrativo = empleadoHabilitado(jefe, "ADMINISTRATIVO", "admin@dulcemayor.test", "30111444", "Almacen2026");
@@ -304,17 +317,32 @@ class FlujoSeguridadIntegrationTest {
         mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("CONFIRMADO"));
 
-        // Confirmar reserva: el stock físico no baja todavía y la reserva sigue activa
-        assertEquals(10, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
-        ReservaStock reservada = repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).get(0);
-        assertFalse(reservada.isConsumida());
-        assertNull(reservada.getFechaLiberacion());
-        assertNull(reservada.getFechaConsumo());
-
-        mvc.perform(post("/api/pedidos/" + idPedido + "/completar").header("Authorization", administrativo))
+        // Iniciar el cobro no descuenta el stock físico: sigue reservado
+        String pagoJson = mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/pagos")
+                        .header("Authorization", preventista).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"medio\":\"TRANSFERENCIA\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.estado").value("COMPLETADO"))
-                .andExpect(jsonPath("$.fechaCompletado").exists());
+                .andExpect(jsonPath("$.estado").value("PENDIENTE"))
+                .andExpect(jsonPath("$.instrucciones").isNotEmpty())
+                .andExpect(jsonPath("$.importe").value(240.00))
+                .andReturn().getResponse().getContentAsString();
+        String idPago = JsonPath.read(pagoJson, "$.id");
+        assertEquals(10, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+
+        // El preventista no puede acreditar el pago: es conciliación administrativa
+        mvc.perform(post("/api/pagos/" + idPago + "/acreditar").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"referencia\":\"TR-1\"}"))
+                .andExpect(status().isForbidden());
+        // La transferencia exige número de operación
+        mvc.perform(post("/api/pagos/" + idPago + "/acreditar").header("Authorization", administrativo)
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(post("/api/pagos/" + idPago + "/acreditar").header("Authorization", administrativo)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"referencia\":\"TR-1\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("ACREDITADO"))
+                .andExpect(jsonPath("$.fechaAcreditacion").exists());
 
         assertEquals(7, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
         ReservaStock consumida = repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).get(0);
@@ -322,10 +350,95 @@ class FlujoSeguridadIntegrationTest {
         assertNotNull(consumida.getFechaConsumo());
         assertNull(consumida.getFechaLiberacion());
 
-        // Un pedido ya completado no vuelve a consumir stock
-        mvc.perform(post("/api/pedidos/" + idPedido + "/completar").header("Authorization", administrativo))
-                .andExpect(status().isBadRequest());
+        mvc.perform(get("/api/pedidos/" + idPedido).header("Authorization", administrativo))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("COMPLETADO"));
+
+        // Comprobante interno descargable para administración
+        mvc.perform(get("/api/pedidos/" + idPedido + "/comprobante").header("Authorization", administrativo))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(containsString("Comprobante interno no fiscal")));
+        // Y también para el preventista dueño del pedido
+        mvc.perform(get("/api/preventista/pedidos/" + idPedido + "/comprobante").header("Authorization", preventista))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Gomitas flujo")));
+
+        // Acreditar de nuevo es idempotente y no vuelve a consumir stock
+        mvc.perform(post("/api/pagos/" + idPago + "/acreditar").header("Authorization", administrativo)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"referencia\":\"TR-1\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ACREDITADO"));
         assertEquals(7, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+    }
+
+    @Test
+    void elPagoVencidoLiberaLaReservaYCancelaElPedido() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "vence@dulcemayor.test", "30111997", "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "40723456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-07", "Alfajor vencimiento", 60.00);
+        crearStock(jefe, idProducto, 8);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 2)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk());
+        String pagoJson = mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/pagos")
+                        .header("Authorization", preventista).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"medio\":\"TRANSFERENCIA\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String idPago = JsonPath.read(pagoJson, "$.id");
+
+        // Se fuerza el vencimiento para no esperar 24 h reales
+        Pago pago = repositorioPago.findById(idPago).orElseThrow();
+        pago.setFechaVencimiento(LocalDateTime.now().minusMinutes(5));
+        repositorioPago.save(pago);
+
+        assertTrue(servicioPago.expirar(idPago));
+
+        assertEquals(EstadoPago.EXPIRADO, repositorioPago.findById(idPago).orElseThrow().getEstado());
+        assertEquals(EstadoPedido.CANCELADO,
+                repositorioPedido.findById(idPedido).orElseThrow().getEstado());
+        assertNotNull(repositorioReservaStock.findByPedido_IdAndEliminadoFalse(idPedido).get(0).getFechaLiberacion());
+        assertEquals(8, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+
+        // Un pago acreditado después del vencimiento ya no aplica
+        mvc.perform(post("/api/pagos/" + idPago + "/acreditar").header("Authorization", jefe)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"referencia\":\"TR-9\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void mercadoPagoSinConfigurarNoSimulaAcreditacionYElWebhookExigeFirma() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "mp@dulcemayor.test", "30111998", "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "40823456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-08", "Chocolate mp", 90.00);
+        crearStock(jefe, idProducto, 5);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 1)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk());
+
+        // Sin MERCADOPAGO_ACCESS_TOKEN el servidor avisa; no inventa una preferencia
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/pagos")
+                        .header("Authorization", preventista).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"medio\":\"MERCADO_PAGO\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value(containsString("no está configurado")));
+        assertTrue(repositorioPago.findByPedido_IdAndEliminadoFalseOrderByFechaCreacionDesc(idPedido).isEmpty());
+
+        // El webhook es público pero exige firma válida
+        mvc.perform(post("/api/pagos/mercadopago/notificacion?data.id=123&type=payment")
+                        .header("x-signature", "ts=1,v1=invalida")
+                        .header("x-request-id", "req-1"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/pagos/mercadopago/notificacion?data.id=123&type=payment"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

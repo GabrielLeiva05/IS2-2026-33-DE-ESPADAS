@@ -1,6 +1,6 @@
 # Plan de acción — Dulce Mayor
 
-**Estado:** Fase 3 (subcorte autorizado: alta de comercios/puntos, pedido presencial y ciclo mínimo de reserva) implementada y verificada en backend: `mvnw -B -ntp verify` → BUILD SUCCESS, **110 pruebas, 0 fallas/errores**. Se expuso el cierre administrativo del pedido (completar consume la reserva, cancelar la libera), se corrigió un `NullPointerException` alcanzable por el rol JEFE al listar cartera y se agregaron las pruebas de servicio y de integración que faltaban. Pagos, comprobante y UI de despacho siguen pendientes (subcorte posterior).
+**Estado:** Fase 3 subcorte de pagos implementado y verificado: `mvnw -B -ntp verify` → BUILD SUCCESS, **139 pruebas, 0 fallas/errores**. Se agregaron modelo `Pago`/`Comprobante`, Strategy por medio (transferencia, Mercado Pago con webhook firmado y consulta server-to-server, efectivo), conciliación administrativa, expiración a 24 h con liberación de reserva, comprobante interno HTML, bandeja/detalle de pedidos en admin-web y un panel de cobro en la app del preventista. El consumo de stock dejó de ser manual: exige el pago total acreditado.
 
 ## 1. Propósito y alcance
 
@@ -195,7 +195,27 @@ Etapas completadas en esta sesión:
 
 Verificación final: `mvnw.cmd -B -ntp verify` → **BUILD SUCCESS, 110 pruebas, 0 fallas/errores/omitidos** (baseline previo: 85). Contrato móvil/API revisado: la app preventista solo usa logins, `/api/preventista/puntos-venta`, `/api/preventista/pedidos` (+`/lineas`, `/confirmar`), `/api/catalogo` y ubicaciones; todos existen y no se modificaron DTOs, por lo que no hubo cambios en `movil/`.
 
-Pendiente de este subcorte: bandeja/detalle de pedidos en el dashboard (hoy solo hay transiciones por id), migraciones versionadas y PostgreSQL real (Docker daemon no disponible), y las pruebas E2E entre apps. Pagos, comprobante y UI de despacho siguen fuera de este corte.
+Pendiente de este subcorte: bandeja/detalle de pedidos en el dashboard (hoy solo hay transiciones por id), migraciones versionadas y PostgreSQL real (Docker daemon no disponible), y las pruebas E2E entre apps. Pagos, comprobante y UI de despacho seguían fuera de ese corte; el subcorte siguiente los cubre.
+
+### Registro de ejecución — subcorte de pagos (2026-11-06)
+
+Alcance aprobado por el usuario antes de codificar: adaptador real de Mercado Pago por API (sin credenciales responde «no configurado», no simula acreditación), comprobante HTML sin dependencias nuevas, bandeja/conciliación en admin-web y registro manual de efectivo como paso intermedio hasta la Fase 5.
+
+1. **Modelo y estados.** `Pago` (medio, estado, importe escala 2, `referenciaOperacion` como clave de idempotencia, `referenciaExterna`, vencimiento, `@Version`) y `Comprobante` (uno por pedido, único). El estado del pago (`EstadoPago`) se lleva separado del estado del pedido, como pedía la Fase 1.
+2. **Strategy por medio** (`pagos/`): interfaz común `EstrategiaPago` (iniciar, vigencia de reserva, acreditar) y capacidad separada `EstrategiaNotificable` solo para Mercado Pago, para no fingir que transferencia y efectivo tienen QR/webhook. `ResolvedorEstrategiaPago` selecciona por medio.
+3. **Mercado Pago real.** `ClienteMercadoPago` (JDK `HttpClient`, sin dependencias nuevas): crea la preferencia con `external_reference` = clave de idempotencia, valida `x-signature` (HMAC-SHA256 del manifiesto `id:…;request-id:…;ts:…;`) y verifica el pago con `GET /v1/payments/{id}`. El webhook es el único endpoint abierto y responde 401 ante firma inválida.
+4. **Servicio de pagos.** Inicio de cobro (preventista dueño o administrativo) con validación de estado y de intento pendiente único; acreditación con **bloqueo pesimista** del pago, consumo de reservas y emisión del comprobante en una sola transacción; rechazo; expiración idempotente con cancelación del pedido y liberación de la reserva.
+5. **Cambio de regla en el pedido.** `POST /api/pedidos/{id}/completar` ya no consume stock por sí solo: exige un pago acreditado. El consumo real lo dispara la acreditación (Fase 3, ítem 7).
+6. **Tarea programada** (`ProgramadorExpiracionPagos`): cada minuto expira los pagos vencidos; cada pago se procesa en su propia transacción y, si uno falla, el resto continúa. Desactivable con `app.pagos.expiracion-habilitada=false` (así corren las pruebas).
+7. **Comprobante interno no fiscal** en HTML imprimible, descargable con autenticación tanto por administración como por el preventista dueño; el HTML escapa los datos del pedido.
+8. **Dashboard (admin-web):** `ControladorPedidos` + `ServicioPedidosAdmin` + plantillas `pedidos/lista.html` y `pedidos/detalle.html` (bandeja con filtros por estado y búsqueda, detalle con productos, intentos de pago, acreditación de transferencia con número de operación, rechazo, inicio de cobro y cancelación). El menú dejó de mostrar «Pedidos» como módulo pendiente.
+9. **App del preventista:** panel de cobro por pedido (iniciar transferencia/Mercado Pago/efectivo, ver intentos y enlace de pago, descargar comprobante).
+
+Pruebas agregadas: `ServicioPagoTest` (15), `ClienteMercadoPagoTest` (4, incluida la firma HMAC), `EstrategiaPagoMercadoPagoTest` (6), dos pruebas nuevas de `ServicioPedidoTest`, tres de integración end-to-end (transferencia iniciada por preventista y acreditada por administración con consumo y comprobante; vencimiento que libera y cancela; Mercado Pago sin configurar y webhook sin firma) y `PlantillasPedidosTest` en admin-web, que renderiza las pantallas nuevas con el motor real.
+
+Verificación: backend `verify` → BUILD SUCCESS, **139 pruebas** (antes 110). admin-web `verify` → BUILD SUCCESS, **8 pruebas** (antes 5). App preventista: `npm run lint` y `npm run build` OK.
+
+Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no hay credenciales ni sandbox configurado); la integración queda validada con dobles de prueba y responde «no configurado» mientras falte el token. El cobro en efectivo se registra desde administración porque la entrega pertenece a la Fase 5. El comprobante es interno y no fiscal. Sigue pendiente PostgreSQL real y migraciones versionadas.
 
 ### Fase 3 — MVP de clientes, pedidos, stock y pago
 

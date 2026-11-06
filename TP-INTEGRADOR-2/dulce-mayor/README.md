@@ -305,8 +305,10 @@ incluidos los módulos que todavía no existen.
 | `GET /api/auth/yo`, `PUT /api/auth/clave` | | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `GET` catálogo, categorías, subcategorías, contenido de imágenes | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `GET /api/productos/**`, `GET /api/stock/producto/{id}/disponibilidad` | | | ✔ | | ✔ | ✔ |
-| `/api/preventista/puntos-venta/**`, `/api/preventista/pedidos/**` (cartera y pedidos propios) | | | ✔ | | | ✔ |
-| `POST /api/pedidos/{id}/completar`, `POST /api/pedidos/{id}/cancelar` (cierre autorizado de la reserva) | | | | | ✔ | ✔ |
+| `/api/preventista/puntos-venta/**`, `/api/preventista/pedidos/**` (cartera, pedidos, pagos y comprobante propios) | | | ✔ | | | ✔ |
+| `/api/pedidos/**` (bandeja, detalle, pagos y cierre autorizado de la reserva) | | | | | ✔ | ✔ |
+| `/api/pagos/**` (conciliación de transferencias, cobro en efectivo y consulta) | | | | | ✔ | ✔ |
+| `POST /api/pagos/mercadopago/notificacion` (webhook autenticado con firma HMAC) | ✔ | | | | | |
 | Gestión de categorías, subcategorías, productos, imágenes, precios y stock | | | | | ✔ | ✔ |
 | `GET` países, provincias, departamentos, localidades | | | ✔ | ✔ | ✔ | ✔ |
 | Alta, modificación y baja de ubicaciones | | | | | ✔ | ✔ |
@@ -358,7 +360,38 @@ Todos responden JSON; los errores usan el `ErrorDTO` de siempre (`estado`, `erro
 | `GET /api/localidades/codigo-postal/{cp}` | Búsqueda por código postal |
 | `GET/POST /api/preventista/puntos-venta`, `GET /api/preventista/puntos-venta/cliente/{idCliente}` | Cartera propia del preventista: alta del responsable con uno o varios puntos de venta |
 | `GET/POST /api/preventista/pedidos`, `PUT /api/preventista/pedidos/{id}/lineas`, `POST …/confirmar`, `POST …/cancelar` | Pedido presencial: borrador, ajuste de líneas con recálculo en el servidor, confirmación con reserva de stock y liberación |
-| `POST /api/pedidos/{id}/completar`, `POST /api/pedidos/{id}/cancelar` | Cierre autorizado por ADMINISTRATIVO: consume o libera la reserva del pedido confirmado |
+| `POST /api/pedidos/{id}/completar`, `POST /api/pedidos/{id}/cancelar` | Cierre autorizado por ADMINISTRATIVO: consume (solo con pago acreditado) o libera la reserva |
+| `GET /api/pedidos`, `GET /api/pedidos/{id}` | Bandeja y detalle de pedidos para administración |
+| `GET/POST /api/preventista/pedidos/{id}/pagos`, `GET …/comprobante` | Cobro del pedido (transferencia, Mercado Pago o efectivo) y comprobante interno descargable |
+| `POST /api/pedidos/{id}/pagos`, `POST /api/pedidos/{id}/pagos/efectivo` | Iniciar un cobro o registrar el cobro en efectivo al entregar |
+| `POST /api/pagos/{id}/acreditar`, `POST /api/pagos/{id}/rechazar` | Conciliación de transferencias y verificación de Mercado Pago |
+| `POST /api/pagos/mercadopago/notificacion` | Webhook de Mercado Pago (firma HMAC + consulta server-to-server) |
+| `GET /api/pedidos/{id}/comprobante` | Comprobante interno no fiscal (HTML imprimible) |
+
+### Pagos
+
+El estado del pago (`PENDIENTE`, `ACREDITADO`, `RECHAZADO`, `EXPIRADO`, `CANCELADO`) se lleva por separado del
+estado del pedido. Solo la acreditación del total consume la reserva de stock y emite el comprobante interno no
+fiscal; la cancelación o el vencimiento liberan la reserva, en la misma transacción.
+
+| Medio | Cómo se acredita | Reserva |
+|---|---|---|
+| Transferencia | Conciliación manual del administrativo con el número de operación (obligatorio) | 24 h |
+| Mercado Pago | Webhook con firma HMAC + consulta server-to-server; nunca se confía en el retorno del navegador | 24 h |
+| Efectivo | Registro manual al entregar (interino hasta la app del distribuidor) | 7 días |
+
+Configuración por variables de entorno (todas opcionales; sin credenciales Mercado Pago responde «no configurado»
+y **no** se simula ninguna acreditación):
+
+| Variable | Uso |
+|---|---|
+| `MERCADOPAGO_ACCESS_TOKEN` | Token de la cuenta; habilita crear preferencias y verificar pagos |
+| `MERCADOPAGO_WEBHOOK_SECRET` | Secreto para validar `x-signature`; sin él el webhook responde 401 |
+| `MERCADOPAGO_NOTIFICACION_URL` | URL pública del webhook que se registra en la preferencia |
+| `MERCADOPAGO_RUTA_PREFERENCIAS` | Ruta de creación de preferencias (por defecto `/preferences`) |
+| `PAGOS_TRANSFERENCIA_VIGENCIA_HORAS`, `PAGOS_EFECTIVO_VIGENCIA_HORAS` | Ventanas de reserva (24 y 168) |
+| `PAGOS_EXPIRACION_INTERVALO_MS`, `PAGOS_EXPIRACION_RETRASO_INICIAL_MS` | Cadencia de la tarea que expira pagos |
+| `PAGOS_EXPIRACION_HABILITADA` | `false` desactiva la tarea (se usa en las pruebas) |
 
 Ejemplo:
 
@@ -442,7 +475,7 @@ simuladas: las rutas no existen y la API las deniega. En las vistas figuran como
 | Cuenta del responsable con verificación de correo | El alta del preventista todavía no crea una cuenta utilizable |
 | Promociones | Módulo no desarrollado |
 | Rutas, hoja de ruta y entregas | Módulo de Logística no desarrollado |
-| Facturación y pagos (QR, billeteras, transferencias) | Dependen de Pedidos |
+| Facturación fiscal (CAE, AFIP) | Fuera de alcance: el comprobante emitido es interno y no fiscal |
 | Registro de clientes por el preventista durante la visita | Depende de Puntos de venta |
 | Apps React del preventista y del distribuidor (`movil/`) | Fuera de alcance de esta etapa; hoy pueden ingresar a admin-web para cambiar su contraseña y (el preventista) consultar el catálogo |
 | Recuperación de contraseña por correo | Requiere un servidor de correo; hoy el jefe puede dar de baja y volver a dar de alta |
