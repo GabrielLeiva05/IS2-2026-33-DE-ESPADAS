@@ -1,6 +1,6 @@
 # Plan de acción — Dulce Mayor
 
-**Estado:** Fase 3 subcorte de pagos implementado y verificado: `mvnw -B -ntp verify` → BUILD SUCCESS, **139 pruebas, 0 fallas/errores**. Se agregaron modelo `Pago`/`Comprobante`, Strategy por medio (transferencia, Mercado Pago con webhook firmado y consulta server-to-server, efectivo), conciliación administrativa, expiración a 24 h con liberación de reserva, comprobante interno HTML, bandeja/detalle de pedidos en admin-web y un panel de cobro en la app del preventista. El consumo de stock dejó de ser manual: exige el pago total acreditado.
+**Estado:** Fases 4 a 7 implementadas y verificadas (promociones, rutas y entregas con la app del distribuidor, sitio institucional con sucursales/cotización/portal del cliente, y mapas con planificación de visitas en la app del preventista). Backend: `mvnw clean verify` → BUILD SUCCESS, **155 pruebas**. admin-web e institucional-web compilan con sus pruebas de plantillas; las apps del preventista y del distribuidor pasan `lint` y `build`.
 
 ## 1. Propósito y alcance
 
@@ -82,7 +82,7 @@ El README declara explícitamente DTO y Template Method como patrones ya usados.
 - Docker Compose para ejecución local; Jenkins para compilar y ejecutar pruebas, sin despliegue cloud automatizado en esta etapa.
 - Validación: build y arranque de cada proyecto, pruebas API/integración y E2E del flujo completo; pruebas unitarias enfocadas en reglas críticas.
 
-## 4. Requisitos trazables
+## 5. Requisitos trazables
 
 IDs asignados para este plan a los requisitos del enunciado; son trazabilidad interna, no IDs preexistentes:
 
@@ -107,7 +107,7 @@ IDs asignados para este plan a los requisitos del enunciado; son trazabilidad in
 | REQ-17 | PostgreSQL primario, Docker Compose local y pipeline Jenkins de build/pruebas. |
 | REQ-18 | Verificación de build, APIs, integración, E2E y preservación de cambios locales preexistentes. |
 
-## 5. Secuencia de implementación
+## 6. Secuencia de implementación
 
 ### Fase 0 — Preparación y línea base — **completada**
 **Objetivo:** identificar estado de compilación y preservar cambios existentes.
@@ -152,78 +152,11 @@ IDs asignados para este plan a los requisitos del enunciado; son trazabilidad in
 
 **Pendientes explícitos:** iniciar Docker Desktop/Compose y backend contra PostgreSQL; verificar aplicación real y esquema; diseñar/implantar migraciones revisadas; acordar el alcance de email/auditoría antes de implementarlos. La sintaxis Compose y `.gitignore` pasan validación estática; no se verificó un pipeline Jenkins real. Las credenciales configuradas son solo de desarrollo local, no producción. Se preservaron todos los cambios locales preexistentes.
 
-## Continuación — Fase 3: primer subcorte funcional
-
-**Prioridad acordada:** avanzar en funcionalidad de negocio primero. Docker, Jenkins y otras tareas de CI/despliegue quedan pospuestas hasta cerrar las funcionalidades.
-
-**Primer corte elegido:** alta de comercio y pedido presencial hasta confirmar y reservar stock. Pagos y comprobante quedan para el subcorte siguiente; no se fingirá acreditación.
-
-**Decisiones confirmadas por el usuario:**
-- ARS se calcula con dos decimales y `HALF_UP`; el servidor conserva precios/cantidades/importes del pedido como snapshot.
-- Si el documento del responsable ya existe, rechazar el alta y requerir revisión administrativa; no fusionar ni reasignar automáticamente.
-- En esta etapa el alta por preventista no crea una cuenta cliente utilizable: no hay verificación email activa. OAuth/registro existente no se cambia.
-
-**Alcance previsto para aprobación antes de codificar:**
-1. API para preventista: alta del responsable minorista sin credenciales y alta de uno o varios puntos de venta asociados a él y al preventista autenticado; consultar cartera propia y puntos registrados, con autorización por ownership.
-2. Pedido presencial: leer catálogo/stock/precio vigente, crear un borrador del carrito para un punto propio, modificar/eliminar cantidades, recalcular importes server-side, validar disponibilidad al confirmar y crear reserva transaccional, rechazando sobreventa.
-3. Aplicación móvil preventista: reemplazar la pantalla Vite de plantilla con login/conexión a API y recorrido móvil para cartera/alta, selección de punto, catálogo, carrito editable y confirmación de pedido; estados vacío/error/cargando y no repetir confirmaciones.
-4. Pruebas de servicio, persistencia/API y seguridad: duplicado de documento, visibilidad por preventista, precio congelado, cantidad/total/escala, reserva concurrente, y acceso denegado por otros roles.
-5. No se modifica Docker/Jenkins, no se activa registro cliente por email, no se incluye pago/promoción/ruta ni checkout web, y no se rompe el contrato existente de inventario: reservas se registran de forma separada y disponibilidad resta reservas activas.
-
-**Riesgo de migración a validar:** entidades nuevas con `ddl-auto=update` pueden permitir creación automática de tablas en dev, pero no sustituyen migraciones versionadas. Las pruebas existentes usan H2; PostgreSQL real no está disponible aún. No se deben convertir `VigenciaPrecio.precio` ni contratos de catálogo existentes a `BigDecimal` de forma incompatible en este corte; el snapshot monetario nuevo usará `BigDecimal`/escala 2 sin cambiar respuestas legacy.
-
-**Pausa de alcance:** al completar este primer corte (o cualquier bloqueo ambiental/funcional) se reportarán endpoints, pruebas y brechas; se pausa antes del subcorte de pagos y antes de fases posteriores.
-
-### Registro de ejecución (2026-11-04)
-
-- `exit_plan_mode` no estuvo disponible en el modo actual. `ask_user` confirmó iniciar implementación y luego amplió alcance para incluir el ciclo mínimo de reservas (liberación al cancelar, consumo al completar); no se implementarán pagos ni despacho UI en este subcorte.
-- Seguimiento SQL: API/reglas (`in_progress`), app móvil (depende de API), verificación/checkpoint (depende de ambas).
-- **Continuación 2026-11-05:** la app preventista pasa lint/build; backend `clean verify` pasa con 83 pruebas (0 fallos) y `ServicioStockTest` con 9/9. Se eliminó la inyección de campo de `RepositorioReservaStock` en `ServicioStock` y se dejó como dependencia explícita de constructor (sin cambio de reglas); también se incorporó fecha de creación persistida para que el DTO de pedido exponga una fecha real. El flujo móvil ahora refleja el borrador pendiente de la respuesta API al recargar y evita ofrecer ajuste cuando el pedido ya no está en borrador. Falta agregar/ejecutar pruebas de integración específicas para alta→pedido→reserva→cancelación/consumo y revisar el contrato móvil/API; Docker daemon no disponible, así que PostgreSQL real no se verificó. No iniciar pagos.
-- Se preservará el estado local preexistente en `README.md`, `.gitignore`, `Jenkinsfile`, `docker-compose.yml`, `backend/.env.example`, `backend/pom.xml`, `backend/src/main/resources/application.properties` y `../ARCHIVOS/Enunciado.txt`; no modificar sin inspeccionar y distinguir cambios ajenos.
-- Límite técnico: `VigenciaPrecio.precio` y `ProductoCatalogoDTO.precio` son `double`; bajo la restricción de no romper el contrato actual, el pedido puede almacenar un snapshot `BigDecimal` de escala 2/HALF_UP, pero toma el valor vigente desde la representación `double`. Recomendar contrato de precio decimal versionado para precisión end-to-end.
-
-### Registro de ejecución (2026-11-06)
-
-Verificación de la afirmación “la implementación está en Fase 3”: **confirmada pero incompleta**. Existían el modelo (`PuntoVenta`, `Pedido`, `LineaPedido`, `ReservaStock`), los servicios `ServicioPuntoVenta`/`ServicioPedido`, los endpoints `/api/preventista/**` y la pantalla de la app preventista, pero el ciclo de reserva no se podía cerrar: `completarAdministrativo`/`cancelarAdministrativo` estaban en el servicio sin ningún endpoint que los invocara.
-
-Etapas completadas en esta sesión:
-
-1. **Ciclo administrativo expuesto.** Nuevo `ControladorPedidoAdministrativo` (`POST /api/pedidos/{id}/completar`, `POST /api/pedidos/{id}/cancelar`) y regla `.requestMatchers("/api/pedidos/**").hasRole(ADMINISTRATIVO)` en `SecurityConfig` (el JEFE la hereda; el preventista recibe 403). Con esto la finalización consume la reserva y la cancelación la libera por una vía autenticada y autorizada.
-2. **Bug corregido en la cartera.** `ServicioPuntoVenta.listarCartera`/`listarPuntosCliente` hacían `preventista.getId()` con `preventista == null`, que es el caso del JEFE (permitido por seguridad en `/api/preventista/puntos-venta/**`): producía `NullPointerException` → 500. Ahora el JEFE consulta la cartera completa ordenada por nombre comercial y no registra puntos (no tiene cartera propia).
-3. **Pruebas de servicio nuevas.** `ServicioPedidoTest` (13) cubre snapshot de precio con escala 2/`HALF_UP`, producto repetido, producto sin precio vigente, solicitud inválida, reserva de unidades convertidas, sobreventa sin reserva parcial, confirmación sin líneas, consumo total al completar, exigencia de todas las reservas activas, completar no confirmado, liberación al cancelar, cancelar completado y cuenta sin perfil de preventista. `ServicioPuntoVentaTest` (8) cubre alta con asociación al preventista, documento duplicado, rol sin perfil, preventista sin empleado, datos mínimos, punto ajeno y cartera global del JEFE.
-4. **Pruebas de integración nuevas/reescritas.** La prueba `elPedidoConfirmadoSoloConsumeStockAlCompletarseAdministrativamente` estaba mal: cancelaba en lugar de completar y no probaba el consumo. Ahora completa por la vía administrativa (10 → 7 unidades, reserva consumida con fecha, sin liberación, sin doble consumo). Se agregaron: cierre administrativo cerrado al preventista y carga de pedidos cerrada al administrativo (con herencia del JEFE), sobreventa sin reservas parciales, aislamiento entre preventistas (cartera y pedidos ajenos) y precio congelado en el pedido confirmado aunque cambie la vigencia.
-
-Verificación final: `mvnw.cmd -B -ntp verify` → **BUILD SUCCESS, 110 pruebas, 0 fallas/errores/omitidos** (baseline previo: 85). Contrato móvil/API revisado: la app preventista solo usa logins, `/api/preventista/puntos-venta`, `/api/preventista/pedidos` (+`/lineas`, `/confirmar`), `/api/catalogo` y ubicaciones; todos existen y no se modificaron DTOs, por lo que no hubo cambios en `movil/`.
-
-Pendiente de este subcorte: bandeja/detalle de pedidos en el dashboard (hoy solo hay transiciones por id), migraciones versionadas y PostgreSQL real (Docker daemon no disponible), y las pruebas E2E entre apps. Pagos, comprobante y UI de despacho seguían fuera de ese corte; el subcorte siguiente los cubre.
-
-### Registro de ejecución — subcorte de pagos (2026-11-06)
-
-Alcance aprobado por el usuario antes de codificar: adaptador real de Mercado Pago por API (sin credenciales responde «no configurado», no simula acreditación), comprobante HTML sin dependencias nuevas, bandeja/conciliación en admin-web y registro manual de efectivo como paso intermedio hasta la Fase 5.
-
-1. **Modelo y estados.** `Pago` (medio, estado, importe escala 2, `referenciaOperacion` como clave de idempotencia, `referenciaExterna`, vencimiento, `@Version`) y `Comprobante` (uno por pedido, único). El estado del pago (`EstadoPago`) se lleva separado del estado del pedido, como pedía la Fase 1.
-2. **Strategy por medio** (`pagos/`): interfaz común `EstrategiaPago` (iniciar, vigencia de reserva, acreditar) y capacidad separada `EstrategiaNotificable` solo para Mercado Pago, para no fingir que transferencia y efectivo tienen QR/webhook. `ResolvedorEstrategiaPago` selecciona por medio.
-3. **Mercado Pago real.** `ClienteMercadoPago` (JDK `HttpClient`, sin dependencias nuevas): crea la preferencia con `external_reference` = clave de idempotencia, valida `x-signature` (HMAC-SHA256 del manifiesto `id:…;request-id:…;ts:…;`) y verifica el pago con `GET /v1/payments/{id}`. El webhook es el único endpoint abierto y responde 401 ante firma inválida.
-4. **Servicio de pagos.** Inicio de cobro (preventista dueño o administrativo) con validación de estado y de intento pendiente único; acreditación con **bloqueo pesimista** del pago, consumo de reservas y emisión del comprobante en una sola transacción; rechazo; expiración idempotente con cancelación del pedido y liberación de la reserva.
-5. **Cambio de regla en el pedido.** `POST /api/pedidos/{id}/completar` ya no consume stock por sí solo: exige un pago acreditado. El consumo real lo dispara la acreditación (Fase 3, ítem 7).
-6. **Tarea programada** (`ProgramadorExpiracionPagos`): cada minuto expira los pagos vencidos; cada pago se procesa en su propia transacción y, si uno falla, el resto continúa. Desactivable con `app.pagos.expiracion-habilitada=false` (así corren las pruebas).
-7. **Comprobante interno no fiscal** en HTML imprimible, descargable con autenticación tanto por administración como por el preventista dueño; el HTML escapa los datos del pedido.
-8. **Dashboard (admin-web):** `ControladorPedidos` + `ServicioPedidosAdmin` + plantillas `pedidos/lista.html` y `pedidos/detalle.html` (bandeja con filtros por estado y búsqueda, detalle con productos, intentos de pago, acreditación de transferencia con número de operación, rechazo, inicio de cobro y cancelación). El menú dejó de mostrar «Pedidos» como módulo pendiente.
-9. **App del preventista:** panel de cobro por pedido (iniciar transferencia/Mercado Pago/efectivo, ver intentos y enlace de pago, descargar comprobante).
-
-Pruebas agregadas: `ServicioPagoTest` (15), `ClienteMercadoPagoTest` (4, incluida la firma HMAC), `EstrategiaPagoMercadoPagoTest` (6), dos pruebas nuevas de `ServicioPedidoTest`, tres de integración end-to-end (transferencia iniciada por preventista y acreditada por administración con consumo y comprobante; vencimiento que libera y cancela; Mercado Pago sin configurar y webhook sin firma) y `PlantillasPedidosTest` en admin-web, que renderiza las pantallas nuevas con el motor real.
-
-Verificación: backend `verify` → BUILD SUCCESS, **139 pruebas** (antes 110). admin-web `verify` → BUILD SUCCESS, **8 pruebas** (antes 5). App preventista: `npm run lint` y `npm run build` OK.
-
-Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no hay credenciales ni sandbox configurado); la integración queda validada con dobles de prueba y responde «no configurado» mientras falte el token. El cobro en efectivo se registra desde administración porque la entrega pertenece a la Fase 5. El comprobante es interno y no fiscal. Sigue pendiente PostgreSQL real y migraciones versionadas.
-
 ### Fase 3 — MVP de clientes, pedidos, stock y pago
 
-**Objetivo:** implementar la primera ruta vertical end-to-end según las reglas confirmadas: el preventista registra y ajusta el pedido presencialmente; portal de cliente de solo consulta.
+**Objetivo:** implementar la primera ruta vertical end-to-end según las reglas confirmadas: el preventista registra y ajusta el pedido presencialmente; el portal del cliente es de solo consulta.
 
-**Subcorte actualmente autorizado:** alta de comercios/puntos, pedidos presenciales y ciclo mínimo de reserva. Confirmación reserva stock; cancelación libera y finalización autorizada consume la reserva. Pago, comprobante y UI de despacho quedan posteriores. El usuario confirmó expresamente este ciclo mínimo tras detectar que la implementación de pedidos requería el lifecycle de reserva.
-
-**Riesgo/preservación:** entidades nuevas con `ddl-auto=update` no sustituyen migraciones versionadas. PostgreSQL runtime no está disponible (Docker daemon ausente); las pruebas actuales corren con H2. Se advertirá la brecha en el checkpoint; no se declarará listo para producción.
+**Alcance de la fase (por componente):**
 
 1. Backend: alta del responsable minorista y uno o varios puntos de venta, con unicidad/manejo de duplicados definida, asociación al preventista gestor, contacto y ubicación. Cuenta cliente con verificación; endpoint solo de consulta para propiedad propia.
 2. Backend: catálogo y disponibilidad para el rol preventista, creación de pedido para punto de venta gestionado, líneas/cantidades, snapshot de precio/promoción, total y trazabilidad. Cliente autenticado no puede crear/modificar pedidos.
@@ -236,7 +169,30 @@ Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no 
 9. Portal institucional: cliente verificado consulta pedidos/estados/comprobantes propios, sin crear/editar pedido en esta versión.
 10. Pruebas: ajuste presencial y sin stock, precio congelado, reserva concurrente, propiedad punto/cliente/preventista, una promoción, cancelación/liberación, vencimiento pago, webhook repetido/incorrecto, transición a entrega/efectivo y comprobante solo tras pago total.
 
-**Cierre vertical del alcance actual:** completar un recorrido de alta de punto → pedido → confirmación/reserva → cancelación/liberación o finalización/consumo; comprobar aislamiento entre preventistas y coherencia de stock antes/después. Pago/comprobante pertenecen a un subcorte posterior y no bloquean el cierre de este alcance.
+**Cierre vertical esperado:** completar un recorrido de alta de punto → pedido → confirmación/reserva → cancelación/liberación o finalización/consumo; comprobar aislamiento entre preventistas y coherencia de stock antes/después. Pago y comprobante pertenecen a un subcorte posterior y no bloquean el cierre de este alcance.
+
+#### Primer subcorte ejecutado
+
+**Prioridad acordada:** avanzar en funcionalidad de negocio primero. Docker, Jenkins y otras tareas de CI/despliegue quedaron pospuestas hasta cerrar las funcionalidades.
+
+**Alcance del subcorte:** alta de comercio y pedido presencial hasta confirmar y reservar stock. La confirmación reserva stock; la cancelación lo libera; la finalización autorizada lo consume. Pagos y comprobante quedaron para el subcorte siguiente, que ya se ejecutó (ver sección 15); no se finge acreditación en ningún caso.
+
+**Decisiones confirmadas por el usuario:**
+- ARS se calcula con dos decimales y `HALF_UP`; el servidor conserva precios/cantidades/importes del pedido como snapshot.
+- Si el documento del responsable ya existe, rechazar el alta y requerir revisión administrativa; no fusionar ni reasignar automáticamente.
+- En esta etapa el alta por preventista no crea una cuenta cliente utilizable: no hay verificación email activa. OAuth/registro existente no se cambia.
+
+**Especificidades acordadas antes de codificar:**
+- Autorización por ownership en todos los endpoints del preventista: cada cuenta opera solo su cartera, sus pedidos y sus cobros.
+- App del preventista con estados vacío/error/cargando y sin repetir confirmaciones; el carrito permite quitar o reducir cantidades y recalcula antes de confirmar.
+- Pruebas de servicio, persistencia/API y seguridad: documento duplicado, visibilidad por preventista, precio congelado, cantidad/total/escala, reserva concurrente y acceso denegado por otros roles.
+- No se modifica Docker/Jenkins, no se activa el registro de cliente por email, no se incluye pago/promoción/ruta ni checkout web, y no se rompe el contrato de inventario: las reservas se registran aparte y la disponibilidad resta reservas activas.
+
+**Riesgos y preservación:** `ddl-auto=update` crea y actualiza tablas en desarrollo pero no sustituye migraciones versionadas; el runtime PostgreSQL no está disponible (Docker daemon ausente) y las pruebas corren con H2, brecha que se advierte en cada checkpoint y que impide declarar el sistema listo para producción. Tampoco se deben convertir `VigenciaPrecio.precio` ni los contratos de catálogo existentes a `BigDecimal` de forma incompatible: el snapshot monetario nuevo usa `BigDecimal` de escala 2 sin cambiar las respuestas heredadas.
+
+**Pausa de alcance:** al completar el subcorte (o ante cualquier bloqueo ambiental/funcional) se reportan endpoints, pruebas y brechas; se pausa antes de avanzar a la fase siguiente.
+
+**Historial:** el detalle de lo ejecutado en cada etapa (cambios, verificaciones y límites conocidos) está reunido en la **sección 15, «Registro de ejecución»**.
 
 ### Fase 4 — Promociones y catálogo comercial completo
 1. Backend de promociones: vigencia, código, elegibilidad, importe fijo/porcentaje, límites y auditoría. Un código por pedido, sin acumulación.
@@ -307,7 +263,7 @@ Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no 
 
 **Cierre final:** todo requisito REQ-01..REQ-18 tiene evidencia funcional y prueba, o una excepción/limitación explícita aprobada; no quedan módulos con pantallas de scaffold presentadas como funcionalidad.
 
-## 6. Dependencias y orden crítico
+## 7. Dependencias y orden crítico
 
 `Fase 0 → Fase 1 → Fase 2 → Fase 3 → Fase 5 → Fase 6/7 → Fase 8/9 → Fase 10`.
 
@@ -318,7 +274,7 @@ Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no 
 - Reportes (fase 9) dependen de datos y estados estabilizados de pedidos, pagos y entregas.
 - Jenkins/Compose empiezan en fase 2 y se completan al integrar fase 10; no se posponen todos los cimientos al cierre.
 
-## 7. Criterios de “terminado” por tarea/fase
+## 8. Criterios de “terminado” por tarea/fase
 
 - Código integrado en el proyecto correcto y estilo/estructura compatible con MVC, servicios y DTOs actuales.
 - La regla de negocio se valida en servidor, no solo en frontend; permisos denegados por defecto y ownership probado.
@@ -328,7 +284,7 @@ Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no 
 - Variables/credenciales documentadas sin valores sensibles; actualizada documentación relacionada.
 - Auditoría preserva quién/cuándo/qué cambió para pedido, pago, inventario y acciones del jefe.
 
-## 8. Riesgos y tratamientos
+## 9. Riesgos y tratamientos
 
 | Riesgo | Tratamiento en el plan |
 |---|---|
@@ -344,7 +300,7 @@ Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no 
 | Falta de configuración de email/OAuth/Mercado Pago/IA | Entornos sandbox y variables externas documentadas; ningún secreto en Git. |
 | Alcance amplio para una persona | Priorizar el corte vertical primero; las fases 4 y 6–9 vienen después sin abandonar requisitos. |
 
-## 9. Requerimientos abiertos de implementación (no bloquean el plan)
+## 10. Requerimientos abiertos de implementación (no bloquean el plan)
 Antes de sus fases correspondientes se documentarán las siguientes precisiones; no contradicen las decisiones aprobadas:
 1. Campos obligatorios de responsable/punto de venta, unicidad y resolución de duplicados.
 2. Precisión/escala y redondeo de ARS; topes, elegibilidad y política de reutilización de códigos promocionales.
@@ -358,7 +314,7 @@ Antes de sus fases correspondientes se documentarán las siguientes precisiones;
 10. Proveedor de correo transaccional y política de reintentos/alertas.
 11. Modalidad de asignación de una jornada de reparto y acciones del distribuidor sin coordenadas; disponibilidad/datos sandbox y observabilidad para validar backend con PostgreSQL.
 
-## 10. Trazabilidad de requisitos a fases
+## 11. Trazabilidad de requisitos a fases
 
 | Requisito | Fases y evidencia de implementación |
 |---|---|
@@ -381,7 +337,7 @@ Antes de sus fases correspondientes se documentarán las siguientes precisiones;
 | REQ-17 PostgreSQL/Docker/Jenkins | 2, 10 — PostgreSQL, Compose local, CI de build/tests. |
 | REQ-18 Validación y preservación | 0–10 — baseline, test gates, E2E, README y preservación de cambios locales. |
 
-## 11. Orden sugerido de ejecución resumido
+## 12. Orden sugerido de ejecución resumido
 
 1. Verificar rama/cambios y builds (F0).
 2. Cerrar estado del pedido, reglas de promoción, alta/verificación y contrato de pagos (F1).
@@ -396,7 +352,7 @@ Antes de sus fases correspondientes se documentarán las siguientes precisiones;
 11. Reportes/estadísticas (F9).
 12. E2E de cuatro apps, hardening, documentación y pipeline completo (F10).
 
-## 12. Exclusiones explícitas
+## 13. Exclusiones explícitas
 
 - Facturación fiscal ARCA/AFIP: fuera del alcance actual; solo comprobante interno no fiscal.
 - Pago en USD: fuera; el dólar es informativo.
@@ -405,8 +361,71 @@ Antes de sus fases correspondientes se documentarán las siguientes precisiones;
 - Despliegue cloud automatizado: fuera; Docker local y CI de Jenkins sí incluidos.
 - Chatbot creando pedidos: expresamente fuera.
 
-## 13. Notas de ejecución
+## 14. Notas de ejecución
 
 - Referencias de estado actual: el README del proyecto en `dulce-mayor/README.md`, fuentes de backend en `dulce-mayor/backend`, administración en `dulce-mayor/admin-web`, institucional en `dulce-mayor/institucional-web` y apps en `dulce-mayor/movil`.
-- El documento vive fuera del repositorio, en el directorio persistente de esta sesión. No se han editado los proyectos ni ejecutado builds/tests durante la elaboración del plan.
+- El documento vive fuera del repositorio, en el directorio persistente de esta sesión. La elaboración del plan no modificó los proyectos; la ejecución posterior, con sus verificaciones, se documenta en la sección 15.
 - Cambios locales preexistentes observados en el backend y artefactos ajenos al alcance se preservarán; se inspeccionarán solo al iniciar ejecución.
+
+## 15. Registro de ejecución
+
+Historial de lo ejecutado, en orden cronológico. Cada entrada resume cambios, verificaciones y límites conocidos; el diseño por fases se mantiene en la sección 6 y las notas generales del documento en la sección 14.
+
+### Registro de ejecución (2026-11-04)
+
+- `exit_plan_mode` no estuvo disponible en el modo actual. `ask_user` confirmó iniciar implementación y luego amplió alcance para incluir el ciclo mínimo de reservas (liberación al cancelar, consumo al completar); no se implementarán pagos ni despacho UI en este subcorte.
+- Seguimiento SQL: API/reglas (`in_progress`), app móvil (depende de API), verificación/checkpoint (depende de ambas).
+- **Continuación 2026-11-05:** la app preventista pasa lint/build; backend `clean verify` pasa con 83 pruebas (0 fallos) y `ServicioStockTest` con 9/9. Se eliminó la inyección de campo de `RepositorioReservaStock` en `ServicioStock` y se dejó como dependencia explícita de constructor (sin cambio de reglas); también se incorporó fecha de creación persistida para que el DTO de pedido exponga una fecha real. El flujo móvil ahora refleja el borrador pendiente de la respuesta API al recargar y evita ofrecer ajuste cuando el pedido ya no está en borrador. Falta agregar/ejecutar pruebas de integración específicas para alta→pedido→reserva→cancelación/consumo y revisar el contrato móvil/API; Docker daemon no disponible, así que PostgreSQL real no se verificó. No iniciar pagos.
+- Se preservará el estado local preexistente en `README.md`, `.gitignore`, `Jenkinsfile`, `docker-compose.yml`, `backend/.env.example`, `backend/pom.xml`, `backend/src/main/resources/application.properties` y `../ARCHIVOS/Enunciado.txt`; no modificar sin inspeccionar y distinguir cambios ajenos.
+- Límite técnico: `VigenciaPrecio.precio` y `ProductoCatalogoDTO.precio` son `double`; bajo la restricción de no romper el contrato actual, el pedido puede almacenar un snapshot `BigDecimal` de escala 2/HALF_UP, pero toma el valor vigente desde la representación `double`. Recomendar contrato de precio decimal versionado para precisión end-to-end.
+
+### Registro de ejecución (2026-11-06)
+
+Verificación de la afirmación “la implementación está en Fase 3”: **confirmada pero incompleta**. Existían el modelo (`PuntoVenta`, `Pedido`, `LineaPedido`, `ReservaStock`), los servicios `ServicioPuntoVenta`/`ServicioPedido`, los endpoints `/api/preventista/**` y la pantalla de la app preventista, pero el ciclo de reserva no se podía cerrar: `completarAdministrativo`/`cancelarAdministrativo` estaban en el servicio sin ningún endpoint que los invocara.
+
+Etapas completadas en esta sesión:
+
+1. **Ciclo administrativo expuesto.** Nuevo `ControladorPedidoAdministrativo` (`POST /api/pedidos/{id}/completar`, `POST /api/pedidos/{id}/cancelar`) y regla `.requestMatchers("/api/pedidos/**").hasRole(ADMINISTRATIVO)` en `SecurityConfig` (el JEFE la hereda; el preventista recibe 403). Con esto la finalización consume la reserva y la cancelación la libera por una vía autenticada y autorizada.
+2. **Bug corregido en la cartera.** `ServicioPuntoVenta.listarCartera`/`listarPuntosCliente` hacían `preventista.getId()` con `preventista == null`, que es el caso del JEFE (permitido por seguridad en `/api/preventista/puntos-venta/**`): producía `NullPointerException` → 500. Ahora el JEFE consulta la cartera completa ordenada por nombre comercial y no registra puntos (no tiene cartera propia).
+3. **Pruebas de servicio nuevas.** `ServicioPedidoTest` (13) cubre snapshot de precio con escala 2/`HALF_UP`, producto repetido, producto sin precio vigente, solicitud inválida, reserva de unidades convertidas, sobreventa sin reserva parcial, confirmación sin líneas, consumo total al completar, exigencia de todas las reservas activas, completar no confirmado, liberación al cancelar, cancelar completado y cuenta sin perfil de preventista. `ServicioPuntoVentaTest` (8) cubre alta con asociación al preventista, documento duplicado, rol sin perfil, preventista sin empleado, datos mínimos, punto ajeno y cartera global del JEFE.
+4. **Pruebas de integración nuevas/reescritas.** La prueba `elPedidoConfirmadoSoloConsumeStockAlCompletarseAdministrativamente` estaba mal: cancelaba en lugar de completar y no probaba el consumo. Ahora completa por la vía administrativa (10 → 7 unidades, reserva consumida con fecha, sin liberación, sin doble consumo). Se agregaron: cierre administrativo cerrado al preventista y carga de pedidos cerrada al administrativo (con herencia del JEFE), sobreventa sin reservas parciales, aislamiento entre preventistas (cartera y pedidos ajenos) y precio congelado en el pedido confirmado aunque cambie la vigencia.
+
+Verificación final: `mvnw.cmd -B -ntp verify` → **BUILD SUCCESS, 110 pruebas, 0 fallas/errores/omitidos** (baseline previo: 85). Contrato móvil/API revisado: la app preventista solo usa logins, `/api/preventista/puntos-venta`, `/api/preventista/pedidos` (+`/lineas`, `/confirmar`), `/api/catalogo` y ubicaciones; todos existen y no se modificaron DTOs, por lo que no hubo cambios en `movil/`.
+
+Pendiente de este subcorte: bandeja/detalle de pedidos en el dashboard (hoy solo hay transiciones por id), migraciones versionadas y PostgreSQL real (Docker daemon no disponible), y las pruebas E2E entre apps. Pagos, comprobante y UI de despacho seguían fuera de ese corte; el subcorte siguiente los cubre.
+
+
+### Registro de ejecución — subcorte de pagos (2026-11-06)
+
+Alcance aprobado por el usuario antes de codificar: adaptador real de Mercado Pago por API (sin credenciales responde «no configurado», no simula acreditación), comprobante HTML sin dependencias nuevas, bandeja/conciliación en admin-web y registro manual de efectivo como paso intermedio hasta la Fase 5.
+
+1. **Modelo y estados.** `Pago` (medio, estado, importe escala 2, `referenciaOperacion` como clave de idempotencia, `referenciaExterna`, vencimiento, `@Version`) y `Comprobante` (uno por pedido, único). El estado del pago (`EstadoPago`) se lleva separado del estado del pedido, como pedía la Fase 1.
+2. **Strategy por medio** (`pagos/`): interfaz común `EstrategiaPago` (iniciar, vigencia de reserva, acreditar) y capacidad separada `EstrategiaNotificable` solo para Mercado Pago, para no fingir que transferencia y efectivo tienen QR/webhook. `ResolvedorEstrategiaPago` selecciona por medio.
+3. **Mercado Pago real.** `ClienteMercadoPago` (JDK `HttpClient`, sin dependencias nuevas): crea la preferencia con `external_reference` = clave de idempotencia, valida `x-signature` (HMAC-SHA256 del manifiesto `id:…;request-id:…;ts:…;`) y verifica el pago con `GET /v1/payments/{id}`. El webhook es el único endpoint abierto y responde 401 ante firma inválida.
+4. **Servicio de pagos.** Inicio de cobro (preventista dueño o administrativo) con validación de estado y de intento pendiente único; acreditación con **bloqueo pesimista** del pago, consumo de reservas y emisión del comprobante en una sola transacción; rechazo; expiración idempotente con cancelación del pedido y liberación de la reserva.
+5. **Cambio de regla en el pedido.** `POST /api/pedidos/{id}/completar` ya no consume stock por sí solo: exige un pago acreditado. El consumo real lo dispara la acreditación (Fase 3, ítem 7).
+6. **Tarea programada** (`ProgramadorExpiracionPagos`): cada minuto expira los pagos vencidos; cada pago se procesa en su propia transacción y, si uno falla, el resto continúa. Desactivable con `app.pagos.expiracion-habilitada=false` (así corren las pruebas).
+7. **Comprobante interno no fiscal** en HTML imprimible, descargable con autenticación tanto por administración como por el preventista dueño; el HTML escapa los datos del pedido.
+8. **Dashboard (admin-web):** `ControladorPedidos` + `ServicioPedidosAdmin` + plantillas `pedidos/lista.html` y `pedidos/detalle.html` (bandeja con filtros por estado y búsqueda, detalle con productos, intentos de pago, acreditación de transferencia con número de operación, rechazo, inicio de cobro y cancelación). El menú dejó de mostrar «Pedidos» como módulo pendiente.
+9. **App del preventista:** panel de cobro por pedido (iniciar transferencia/Mercado Pago/efectivo, ver intentos y enlace de pago, descargar comprobante).
+
+Pruebas agregadas: `ServicioPagoTest` (15), `ClienteMercadoPagoTest` (4, incluida la firma HMAC), `EstrategiaPagoMercadoPagoTest` (6), dos pruebas nuevas de `ServicioPedidoTest`, tres de integración end-to-end (transferencia iniciada por preventista y acreditada por administración con consumo y comprobante; vencimiento que libera y cancela; Mercado Pago sin configurar y webhook sin firma) y `PlantillasPedidosTest` en admin-web, que renderiza las pantallas nuevas con el motor real.
+
+Verificación: backend `verify` → BUILD SUCCESS, **139 pruebas** (antes 110). admin-web `verify` → BUILD SUCCESS, **8 pruebas** (antes 5). App preventista: `npm run lint` y `npm run build` OK.
+
+Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no hay credenciales ni sandbox configurado); la integración queda validada con dobles de prueba y responde «no configurado» mientras falte el token. El cobro en efectivo se registra desde administración porque la entrega pertenece a la Fase 5. El comprobante es interno y no fiscal. Sigue pendiente PostgreSQL real y migraciones versionadas.
+
+
+### Registro de ejecución — Fases 4 a 7 (2026-11-07)
+
+**Fase 4 — Promociones.** Entidad `Promocion` (código único, tipo porcentaje/monto fijo, vigencia, compra mínima, uso único) y snapshot en el pedido (`subtotal`, `descuento`, `promocionCodigo`). Reglas: un solo código por pedido, sin acumulación, descuento calculado siempre en el servidor con `HALF_UP`, sin superar el subtotal, y control de reutilización para códigos de uso único. API administrativa con vista previa, endpoints del preventista para aplicar/quitar sobre el borrador, UI en admin-web y campo de código en la app.
+
+**Fase 5 — Rutas y entregas.** Entidades `Ruta` y `Parada`; asignación administrativa de pedidos confirmados o pagos, prevención de duplicados y de rutas cerradas. La app del distribuidor lista su jornada, sugiere la siguiente parada por distancia en línea recta, permite reordenar y registrar entrega o intento fallido con motivo. Al entregar un pedido con cobro pendiente en efectivo se acredita el pago, se consume el stock, se emite el comprobante y el pedido pasa a `ENTREGADO`. Un intento fallido deja el pedido reservado para reprogramarlo. admin-web incorpora la pantalla de hojas de ruta.
+
+**Fase 6 — Sitio institucional.** Sucursales (`Sucursal` + API pública/admin + página pública con enlace a OpenStreetMap), cotización del BCRA con timeout, caché de 30 minutos y degradación controlada (nunca bloquea catálogo ni pedidos) y portal del cliente (`/api/cliente/**` + `/mis-pedidos`) que muestra estado, historial y comprobante de los pedidos de sus comercios, identificados por el correo de contacto del punto de venta.
+
+**Fase 7 — Mapas y visitas.** Planificación diaria de visitas (`Visita`) generada desde la cartera con orden sugerido por cercanía (vecino más cercano en línea recta) y reordenamiento manual. La app del preventista suma un mapa Leaflet/OSM con los comercios y el plan del día, y el alta de comercio permite marcar el pin a mano sobre el mapa (sin geocodificación automática), con atribución de OpenStreetMap.
+
+Verificación: backend `mvnw clean verify` → BUILD SUCCESS, **155 pruebas** (18 de integración end-to-end, incluidas promoción→pago→entrega con efectivo, intento fallido y reprogramación, portal del cliente, sucursales y plan de visitas). admin-web: BUILD SUCCESS con render de las pantallas nuevas. institucional-web: BUILD SUCCESS con prueba de render de la página pública. Apps móviles: `npm run lint` y `npm run build` sin errores.
+
+Límites conocidos: la cotización depende del BCRA (si no hay red se muestra el último valor con aviso), los mapas usan mosaicos de OpenStreetMap (requieren internet) y no hay geocodificación inversa ni ruteo por calles: la sugerencia es en línea recta, como indica el plan.

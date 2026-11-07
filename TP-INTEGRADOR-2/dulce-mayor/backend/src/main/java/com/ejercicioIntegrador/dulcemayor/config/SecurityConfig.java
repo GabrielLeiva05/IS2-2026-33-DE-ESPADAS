@@ -85,15 +85,28 @@ public class SecurityConfig {
                         // --- Público: catálogo, imágenes de productos y clasificación ---
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/imagenes/*/contenido",
                                 "/api/categorias/**", "/api/subcategorias/**").permitAll()
+                        // --- Público: sucursales activas y cotización informativa del dólar ---
+                        .requestMatchers(HttpMethod.GET, "/api/sucursales", "/api/cotizacion-dolar").permitAll()
 
                         // --- Webhook de Mercado Pago: llega sin JWT, se autentica con la firma HMAC ---
                         .requestMatchers(HttpMethod.POST, "/api/pagos/mercadopago/notificacion").permitAll()
 
                         // --- Preventista: cartera propia, pedidos y disponibilidad de stock ---
-                        .requestMatchers("/api/preventista/puntos-venta/**", "/api/preventista/pedidos/**")
+                        .requestMatchers("/api/preventista/puntos-venta/**", "/api/preventista/pedidos/**",
+                                "/api/preventista/visitas/**")
                                 .hasAnyRole(PREVENTISTA, JEFE)
                         // --- Pagos: conciliación de transferencias, cobro en efectivo y consulta ---
                         .requestMatchers("/api/pagos/**").hasRole(ADMINISTRATIVO)
+                        // --- Promociones: administración de códigos y vista previa ---
+                        .requestMatchers("/api/promociones/**").hasRole(ADMINISTRATIVO)
+                        // --- Rutas: asignación de pedidos a la jornada de reparto ---
+                        .requestMatchers("/api/rutas/**").hasRole(ADMINISTRATIVO)
+                        // --- Distribuidor: solo su propia hoja de ruta ---
+                        .requestMatchers("/api/distribuidor/**").hasAnyRole(DISTRIBUIDOR, ADMINISTRATIVO)
+                        // --- Sucursales y sucursal completa: gestión administrativa ---
+                        .requestMatchers("/api/sucursales/**").hasRole(ADMINISTRATIVO)
+                        // --- Portal del cliente: solo sus pedidos y comprobantes ---
+                        .requestMatchers("/api/cliente/**").hasRole(CLIENTE)
                         // --- Pedidos: bandeja, pagos y cierre autorizado (consumo o liberación) ---
                         .requestMatchers("/api/pedidos/**").hasRole(ADMINISTRATIVO)
                         .requestMatchers(HttpMethod.GET, "/api/stock/producto/*/disponibilidad")

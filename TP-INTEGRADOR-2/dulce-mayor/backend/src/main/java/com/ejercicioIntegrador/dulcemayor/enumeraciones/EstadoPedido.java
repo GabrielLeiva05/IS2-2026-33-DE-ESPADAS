@@ -4,5 +4,6 @@ public enum EstadoPedido {
     BORRADOR,
     CONFIRMADO,
     CANCELADO,
-    COMPLETADO
+    COMPLETADO,
+    ENTREGADO
 }

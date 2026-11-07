@@ -2,12 +2,10 @@ package com.ejercicioIntegrador.dulcemayor.repository;
 
 import com.ejercicioIntegrador.dulcemayor.model.Usuario;
 import com.ejercicioIntegrador.dulcemayor.repository.base.BaseRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface RepositorioUsuario extends BaseRepository<Usuario> {
 
     Optional<Usuario> findFirstByNombreUsuarioIgnoreCaseAndEliminadoFalse(String nombreUsuario);

@@ -38,13 +38,15 @@
             <svg class="icono"><use href="#i-tienda"/></svg>Clientes</a></li>
         <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/pedidos}" th:classappend="${#strings.startsWith(rutaActual, '/pedidos')} ? 'activo'">
             <svg class="icono"><use href="#i-pedido"/></svg>Pedidos y pagos</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/promociones}" th:classappend="${#strings.startsWith(rutaActual, '/promociones')} ? 'activo'">
+            <svg class="icono"><use href="#i-etiqueta"/></svg>Promociones</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/rutas}" th:classappend="${#strings.startsWith(rutaActual, '/rutas')} ? 'activo'">
+            <svg class="icono"><use href="#i-ruta"/></svg>Rutas</a></li>
         <li><a th:href="@{/cambiar-clave}" th:classappend="${rutaActual == '/cambiar-clave'} ? 'activo'">
             <svg class="icono"><use href="#i-llave"/></svg>Mi contraseña</a></li>
     </ul>
     <p class="menu-titulo">Próximos módulos</p>
     <ul class="menu" aria-label="Módulos todavía no disponibles">
-        <li><span class="menu-item pendiente"><svg class="icono"><use href="#i-ruta"/></svg>Rutas<span class="insignia insignia-gris">Pronto</span></span></li>
-        <li><span class="menu-item pendiente"><svg class="icono"><use href="#i-etiqueta"/></svg>Promociones<span class="insignia insignia-gris">Pronto</span></span></li>
         <li><span class="menu-item pendiente"><svg class="icono"><use href="#i-factura"/></svg>Facturación<span class="insignia insignia-gris">Pronto</span></span></li>
     </ul>
     <div class="sidebar-pie">

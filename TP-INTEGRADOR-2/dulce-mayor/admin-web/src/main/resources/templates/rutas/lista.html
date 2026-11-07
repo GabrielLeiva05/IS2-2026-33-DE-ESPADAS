@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Rutas')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Rutas')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Hojas de ruta</h1>
+                    <p>Asigná los pedidos confirmados o pagos a la jornada de cada distribuidor.</p>
+                </div>
+                <span class="insignia insignia-violeta" th:text="${rutas.size()} + ' hojas'">0 hojas</span>
+            </div>
+
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <section class="tarjeta mt-4">
+                <h2>Asignar pedidos</h2>
+                <form method="post" th:action="@{/rutas}" class="formulario">
+                    <label>Distribuidor
+                        <select name="idDistribuidor" required>
+                            <option value="">Seleccionar</option>
+                            <option th:each="d : ${distribuidores}" th:value="${d.id}"
+                                    th:text="${d.nombreCompleto + (d.vehiculo != null ? ' · ' + d.vehiculo : '')}">Distribuidor</option>
+                        </select>
+                    </label>
+                    <label>Fecha<input type="date" name="fecha" th:value="${fecha}"></label>
+                    <label>Observación<input type="text" name="observacion" maxlength="200"></label>
+                    <fieldset class="lista-pedidos">
+                        <legend>Pedidos disponibles</legend>
+                        <p class="muted" th:if="${pedidosAsignables.isEmpty()}">No hay pedidos confirmados pendientes de asignar.</p>
+                        <label th:each="p : ${pedidosAsignables}" class="casilla">
+                            <input type="checkbox" name="idsPedidos" th:value="${p.id}">
+                            <span th:text="${p.nombreComercial + ' · ' + p.estadoLegible + ' · $ '
+                                    + #numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')}">Pedido</span>
+                        </label>
+                    </fieldset>
+                    <button type="submit" class="btn btn-primario">Crear / ampliar hoja de ruta</button>
+                </form>
+            </section>
+
+            <section class="tarjeta tarjeta-tabla mt-4" th:each="r : ${rutas}">
+                <div class="encabezado-tarjeta">
+                    <div>
+                        <h2 th:text="${r.nombreDistribuidor}">Distribuidor</h2>
+                        <p class="muted" th:text="${r.fecha + ' · ' + (r.vehiculo != null ? r.vehiculo : 'sin vehículo')
+                                + (r.patente != null ? ' · ' + r.patente : '')}">fecha</p>
+                    </div>
+                    <span class="insignia" th:classappend="${r.claseEstado}" th:text="${r.estadoLegible}">Estado</span>
+                </div>
+                <table class="tabla tabla-apilable">
+                    <thead><tr><th>#</th><th>Comercio</th><th>Dirección</th><th>Importe</th><th>Resultado</th></tr></thead>
+                    <tbody>
+                    <tr th:each="p : ${r.paradas}">
+                        <td data-label="#" th:text="${p.orden}">1</td>
+                        <td class="celda-principal" th:text="${p.nombreComercial}">Comercio</td>
+                        <td data-label="Dirección" th:text="${p.direccionLegible}">Dirección</td>
+                        <td data-label="Importe"
+                            th:text="'$ ' + ${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')}">$ 0,00</td>
+                        <td data-label="Resultado">
+                            <span class="insignia" th:classappend="${p.claseEstado}" th:text="${p.estado}">PENDIENTE</span>
+                            <small th:if="${p.motivoFallo != null}" th:text="${p.motivoFallo}">motivo</small>
+                            <small th:if="${p.cobroEfectivo}">cobrado en efectivo</small>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p class="muted" th:if="${r.totalCobrado != null and r.totalCobrado.signum() > 0}"
+                   th:text="'Cobrado en efectivo: $ ' + ${#numbers.formatDecimal(r.totalCobrado, 1, 'POINT', 2, 'COMMA')}">Cobrado</p>
+            </section>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

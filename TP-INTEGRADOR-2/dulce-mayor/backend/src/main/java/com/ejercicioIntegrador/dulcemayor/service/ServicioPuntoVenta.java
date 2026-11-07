@@ -1,9 +1,7 @@
 package com.ejercicioIntegrador.dulcemayor.service;
 
-import com.ejercicioIntegrador.dulcemayor.dto.ClienteResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PuntoVentaRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PuntoVentaResponseDTO;
-import com.ejercicioIntegrador.dulcemayor.enumeraciones.ProveedorAutenticacion;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.RolUsuario;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoDocumento;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;

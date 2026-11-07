@@ -2,11 +2,16 @@ package com.dulcemayor.admin;
 
 import com.dulcemayor.admin.dto.LineaPedidoAdminDTO;
 import com.dulcemayor.admin.dto.PagoAdminDTO;
+import com.dulcemayor.admin.dto.ParadaAdminDTO;
 import com.dulcemayor.admin.dto.PedidoAdminDTO;
+import com.dulcemayor.admin.dto.PromocionAdminDTO;
+import com.dulcemayor.admin.dto.RutaAdminDTO;
 import com.dulcemayor.admin.dto.SesionApiDTO;
 import com.dulcemayor.admin.dto.UsuarioSesionApiDTO;
 import com.dulcemayor.admin.seguridad.SesionUsuario;
 import com.dulcemayor.admin.service.ServicioPedidosAdmin;
+import com.dulcemayor.admin.service.ServicioPromocionesAdmin;
+import com.dulcemayor.admin.service.ServicioRutasAdmin;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -39,6 +44,12 @@ class PlantillasPedidosTest {
 
     @MockitoBean
     private ServicioPedidosAdmin servicioPedidos;
+
+    @MockitoBean
+    private ServicioPromocionesAdmin servicioPromociones;
+
+    @MockitoBean
+    private ServicioRutasAdmin servicioRutas;
 
     private MockMvc mvc() {
         return MockMvcBuilders.webAppContextSetup(contexto).build();
@@ -87,6 +98,71 @@ class PlantillasPedidosTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Comprobante")))
                 .andExpect(content().string(containsString("Acreditado")));
+    }
+
+    @Test
+    void laPantallaDePromocionesSeRenderizaConYsinCodigos() throws Exception {
+        when(servicioPromociones.listar("token-admin")).thenReturn(List.of(promocion()));
+
+        mvc().perform(get("/promociones").session(sesionAdministrativa()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("VERANO10")))
+                .andExpect(content().string(containsString("10 %")))
+                .andExpect(content().string(containsString("Uso único")))
+                .andExpect(content().string(containsString("Crear promoción")));
+
+        when(servicioPromociones.listar("token-admin")).thenReturn(List.of());
+        mvc().perform(get("/promociones").session(sesionAdministrativa()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Todavía no hay códigos promocionales")));
+    }
+
+    @Test
+    void laPantallaDeRutasSeRenderizaConParadasYFormularioDeAsignacion() throws Exception {
+        RutaAdminDTO ruta = new RutaAdminDTO();
+        ruta.setId("ruta-1");
+        ruta.setFecha("2026-11-07");
+        ruta.setNombreDistribuidor("Pedro Reparto");
+        ruta.setVehiculo("Fiat Fiorino");
+        ruta.setEstado("PLANIFICADA");
+        ruta.setTotalCobrado(new BigDecimal("240.00"));
+        ruta.setParadas(List.of(parada()));
+        when(servicioRutas.listar("token-admin", null)).thenReturn(List.of(ruta));
+        when(servicioRutas.distribuidores("token-admin")).thenReturn(List.of());
+        when(servicioRutas.pedidosAsignables("token-admin")).thenReturn(List.of(pedido()));
+
+        mvc().perform(get("/rutas").session(sesionAdministrativa()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Pedro Reparto")))
+                .andExpect(content().string(containsString("Kiosco Norte")))
+                .andExpect(content().string(containsString("San Martín 123")))
+                .andExpect(content().string(containsString("Crear / ampliar hoja de ruta")));
+    }
+
+    private ParadaAdminDTO parada() {
+        ParadaAdminDTO parada = new ParadaAdminDTO();
+        parada.setId("parada-1");
+        parada.setNombreComercial("Kiosco Norte");
+        parada.setCalle("San Martín");
+        parada.setNumeracion("123");
+        parada.setOrden(1);
+        parada.setEstado("PENDIENTE");
+        parada.setTotal(new BigDecimal("240.00"));
+        return parada;
+    }
+
+    private PromocionAdminDTO promocion() {
+        PromocionAdminDTO promocion = new PromocionAdminDTO();
+        promocion.setId("promo-1");
+        promocion.setCodigo("VERANO10");
+        promocion.setDescripcion("10% en alfajores");
+        promocion.setTipo("PORCENTAJE");
+        promocion.setValor(new BigDecimal("10"));
+        promocion.setFechaDesde("2026-01-01");
+        promocion.setActiva(true);
+        promocion.setUsoUnico(true);
+        promocion.setVigente(true);
+        return promocion;
     }
 
     private MockHttpSession sesionAdministrativa() {

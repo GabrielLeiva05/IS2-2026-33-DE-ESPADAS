@@ -1,5 +1,6 @@
 package com.ejercicioIntegrador.dulcemayor.controller;
 
+import com.ejercicioIntegrador.dulcemayor.dto.AplicarPromocionRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
@@ -7,6 +8,7 @@ import com.ejercicioIntegrador.dulcemayor.service.ServicioPedido;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,6 +47,20 @@ public class ControladorPedido {
     public ResponseEntity<PedidoResponseDTO> actualizar(@PathVariable String idPedido, @RequestBody PedidoRequestDTO dto,
                                                          Authentication authentication) throws MiException {
         return ResponseEntity.ok(servicioPedido.actualizarBorrador(idPedido, dto, authentication.getName()));
+    }
+
+    @PostMapping("/{idPedido}/promocion")
+    public ResponseEntity<PedidoResponseDTO> aplicarPromocion(@PathVariable String idPedido,
+                                                              @RequestBody(required = false) AplicarPromocionRequestDTO dto,
+                                                              Authentication authentication) throws MiException {
+        return ResponseEntity.ok(servicioPedido.aplicarPromocion(idPedido,
+                dto == null ? null : dto.codigo(), authentication.getName()));
+    }
+
+    @DeleteMapping("/{idPedido}/promocion")
+    public ResponseEntity<PedidoResponseDTO> quitarPromocion(@PathVariable String idPedido,
+                                                              Authentication authentication) throws MiException {
+        return ResponseEntity.ok(servicioPedido.quitarPromocion(idPedido, authentication.getName()));
     }
 
     @PostMapping("/{idPedido}/confirmar")

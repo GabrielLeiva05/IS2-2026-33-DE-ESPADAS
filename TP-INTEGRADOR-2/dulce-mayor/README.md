@@ -146,6 +146,48 @@ departamentos con la localidad cabecera de cada uno, y el **jefe administrativo 
 
 Es idempotente: si los datos ya existen, no los duplica.
 
+### Datos de demostración (opcional)
+
+Para probar el flujo completo sin cargar todo a mano, el backend incluye un dataset de ejemplo **apagado por
+defecto**. Se activa al arrancar:
+
+```bat
+cd backend
+set DATOS_DEMO_HABILITADO=true
+mvnw.cmd spring-boot:run
+```
+
+`InicializadorDemo` es idempotente y crea todo con los mismos servicios que usa la API (mismas validaciones):
+
+| Qué | Detalle |
+|---|---|
+| Empleados | `admin@dulcemayor.test` (ADMINISTRATIVO), `preventista@dulcemayor.test`, `distribuidor@dulcemayor.test` |
+| Clave | `dulcemayor` (temporal: el primer ingreso obliga a cambiarla, igual que cualquier alta del panel) |
+| Catálogo | 2 categorías, 3 subcategorías y 6 productos `DEMO-001`…`DEMO-006` con precio vigente, stock e imagen |
+| Comercial | Promoción `DEMO10` (10 %, reutilizable) y sucursal «Casa Central» |
+| Preventista | Cartera con el comercio `Kiosco Demo` y un pedido **confirmado** (stock reservado) |
+
+Para ver ese pedido en el portal del cliente, registrate en <http://localhost:8082/registro> con el correo
+**`kiosco.demo@dulcemayor.test`**: el único vínculo cliente ↔ pedidos es el email de contacto del punto de venta.
+
+#### Recorrido de prueba de punta a punta
+
+1. **Admin (8081)** con el jefe inicial: cambiá la clave (obligatorio en el primer ingreso).
+2. Entrá con `admin@dulcemayor.test` / `dulcemayor` y cambiá también su clave temporal.
+3. **Pedidos** → el pedido de ejemplo está *Confirmado*: iniciá un cobro (transferencia o Mercado Pago) y
+   **Acreditá** la transferencia con un número de operación, o usá **Cobro en efectivo**.
+4. **Rutas** → asigná ese pedido al distribuidor «Diego Distribuidor».
+5. **App distribuidor (<http://localhost:5174>)** con `distribuidor@dulcemayor.test`: cambiá la clave primero
+   (en 8081), luego **Registrar entrega**. Si el pago era en efectivo, ahí mismo se acredita, se consume el
+   stock y se emite el comprobante.
+6. **App preventista (<http://localhost:5173>)** con `preventista@dulcemayor.test`: cartera, plan de visitas
+   con mapa, nuevo pedido aplicando `DEMO10`.
+7. **Institucional (8082)**: catálogo público, sucursales con cotización del BCRA y «Mis pedidos» con el
+   comprobante descargable.
+
+Ambas apps móviles tienen proxy `/api` → `http://localhost:8080` en su `vite.config.js`, así que `npm run dev`
+funciona sin configurar `VITE_API_URL`.
+
 ### Pruebas
 
 ```bat
@@ -305,9 +347,14 @@ incluidos los módulos que todavía no existen.
 | `GET /api/auth/yo`, `PUT /api/auth/clave` | | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `GET` catálogo, categorías, subcategorías, contenido de imágenes | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `GET /api/productos/**`, `GET /api/stock/producto/{id}/disponibilidad` | | | ✔ | | ✔ | ✔ |
-| `/api/preventista/puntos-venta/**`, `/api/preventista/pedidos/**` (cartera, pedidos, pagos y comprobante propios) | | | ✔ | | | ✔ |
+| `/api/preventista/puntos-venta/**`, `/api/preventista/pedidos/**`, `/api/preventista/visitas/**` (cartera, pedidos, cobros y plan de visitas propios) | | | ✔ | | | ✔ |
 | `/api/pedidos/**` (bandeja, detalle, pagos y cierre autorizado de la reserva) | | | | | ✔ | ✔ |
 | `/api/pagos/**` (conciliación de transferencias, cobro en efectivo y consulta) | | | | | ✔ | ✔ |
+| `/api/promociones/**` (códigos promocionales y vista previa) | | | | | ✔ | ✔ |
+| `/api/rutas/**` (asignación de pedidos a la jornada de reparto) | | | | | ✔ | ✔ |
+| `/api/distribuidor/**` (solo la hoja de ruta propia) | | | | ✔ | ✔ | |
+| `/api/cliente/**` (pedidos y comprobantes propios del cliente) | | ✔ | | | | |
+| `GET /api/sucursales`, `GET /api/cotizacion-dolar` (sitio público) | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ |
 | `POST /api/pagos/mercadopago/notificacion` (webhook autenticado con firma HMAC) | ✔ | | | | | |
 | Gestión de categorías, subcategorías, productos, imágenes, precios y stock | | | | | ✔ | ✔ |
 | `GET` países, provincias, departamentos, localidades | | | ✔ | ✔ | ✔ | ✔ |
@@ -367,6 +414,14 @@ Todos responden JSON; los errores usan el `ErrorDTO` de siempre (`estado`, `erro
 | `POST /api/pagos/{id}/acreditar`, `POST /api/pagos/{id}/rechazar` | Conciliación de transferencias y verificación de Mercado Pago |
 | `POST /api/pagos/mercadopago/notificacion` | Webhook de Mercado Pago (firma HMAC + consulta server-to-server) |
 | `GET /api/pedidos/{id}/comprobante` | Comprobante interno no fiscal (HTML imprimible) |
+| `GET/POST /api/promociones`, `PUT/DELETE /{id}`, `POST /api/promociones/previsualizar` | Códigos promocionales: un solo código por pedido, sin acumulación |
+| `POST /api/preventista/pedidos/{id}/promocion`, `DELETE …/promocion` | Aplicar o quitar el código en un borrador (descuento calculado en el servidor) |
+| `POST /api/rutas`, `GET /api/rutas`, `GET /api/rutas/{id}` | Asignar pedidos a la jornada de reparto de un distribuidor |
+| `GET /api/distribuidor/ruta`, `GET /{id}`, `PUT /{id}/orden`, `POST /api/distribuidor/paradas/{id}/entregar`, `…/fallar` | Hoja de ruta del distribuidor: entrega con cobro en efectivo o intento fallido con motivo |
+| `GET /api/sucursales` (pública), `GET /api/sucursales/todas`, `POST/PUT/DELETE` | Sucursales del sitio institucional |
+| `GET /api/cotizacion-dolar` (pública) | Cotización informativa del BCRA con caché y degradación controlada |
+| `GET /api/cliente/pedidos`, `/{id}`, `/{id}/comprobante` | Portal del cliente: solo sus pedidos y comprobantes |
+| `GET/POST /api/preventista/visitas`, `POST …/generar`, `PUT …/orden`, `DELETE …/{id}` | Planificación diaria de visitas por cercanía, con reordenamiento manual |
 
 ### Pagos
 

@@ -45,6 +45,16 @@ public class Pedido extends BaseEntity {
     @Column(nullable = false, precision = 14, scale = 2)
     private BigDecimal total = BigDecimal.ZERO.setScale(2);
 
+    /** Suma de las líneas, antes del descuento promocional. */
+    @Column(precision = 14, scale = 2)
+    private BigDecimal subtotal = BigDecimal.ZERO.setScale(2);
+
+    @Column(nullable = false, precision = 14, scale = 2)
+    private BigDecimal descuento = BigDecimal.ZERO.setScale(2);
+
+    @Column(length = 40)
+    private String promocionCodigo;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 

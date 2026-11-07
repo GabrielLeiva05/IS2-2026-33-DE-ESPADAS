@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Sucursales')}"></head>
+<body class="app-sitio">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<th:block th:replace="~{fragments/base :: cabecera}"></th:block>
+
+<main class="sitio-main">
+    <div class="contenedor seccion">
+        <div class="seccion-titulo">
+            <h1 class="mb-0">Nuestras sucursales</h1>
+            <span class="insignia insignia-magenta" th:text="${sucursales.size()} + ' sucursales'">0 sucursales</span>
+        </div>
+
+        <p class="texto-secundario" th:if="${cotizacion != null}">
+            <span th:text="'Dólar BCRA: ' + ${cotizacion.valorLegible}">Dólar BCRA</span>
+            <span th:if="${!cotizacion.actualizada}" class="insignia insignia-gris">valor no actualizado</span>
+            <span th:text="${cotizacion.mensaje}" class="texto-chico">mensaje</span>
+        </p>
+
+        <p class="texto-secundario" th:if="${sucursales.isEmpty()}">
+            Todavía no hay sucursales publicadas.
+        </p>
+
+        <div class="pila">
+            <article class="tarjeta" th:each="s : ${sucursales}">
+                <h2 th:text="${s.nombre}">Sucursal</h2>
+                <p class="texto-secundario" th:text="${s.direccionLegible}">Dirección</p>
+                <p class="texto-chico" th:if="${s.horario != null}" th:text="${s.horario}">Horario</p>
+                <p class="texto-chico">
+                    <span th:if="${s.telefono != null}" th:text="'Tel: ' + ${s.telefono}">Tel</span>
+                    <span th:if="${s.emailContacto != null}" th:text="' · ' + ${s.emailContacto}">correo</span>
+                </p>
+                <a class="btn btn-secundario btn-chico" th:if="${s.tieneMapa}" target="_blank" rel="noreferrer"
+                   th:href="'https://www.openstreetmap.org/?mlat=' + ${s.direccion.latitud} + '&mlon=' + ${s.direccion.longitud}">
+                    Ver en el mapa</a>
+            </article>
+        </div>
+
+        <p class="texto-chico texto-secundario mt-4">
+            Mapas y datos geográficos © colaboradores de
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>.
+        </p>
+    </div>
+</main>
+
+<div th:replace="~{fragments/base :: pie}"></div>
+</body>
+</html>

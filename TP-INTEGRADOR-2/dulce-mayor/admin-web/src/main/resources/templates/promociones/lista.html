@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Promociones')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Promociones')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Promociones</h1>
+                    <p>Un solo código por pedido, sin acumulación. El descuento se calcula en el servidor.</p>
+                </div>
+                <span class="insignia insignia-violeta" th:text="${promociones.size()} + ' códigos'">0 códigos</span>
+            </div>
+
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <section class="tarjeta tarjeta-tabla">
+                <div class="vacio" th:if="${promociones.isEmpty()}">
+                    <svg class="icono"><use href="#i-etiqueta"/></svg>
+                    <p class="mb-0">Todavía no hay códigos promocionales.</p>
+                </div>
+                <table class="tabla tabla-apilable" th:unless="${promociones.isEmpty()}">
+                    <thead><tr><th>Código</th><th>Descuento</th><th>Vigencia</th><th>Alcance</th><th>Estado</th><th><span class="oculto-visual">Acciones</span></th></tr></thead>
+                    <tbody>
+                    <tr th:each="p : ${promociones}">
+                        <td class="celda-principal">
+                            <strong th:text="${p.codigo}">PROMO</strong>
+                            <small th:text="${p.descripcion}">Descripción</small>
+                        </td>
+                        <td data-label="Descuento">
+                            <span th:text="${p.valorLegible}">10 %</span>
+                            <small th:if="${p.minimoCompra != null}"
+                                   th:text="'mínimo $ ' + ${#numbers.formatDecimal(p.minimoCompra, 1, 'POINT', 2, 'COMMA')}">mínimo</small>
+                        </td>
+                        <td data-label="Vigencia" th:text="${p.fechaDesde + (p.fechaHasta != null ? ' → ' + p.fechaHasta : ' → sin fin')}">-</td>
+                        <td data-label="Alcance">
+                            <span class="insignia insignia-gris" th:text="${p.usoUnico} ? 'Uso único' : 'Reutilizable'">Uso único</span>
+                        </td>
+                        <td data-label="Estado">
+                            <span class="insignia insignia-verde" th:if="${p.vigente}">Vigente</span>
+                            <span class="insignia insignia-gris" th:unless="${p.vigente}">Inactiva o vencida</span>
+                        </td>
+                        <td class="celda-acciones">
+                            <div class="acciones">
+                                <form th:action="@{/promociones/{id}/baja(id=${p.id})}" method="post"
+                                      th:data-confirmar="'¿Desactivar el código ' + ${p.codigo} + '?'">
+                                    <button type="submit" class="btn btn-peligro btn-chico">Desactivar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="tarjeta mt-4">
+                <h2>Nuevo código</h2>
+                <form method="post" th:action="@{/promociones}" class="formulario">
+                    <label>Código<input type="text" name="codigo" maxlength="40" required placeholder="VERANO10"></label>
+                    <label>Descripción<input type="text" name="descripcion" maxlength="200" required></label>
+                    <label>Tipo
+                        <select name="tipo" required>
+                            <option th:each="t : ${tipos}" th:value="${t}" th:text="${t}">PORCENTAJE</option>
+                        </select>
+                    </label>
+                    <label>Valor<input type="number" name="valor" min="0.01" step="0.01" required></label>
+                    <label>Desde<input type="date" name="fechaDesde" required></label>
+                    <label>Hasta (opcional)<input type="date" name="fechaHasta"></label>
+                    <label>Compra mínima (opcional)<input type="number" name="minimoCompra" min="0" step="0.01"></label>
+                    <label class="casilla"><input type="checkbox" name="usoUnico" value="true"> Uso único (un solo pedido)</label>
+                    <button type="submit" class="btn btn-primario">Crear promoción</button>
+                </form>
+            </section>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

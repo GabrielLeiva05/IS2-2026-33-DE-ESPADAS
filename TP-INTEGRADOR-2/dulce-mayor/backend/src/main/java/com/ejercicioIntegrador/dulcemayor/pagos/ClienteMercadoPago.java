@@ -182,7 +182,7 @@ public class ClienteMercadoPago {
 
     private static String texto(JsonNode nodo, String campo) {
         JsonNode valor = nodo == null ? null : nodo.get(campo);
-        return valor == null || valor.isNull() ? null : valor.asText();
+        return valor == null || valor.isNull() ? null : valor.asString();
     }
 
     private static String hmacHex(String secreto, String mensaje) {

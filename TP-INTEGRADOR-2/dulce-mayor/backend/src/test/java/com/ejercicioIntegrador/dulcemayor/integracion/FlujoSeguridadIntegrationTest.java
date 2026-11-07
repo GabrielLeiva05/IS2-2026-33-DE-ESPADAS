@@ -4,6 +4,7 @@ import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPago;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
 import com.ejercicioIntegrador.dulcemayor.model.Pago;
 import com.ejercicioIntegrador.dulcemayor.model.ReservaStock;
+import com.ejercicioIntegrador.dulcemayor.repository.RepositorioEmpleado;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPago;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPedido;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPuntoVenta;
@@ -72,6 +73,9 @@ class FlujoSeguridadIntegrationTest {
 
     @Autowired
     private RepositorioPago repositorioPago;
+
+    @Autowired
+    private RepositorioEmpleado repositorioEmpleado;
 
     @Autowired
     private ServicioPago servicioPago;
@@ -371,6 +375,75 @@ class FlujoSeguridadIntegrationTest {
     }
 
     @Test
+    void laPromocionSeCongelaEnElPedidoYElPagoUsaElTotalConDescuento() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "promo@dulcemayor.test", "30111999", "FlujoSeguro2026");
+        String administrativo = empleadoHabilitado(jefe, "ADMINISTRATIVO", "admin3@dulcemayor.test", "30111446", "Almacen2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "40923456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-09", "Alfajor promo", 100.00);
+        crearStock(jefe, idProducto, 10);
+
+        mvc.perform(post("/api/promociones").header("Authorization", administrativo)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"codigo":"promo10","descripcion":"10% en alfajores","tipo":"PORCENTAJE","valor":10,
+                                 "fechaDesde":"2026-01-01","activa":true,"usoUnico":true}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.codigo").value("PROMO10"));
+
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 3)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.subtotal").value(300.00))
+                .andExpect(jsonPath("$.total").value(300.00))
+                .andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/promocion")
+                        .header("Authorization", preventista).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"promo10\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.promocionCodigo").value("PROMO10"))
+                .andExpect(jsonPath("$.descuento").value(30.00))
+                .andExpect(jsonPath("$.total").value(270.00));
+
+        // Un código inexistente no se aplica y un segundo código no acumula
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/promocion")
+                        .header("Authorization", preventista).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"NOEXISTE\"}"))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(270.00));
+
+        String pagoJson = mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/pagos")
+                        .header("Authorization", preventista).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"medio\":\"TRANSFERENCIA\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.importe").value(270.00))
+                .andReturn().getResponse().getContentAsString();
+        String idPago = JsonPath.read(pagoJson, "$.id");
+
+        mvc.perform(post("/api/pagos/" + idPago + "/acreditar").header("Authorization", administrativo)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"referencia\":\"TR-PROMO\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("ACREDITADO"));
+        assertEquals(7, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+
+        // El código de uso único ya consumido no se puede volver a usar
+        String otroBorrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 1)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String otroPedido = JsonPath.read(otroBorrador, "$.id");
+        mvc.perform(post("/api/preventista/pedidos/" + otroPedido + "/promocion")
+                        .header("Authorization", preventista).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"PROMO10\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.mensaje").value(containsString("ya fue utilizado")));
+    }
+
+    @Test
     void elPagoVencidoLiberaLaReservaYCancelaElPedido() throws Exception {
         String jefe = jefeHabilitado();
         String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "vence@dulcemayor.test", "30111997", "FlujoSeguro2026");
@@ -407,6 +480,244 @@ class FlujoSeguridadIntegrationTest {
         mvc.perform(post("/api/pagos/" + idPago + "/acreditar").header("Authorization", jefe)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"referencia\":\"TR-9\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void laEntregaConCobroEnEfectivoCierraElPedidoYConsumeElStock() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "ruta@dulcemayor.test", "30112001", "FlujoSeguro2026");
+        String distribuidor = empleadoHabilitado(jefe, "DISTRIBUIDOR", "reparto@dulcemayor.test", "30112002", "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "41023456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-10", "Alfajor ruta", 50.00);
+        crearStock(jefe, idProducto, 10);
+
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 2)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk());
+        // Cobro pactado en efectivo al entregar
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/pagos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"medio\":\"EFECTIVO\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.estado").value("PENDIENTE"));
+
+        String idDistribuidor = idEmpleadoDe("reparto@dulcemayor.test");
+        String rutaJson = mvc.perform(post("/api/rutas").header("Authorization", jefe)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idDistribuidor\":\"" + idDistribuidor + "\",\"idsPedidos\":[\"" + idPedido + "\"]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paradas.length()").value(1))
+                .andExpect(jsonPath("$.paradas[0].estado").value("PENDIENTE"))
+                .andExpect(jsonPath("$.paradas[0].calle").value("San Martín"))
+                .andExpect(jsonPath("$.idSiguienteParada").exists())
+                .andReturn().getResponse().getContentAsString();
+        String idParada = JsonPath.read(rutaJson, "$.paradas[0].id");
+
+        // El preventista no puede operar la hoja de ruta
+        mvc.perform(get("/api/distribuidor/ruta").header("Authorization", preventista))
+                .andExpect(status().isForbidden());
+
+        mvc.perform(get("/api/distribuidor/ruta").header("Authorization", distribuidor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paradas[0].id").value(idParada));
+
+        mvc.perform(post("/api/distribuidor/paradas/" + idParada + "/entregar").header("Authorization", distribuidor))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paradas[0].estado").value("ENTREGADO"))
+                .andExpect(jsonPath("$.paradas[0].cobroEfectivo").value(true))
+                .andExpect(jsonPath("$.estado").value("CERRADA"))
+                .andExpect(jsonPath("$.idSiguienteParada").doesNotExist());
+
+        // Cobrar en la entrega acreditó el pago y consumió el stock
+        assertEquals(8, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+        assertEquals(EstadoPedido.ENTREGADO, repositorioPedido.findById(idPedido).orElseThrow().getEstado());
+        mvc.perform(get("/api/pedidos/" + idPedido + "/comprobante").header("Authorization", jefe))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Comprobante interno no fiscal")));
+
+        // Una parada resuelta no se entrega dos veces
+        mvc.perform(post("/api/distribuidor/paradas/" + idParada + "/entregar").header("Authorization", distribuidor))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void elIntentoFallidoQuedaRegistradoYPermiteReasignarElPedido() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "fallo@dulcemayor.test", "30112003", "FlujoSeguro2026");
+        String distribuidor = empleadoHabilitado(jefe, "DISTRIBUIDOR", "fallo-reparto@dulcemayor.test", "30112004", "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "41123456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-11", "Turrón ruta", 40.00);
+        crearStock(jefe, idProducto, 5);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 1)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk());
+
+        String idDistribuidor = idEmpleadoDe("fallo-reparto@dulcemayor.test");
+        String rutaJson = mvc.perform(post("/api/rutas").header("Authorization", jefe)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idDistribuidor\":\"" + idDistribuidor + "\",\"idsPedidos\":[\"" + idPedido + "\"]}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String idParada = JsonPath.read(rutaJson, "$.paradas[0].id");
+
+        // El motivo es obligatorio
+        mvc.perform(post("/api/distribuidor/paradas/" + idParada + "/fallar").header("Authorization", distribuidor)
+                        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(post("/api/distribuidor/paradas/" + idParada + "/fallar").header("Authorization", distribuidor)
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"motivo\":\"Comercio cerrado\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paradas[0].estado").value("FALLIDO"))
+                .andExpect(jsonPath("$.paradas[0].motivoFallo").value("Comercio cerrado"));
+
+        // El pedido sigue confirmado y reservado: se puede reprogramar en otra hoja de ruta
+        assertEquals(EstadoPedido.CONFIRMADO, repositorioPedido.findById(idPedido).orElseThrow().getEstado());
+        assertEquals(5, repositorioStock.findByProducto_IdAndEliminadoFalse(idProducto).orElseThrow().getCantidadActual());
+        mvc.perform(post("/api/rutas").header("Authorization", jefe).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idDistribuidor\":\"" + idDistribuidor + "\",\"idsPedidos\":[\"" + idPedido + "\"],"
+                                + "\"fecha\":\"" + LocalDate.now().plusDays(1) + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.paradas[0].estado").value("PENDIENTE"));
+    }
+
+    private String idEmpleadoDe(String correo) {
+        String idUsuario = repositorioUsuario.findFirstByNombreUsuarioIgnoreCaseAndEliminadoFalse(correo)
+                .orElseThrow().getId();
+        return repositorioEmpleado.findFirstByUsuario_Id(idUsuario).orElseThrow().getId();
+    }
+
+    @Test
+    void elPortalDelClienteVeSusPedidosYElSitioPublicoExponeSucursalesYCotizacion() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "portal@dulcemayor.test", "30112005", "FlujoSeguro2026");
+        String administrativo = empleadoHabilitado(jefe, "ADMINISTRATIVO", "admin4@dulcemayor.test", "30111447", "Almacen2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+        String idPuntoVenta = registrarPuntoVenta(preventista, idLocalidad, "41223456");
+        String idProducto = crearProductoConPrecio(jefe, "FLUJO-12", "Bombón portal", 70.00);
+        crearStock(jefe, idProducto, 6);
+        String borrador = mvc.perform(post("/api/preventista/pedidos").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(pedidoJson(idPuntoVenta, idProducto, 2)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPedido = JsonPath.read(borrador, "$.id");
+        mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/confirmar").header("Authorization", preventista))
+                .andExpect(status().isOk());
+        String pagoJson = mvc.perform(post("/api/preventista/pedidos/" + idPedido + "/pagos")
+                        .header("Authorization", preventista).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"medio\":\"TRANSFERENCIA\"}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        mvc.perform(post("/api/pagos/" + JsonPath.read(pagoJson, "$.id") + "/acreditar")
+                        .header("Authorization", administrativo).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"referencia\":\"TR-PORTAL\"}"))
+                .andExpect(status().isOk());
+
+        // El cliente se registra con el correo de contacto del comercio
+        String sesionCliente = mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Carlos","apellido":"Gómez","correo":"kiosco@example.test","clave":"Golosinas2026",
+                                 "confirmacionClave":"Golosinas2026"}
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.usuario.rol").value("CLIENTE"))
+                .andReturn().getResponse().getContentAsString();
+        String cliente = "Bearer " + JsonPath.read(sesionCliente, "$.token");
+
+        mvc.perform(get("/api/cliente/pedidos").header("Authorization", cliente))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(idPedido))
+                .andExpect(jsonPath("$[0].estado").value("COMPLETADO"));
+        mvc.perform(get("/api/cliente/pedidos/" + idPedido + "/comprobante").header("Authorization", cliente))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Comprobante interno no fiscal")));
+        // El preventista no puede usar el portal del cliente
+        mvc.perform(get("/api/cliente/pedidos").header("Authorization", preventista))
+                .andExpect(status().isForbidden());
+
+        // Sucursales: públicas para leer, administrativas para gestionar
+        mvc.perform(get("/api/sucursales")).andExpect(status().isOk()).andExpect(jsonPath("$").isEmpty());
+        mvc.perform(post("/api/sucursales").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON).content(sucursalJson(idLocalidad)))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/sucursales").header("Authorization", administrativo)
+                        .contentType(MediaType.APPLICATION_JSON).content(sucursalJson(idLocalidad)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nombre").value("Sucursal Centro"));
+        mvc.perform(get("/api/sucursales"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].direccion.localidad").value("Ciudad de Mendoza"));
+
+        // Cotización: responde siempre, aunque el BCRA no esté disponible
+        mvc.perform(get("/api/cotizacion-dolar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.actualizada").exists())
+                .andExpect(jsonPath("$.mensaje").exists());
+    }
+
+    @Test
+    void elPreventistaPlanificaYReordenaSusVisitas() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "visitas@dulcemayor.test", "30112006", "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+
+        // Sin cartera no hay plan posible
+        mvc.perform(post("/api/preventista/visitas/generar").header("Authorization", preventista))
+                .andExpect(status().isBadRequest());
+
+        registrarPuntoVenta(preventista, idLocalidad, "41323456");
+        String segundoPunto = mvc.perform(post("/api/preventista/puntos-venta").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombreCliente":"Lucía","apellidoCliente":"Fernández","correoContactoCliente":"lucia@example.test",
+                                 "tipoDocumentoCliente":"DNI","numeroDocumentoCliente":"41423456",
+                                 "nombreComercial":"Almacén Sur","telefono":"2615559999","emailContacto":"sur@example.test",
+                                 "direccion":{"calle":"Belgrano","numeracion":"500","latitud":-32.95,"longitud":-68.90,"idLocalidad":"%s"}}
+                                """.formatted(idLocalidad)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        String idPuntoSur = JsonPath.read(segundoPunto, "$.id");
+
+        String planJson = mvc.perform(post("/api/preventista/visitas/generar").header("Authorization", preventista))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.visitas.length()").value(2))
+                .andExpect(jsonPath("$.visitas[0].orden").value(1))
+                .andReturn().getResponse().getContentAsString();
+        List<String> idsVisitas = JsonPath.read(planJson, "$.visitas[*].id");
+        List<String> puntosDelPlan = JsonPath.read(planJson, "$.visitas[*].idPuntoVenta");
+        List<String> nombres = JsonPath.read(planJson, "$.visitas[*].nombreComercial");
+        assertTrue(nombres.contains("Kiosco Norte") && nombres.contains("Almacén Sur"));
+
+        // Reordenar invierte el recorrido
+        mvc.perform(put("/api/preventista/visitas/orden").header("Authorization", preventista)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"idsVisitas\":[\"" + idsVisitas.get(1) + "\",\"" + idsVisitas.get(0) + "\"]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.visitas[0].id").value(idsVisitas.get(1)))
+                .andExpect(jsonPath("$.visitas[0].orden").value(1))
+                .andExpect(jsonPath("$.visitas[0].idPuntoVenta").value(puntosDelPlan.get(1)));
+
+        mvc.perform(get("/api/preventista/visitas").header("Authorization", preventista))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.visitas[0].id").value(idsVisitas.get(1)));
+
+        // Otro rol no accede a la planificación
+        String otro = empleadoHabilitado(jefe, "ADMINISTRATIVO", "admin5@dulcemayor.test", "30111448", "Almacen2026");
+        mvc.perform(get("/api/preventista/visitas").header("Authorization", otro))
+                .andExpect(status().isForbidden());
+    }
+
+    private String sucursalJson(String idLocalidad) {
+        return """
+                {"nombre":"Sucursal Centro","telefono":"2615550000","emailContacto":"centro@dulcemayor.test",
+                 "horario":"Lunes a viernes de 9 a 18",
+                 "direccion":{"calle":"San Martín","numeracion":"100","barrio":"Centro","latitud":-32.89,"longitud":-68.84,
+                              "idLocalidad":"%s"}}
+                """.formatted(idLocalidad);
     }
 
     @Test
@@ -598,3 +909,6 @@ class FlujoSeguridadIntegrationTest {
                 .andExpect(jsonPath("$.mensaje").value("Correo o contraseña incorrectos"));
     }
 }
+
+
+

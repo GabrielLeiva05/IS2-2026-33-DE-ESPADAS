@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record PedidoResponseDTO(String id, String idPuntoVenta, String nombreComercial, String idPreventista,
-                                EstadoPedido estado, List<PedidoLineaResponseDTO> lineas, BigDecimal total,
+                                EstadoPedido estado, List<PedidoLineaResponseDTO> lineas, BigDecimal subtotal,
+                                BigDecimal descuento, String promocionCodigo, BigDecimal total,
                                 LocalDateTime fechaCreacion, LocalDateTime fechaConfirmacion,
                                 LocalDateTime fechaCancelacion, LocalDateTime fechaCompletado)
         implements BaseResponseDTO {

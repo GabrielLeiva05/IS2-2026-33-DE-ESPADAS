@@ -220,6 +220,26 @@ public class ServicioPago {
 
     // ------------------------------------------------------------------ consultas
 
+    /**
+     * Cobro en efectivo al entregar: acredita el intento pendiente de efectivo o crea uno nuevo.
+     * Si el pedido ya estaba pago, devuelve ese pago sin tocar el stock.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public PagoResponseDTO cobrarEnEntrega(String idPedido) throws MiException {
+        Optional<Pago> pendiente = repositorioPago.findFirstByPedido_IdAndEstadoAndEliminadoFalse(idPedido,
+                EstadoPago.PENDIENTE);
+        if (pendiente.isPresent() && pendiente.get().getMedio() == MedioPago.EFECTIVO) {
+            return acreditar(pendiente.get().getId(),
+                    new ConfirmarPagoRequestDTO(null, "Cobro en efectivo registrado al entregar"));
+        }
+        Optional<Pago> acreditado = repositorioPago.findFirstByPedido_IdAndEstadoAndEliminadoFalse(idPedido,
+                EstadoPago.ACREDITADO);
+        if (acreditado.isPresent()) {
+            return convertir(acreditado.get(), "El pedido ya tenía el pago acreditado");
+        }
+        return registrarEfectivo(idPedido);
+    }
+
     @Transactional(readOnly = true)
     public List<PagoResponseDTO> listarPorPedido(String idPedido) {
         return repositorioPago.findByPedido_IdAndEliminadoFalseOrderByFechaCreacionDesc(idPedido).stream()

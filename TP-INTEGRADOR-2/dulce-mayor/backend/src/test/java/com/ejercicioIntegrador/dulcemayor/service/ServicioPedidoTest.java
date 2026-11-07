@@ -71,7 +71,8 @@ class ServicioPedidoTest {
         servicioUsuario = mock(ServicioUsuario.class);
         servicioEmpleado = mock(ServicioEmpleado.class);
         servicio = new ServicioPedido(repositorioPedido, repositorioReservaStock, repositorioPago, servicioPuntoVenta,
-                servicioProducto, servicioVigenciaPrecio, servicioStock, servicioUsuario, servicioEmpleado);
+                mock(ServicioPromocion.class), servicioProducto, servicioVigenciaPrecio, servicioStock, servicioUsuario,
+                servicioEmpleado);
 
         preventista = new Preventista();
         preventista.setId("prev-1");

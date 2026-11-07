@@ -1,5 +1,6 @@
 package com.ejercicioIntegrador.dulcemayor.service;
 
+import com.ejercicioIntegrador.dulcemayor.dto.DescuentoPromocionDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoLineaRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoLineaResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoRequestDTO;
@@ -36,6 +37,7 @@ public class ServicioPedido {
     private final RepositorioReservaStock repositorioReservaStock;
     private final RepositorioPago repositorioPago;
     private final ServicioPuntoVenta servicioPuntoVenta;
+    private final ServicioPromocion servicioPromocion;
     private final ServicioProducto servicioProducto;
     private final ServicioVigenciaPrecio servicioVigenciaPrecio;
     private final ServicioStock servicioStock;
@@ -43,14 +45,15 @@ public class ServicioPedido {
     private final ServicioEmpleado servicioEmpleado;
 
     public ServicioPedido(RepositorioPedido repositorioPedido, RepositorioReservaStock repositorioReservaStock,
-                          RepositorioPago repositorioPago,
-                          ServicioPuntoVenta servicioPuntoVenta, ServicioProducto servicioProducto,
+                          RepositorioPago repositorioPago, ServicioPuntoVenta servicioPuntoVenta,
+                          ServicioPromocion servicioPromocion, ServicioProducto servicioProducto,
                           ServicioVigenciaPrecio servicioVigenciaPrecio, ServicioStock servicioStock,
                           ServicioUsuario servicioUsuario, ServicioEmpleado servicioEmpleado) {
         this.repositorioPedido = repositorioPedido;
         this.repositorioReservaStock = repositorioReservaStock;
         this.repositorioPago = repositorioPago;
         this.servicioPuntoVenta = servicioPuntoVenta;
+        this.servicioPromocion = servicioPromocion;
         this.servicioProducto = servicioProducto;
         this.servicioVigenciaPrecio = servicioVigenciaPrecio;
         this.servicioStock = servicioStock;
@@ -233,6 +236,21 @@ public class ServicioPedido {
                 .orElseThrow(() -> new MiException("No existe el pedido indicado"));
     }
 
+    // ------------------------------------------------------------------ portal del cliente
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponseDTO> listarPedidosDelCliente(String correo) {
+        return repositorioPedido.findByPuntoVenta_EmailContactoIgnoreCaseAndEliminadoFalseOrderByFechaCreacionDesc(correo)
+                .stream().map(this::convertir).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public PedidoResponseDTO obtenerPedidoDelCliente(String idPedido, String correo) throws MiException {
+        return convertir(repositorioPedido
+                .findByIdAndPuntoVenta_EmailContactoIgnoreCaseAndEliminadoFalse(idPedido, correo)
+                .orElseThrow(() -> new MiException("El pedido no pertenece a tus comercios")));
+    }
+
     private PedidoResponseDTO cancelarReservas(Pedido pedido) throws MiException {
         if (pedido.getEstado() != EstadoPedido.BORRADOR && pedido.getEstado() != EstadoPedido.CONFIRMADO) {
             throw new MiException("El pedido ya no se puede cancelar desde su estado actual");
@@ -278,7 +296,63 @@ public class ServicioPedido {
             pedido.getLineas().add(linea);
             total = total.add(subtotal);
         }
-        pedido.setTotal(total.setScale(ESCALA_MONETARIA, RoundingMode.HALF_UP));
+        pedido.setSubtotal(total.setScale(ESCALA_MONETARIA, RoundingMode.HALF_UP));
+        recalcularDescuento(pedido);
+    }
+
+    /**
+     * Reaplica el código promocional ya elegido sobre el nuevo subtotal. Si dejó de ser válido se
+     * descarta para no bloquear el borrador: el preventista puede volver a cargarlo.
+     */
+    private void recalcularDescuento(Pedido pedido) {
+        BigDecimal subtotal = pedido.getSubtotal();
+        if (pedido.getPromocionCodigo() == null) {
+            pedido.setDescuento(BigDecimal.ZERO.setScale(ESCALA_MONETARIA));
+            pedido.setTotal(subtotal);
+            return;
+        }
+        try {
+            DescuentoPromocionDTO descuento = servicioPromocion.calcular(pedido.getPromocionCodigo(), subtotal,
+                    pedido.getId());
+            pedido.setDescuento(descuento.descuento());
+            pedido.setTotal(descuento.total());
+        } catch (MiException e) {
+            pedido.setPromocionCodigo(null);
+            pedido.setDescuento(BigDecimal.ZERO.setScale(ESCALA_MONETARIA));
+            pedido.setTotal(subtotal);
+        }
+    }
+
+    /** Aplica un código promocional al borrador; el descuento se congela como snapshot del pedido. */
+    @Transactional(rollbackFor = Exception.class)
+    public PedidoResponseDTO aplicarPromocion(String idPedido, String codigo, String correoPreventista)
+            throws MiException {
+        Pedido pedido = obtenerPedidoPropio(idPedido, correoPreventista);
+        exigirBorradorConLineas(pedido, "aplicar una promoción");
+        DescuentoPromocionDTO descuento = servicioPromocion.calcular(codigo, pedido.getSubtotal(), pedido.getId());
+        pedido.setPromocionCodigo(descuento.codigo());
+        pedido.setDescuento(descuento.descuento());
+        pedido.setTotal(descuento.total());
+        return convertir(repositorioPedido.save(pedido));
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public PedidoResponseDTO quitarPromocion(String idPedido, String correoPreventista) throws MiException {
+        Pedido pedido = obtenerPedidoPropio(idPedido, correoPreventista);
+        exigirBorradorConLineas(pedido, "quitar la promoción");
+        pedido.setPromocionCodigo(null);
+        pedido.setDescuento(BigDecimal.ZERO.setScale(ESCALA_MONETARIA));
+        pedido.setTotal(pedido.getSubtotal());
+        return convertir(repositorioPedido.save(pedido));
+    }
+
+    private static void exigirBorradorConLineas(Pedido pedido, String accion) throws MiException {
+        if (pedido.getEstado() != EstadoPedido.BORRADOR) {
+            throw new MiException("Solo se puede " + accion + " en un pedido en borrador");
+        }
+        if (pedido.getLineas().isEmpty()) {
+            throw new MiException("Cargá productos antes de " + accion);
+        }
     }
 
     private PedidoResponseDTO convertir(Pedido pedido) {
@@ -287,8 +361,17 @@ public class ServicioPedido {
                         linea.getCantidadPresentaciones(), linea.getPrecioUnitario(), linea.getSubtotal())).toList();
         return new PedidoResponseDTO(pedido.getId(), pedido.getPuntoVenta().getId(),
                 pedido.getPuntoVenta().getNombreComercial(), pedido.getPreventista().getId(), pedido.getEstado(),
-                lineas, pedido.getTotal(), pedido.getFechaCreacion(), pedido.getFechaConfirmacion(),
-                pedido.getFechaCancelacion(), pedido.getFechaCompletado());
+                lineas, subtotalSeguro(pedido), descuentoSeguro(pedido), pedido.getPromocionCodigo(), pedido.getTotal(),
+                pedido.getFechaCreacion(), pedido.getFechaConfirmacion(), pedido.getFechaCancelacion(),
+                pedido.getFechaCompletado());
+    }
+
+    private static BigDecimal subtotalSeguro(Pedido pedido) {
+        return pedido.getSubtotal() == null ? pedido.getTotal() : pedido.getSubtotal();
+    }
+
+    private static BigDecimal descuentoSeguro(Pedido pedido) {
+        return pedido.getDescuento() == null ? BigDecimal.ZERO.setScale(ESCALA_MONETARIA) : pedido.getDescuento();
     }
 
     private Usuario usuarioPreventista(String correo) throws MiException {

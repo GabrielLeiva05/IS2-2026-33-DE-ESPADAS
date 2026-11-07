@@ -2,12 +2,10 @@ package com.ejercicioIntegrador.dulcemayor.repository;
 
 import com.ejercicioIntegrador.dulcemayor.model.Producto;
 import com.ejercicioIntegrador.dulcemayor.repository.base.BaseRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface RepositorioProducto extends BaseRepository<Producto> {
 
     Optional<Producto> findFirstByCodigoIgnoreCaseAndEliminadoFalse(String codigo);

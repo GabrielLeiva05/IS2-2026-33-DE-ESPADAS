@@ -21,7 +21,7 @@ import java.util.Locale;
 @Service
 public class ServicioComprobante {
 
-    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", new Locale("es", "AR"));
+    private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.of("es", "AR"));
     private static final String AVISO =
             "Comprobante interno no fiscal. No reemplaza a la factura ni tiene validez impositiva.";
 
@@ -129,7 +129,7 @@ public class ServicioComprobante {
     }
 
     private static String importe(BigDecimal valor) {
-        return String.format(new Locale("es", "AR"), "%,.2f", valor);
+        return String.format(Locale.of("es", "AR"), "%,.2f", valor);
     }
 
     private static String escapar(String texto) {

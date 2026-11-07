@@ -33,7 +33,7 @@ public class ProgramadorExpiracionPagos {
         for (String idPago : vencidos) {
             try {
                 servicioPago.expirar(idPago);
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 LOG.warn("No se pudo expirar el pago {}", idPago, e);
             }
         }
