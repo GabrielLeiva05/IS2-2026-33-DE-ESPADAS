@@ -1,33 +1,110 @@
+/*
+ * Tokens y base compartidos con admin-web e institucional-web (mismo sistema --dm-*).
+ * Cualquier cambio de marca conviene replicarlo en esas hojas para no volver a divergir.
+ */
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #17211c;
-  background: #f5f7f4;
+  --dm-magenta: #d10f8c;
+  --dm-magenta-oscuro: #a80a70;
+  --dm-magenta-suave: #fde7f4;
+  --dm-violeta: #7a35e0;
+  --dm-violeta-suave: #efe6fd;
+  --dm-azul: #1f6feb;
+  --dm-azul-oscuro: #1556c0;
+  --dm-azul-suave: #e6f0fe;
+  --dm-amarillo: #ffc52e;
+  --dm-amarillo-suave: #fff6dc;
+  --dm-gradiente: linear-gradient(120deg, var(--dm-magenta) 0%, var(--dm-violeta) 55%, var(--dm-azul) 100%);
+  --dm-exito: #16935a;
+  --dm-exito-suave: #e3f6ec;
+  --dm-advertencia: #c77700;
+  --dm-advertencia-suave: #fff3df;
+  --dm-error: #cf2f45;
+  --dm-error-suave: #fde8eb;
+
+  --dm-fondo: #f4f5fa;
+  --dm-superficie: #ffffff;
+  --dm-superficie-2: #f8f8fc;
+  --dm-texto: #1d1b2c;
+  --dm-texto-2: #5d5b70;
+  --dm-texto-3: #8b899c;
+  --dm-borde: #e4e4ee;
+
+  --dm-fuente-titulos: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --dm-fuente: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --dm-t-xs: .75rem;
+  --dm-t-sm: .875rem;
+  --dm-t-md: 1rem;
+  --dm-t-lg: 1.125rem;
+  --dm-t-xl: 1.375rem;
+  --dm-t-2xl: 1.75rem;
+
+  --dm-e-1: .25rem;
+  --dm-e-2: .5rem;
+  --dm-e-3: .75rem;
+  --dm-e-4: 1rem;
+  --dm-e-5: 1.5rem;
+  --dm-e-6: 2rem;
+
+  --dm-radio-sm: 8px;
+  --dm-radio: 14px;
+  --dm-radio-lg: 20px;
+  --dm-radio-pill: 999px;
+
+  --dm-sombra: 0 1px 2px rgba(29, 27, 44, .05), 0 4px 14px rgba(29, 27, 44, .06);
+  --dm-sombra-lg: 0 10px 34px rgba(29, 27, 44, .12);
+  --dm-foco: 0 0 0 3px rgba(122, 53, 224, .28);
+  --dm-tactil: 48px;
+  --dm-info: var(--dm-azul);
+  --dm-info-suave: var(--dm-azul-suave);
+  --dm-t-3xl: 2.25rem;
+  --dm-e-7: 3rem;
+  --dm-ancho-sidebar: 248px;
+  --dm-nav-inferior: 64px;
+  --dm-seguro-abajo: env(safe-area-inset-bottom, 0px);
+  --dm-transicion: .18s ease;
+
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-size: 15px;
-  color-scheme: light;
-  --ink: #17211c;
-  --muted: #758078;
-  --border: #e5eae6;
-  --green: #176b43;
-  --green-dark: #105333;
-  --green-soft: #edf6ef;
-  --surface: #fff;
-  --canvas: #f5f7f4;
-  --shadow: 0 12px 36px rgb(20 47 31 / 8%);
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; min-height: 100vh; }
-button, input, select { font: inherit; }
-button { cursor: pointer; }
-button:disabled { opacity: .58; cursor: wait; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgb(23 107 67 / 24%); outline-offset: 2px; }
-#root { min-height: 100vh; }
-h1, h2, h3, p { margin-top: 0; }
-h1, h2, h3 { color: var(--ink); }
+*, *::before, *::after { box-sizing: border-box; }
 
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: var(--dm-fuente);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--dm-texto);
+  background: var(--dm-fondo);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  margin-top: 0;
+  font-family: var(--dm-fuente-titulos);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--dm-texto);
+}
+
+p { margin-top: 0; }
+img { max-width: 100%; }
+a { color: var(--dm-azul); }
+
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: .6; }
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--dm-foco);
+  border-radius: var(--dm-radio-sm);
+}
+
+#root { min-height: 100vh; }
