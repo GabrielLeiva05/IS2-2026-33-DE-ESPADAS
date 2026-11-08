@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Prepara el entorno y arranca en un solo comando:
-      - PostgreSQL (Docker Compose)                localhost:5432
+      - PostgreSQL (Docker Compose)                localhost:5432 (o POSTGRES_PORT del .env)
       - API REST             (backend)             http://localhost:8080
       - Panel administrativo (admin-web)           http://localhost:8081
       - Sitio institucional  (institucional-web)   http://localhost:8082
@@ -94,22 +94,55 @@ function Obtener-VersionJava {
     return $null
 }
 
-# Comprueba el puerto en IPv4 y en IPv6: Vite escucha en ::1 aunque la URL diga "localhost"
+# Comprueba el puerto en IPv4 y en IPv6: Vite escucha en [::1] aunque la URL diga "localhost".
+# Se crea un socket por familia: un TcpClient IPv4 no puede conectar a una dirección IPv6.
 function Puerto-Abierto([int]$puerto) {
-    foreach ($host0 in @('127.0.0.1', '::1')) {
-        $cliente = New-Object System.Net.Sockets.TcpClient
+    foreach ($direccion in @([System.Net.IPAddress]::Loopback, [System.Net.IPAddress]::IPv6Loopback)) {
+        $cliente = $null
         try {
-            $conexion = $cliente.BeginConnect($host0, $puerto, $null, $null)
+            $cliente = New-Object System.Net.Sockets.TcpClient($direccion.AddressFamily)
+            $conexion = $cliente.BeginConnect($direccion, $puerto, $null, $null)
             if ($conexion.AsyncWaitHandle.WaitOne(400, $false)) {
                 $cliente.EndConnect($conexion)
                 return $true
             }
         } catch {
         } finally {
-            $cliente.Close()
+            if ($cliente) { $cliente.Close() }
         }
     }
     return $false
+}
+
+# PID del proceso que escucha en el puerto (0 si no se puede determinar)
+function Proceso-DuenoDePuerto([int]$puerto) {
+    try {
+        $conexion = Get-NetTCPConnection -LocalPort $puerto -State Listen -ErrorAction Stop | Select-Object -First 1
+        if ($conexion) { return [int]$conexion.OwningProcess }
+    } catch {
+    }
+    return 0
+}
+
+# Sube por la cadena de padres hasta el cmd.exe que ejecuta uno de los envoltorios de este script.
+# Devuelve 0 si el proceso no lo lanzó este script.
+function Envoltorio-Propio([int]$pidProceso) {
+    $actual = $pidProceso
+    for ($i = 0; $i -lt 6 -and $actual -gt 0; $i++) {
+        $proceso = Get-CimInstance Win32_Process -Filter ('ProcessId={0}' -f $actual) -ErrorAction SilentlyContinue
+        if (-not $proceso) { break }
+        if ($proceso.Name -eq 'cmd.exe' -and $proceso.CommandLine -match 'iniciar-[\w-]+\.cmd') {
+            return [int]$proceso.ProcessId
+        }
+        $actual = [int]$proceso.ParentProcessId
+    }
+    return 0
+}
+
+# Envoltorios de este script que siguen vivos
+function Envoltorios-Vivos {
+    return @(Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { $_.CommandLine -match '\.run[\\/]scripts[\\/]iniciar-[\w-]+\.cmd' })
 }
 
 function Url-Responde([string]$url) {
@@ -182,6 +215,7 @@ function Iniciar-Servicio([hashtable]$servicio, [string]$directorio, [string]$sa
 
 if ($Detener) {
     Escribir-Paso 'Deteniendo servicios'
+    $detenidos = @()
     if (Test-Path $archivoPids) {
         $registro = Get-Content $archivoPids -Raw | ConvertFrom-Json
         foreach ($servicio in $registro) {
@@ -190,6 +224,7 @@ if ($Detener) {
             if ($vivo) {
                 # /T termina también los hijos (java y node que lanzan mvnw/npm)
                 & taskkill /PID $pidProceso /T /F *> $null
+                $detenidos += $pidProceso
                 Escribir-Ok ('{0} detenido (PID {1})' -f $servicio.nombre, $pidProceso)
             } else {
                 Escribir-Aviso ('{0} ya no estaba en ejecución' -f $servicio.nombre)
@@ -198,6 +233,23 @@ if ($Detener) {
         Remove-Item $archivoPids -Force -ErrorAction SilentlyContinue
     } else {
         Escribir-Aviso 'No hay procesos registrados por este script (.run\pids.json)'
+    }
+
+    # Barrido de envoltorios que quedaron vivos aunque no estén registrados (reinicios parciales)
+    foreach ($envoltorio in (Envoltorios-Vivos)) {
+        if ($detenidos -contains [int]$envoltorio.ProcessId) { continue }
+        & taskkill /PID ([int]$envoltorio.ProcessId) /T /F *> $null
+        $detenidos += [int]$envoltorio.ProcessId
+        Escribir-Ok ('Proceso residual detenido (PID {0})' -f $envoltorio.ProcessId)
+    }
+
+    # Si algo quedó escuchando en los puertos del sistema, se informa con nombre y PID
+    foreach ($puertoServicio in @(8080, 8081, 8082, 5173, 5174)) {
+        if (-not (Puerto-Abierto $puertoServicio)) { continue }
+        $dueno = Proceso-DuenoDePuerto $puertoServicio
+        $nombreDueno = ''
+        if ($dueno -gt 0) { $nombreDueno = (Get-Process -Id $dueno -ErrorAction SilentlyContinue).ProcessName }
+        Escribir-Aviso ('El puerto {0} sigue ocupado (PID {1}, {2}): no lo lanzó este script.' -f $puertoServicio, $dueno, $nombreDueno)
     }
     if ($IncluirBase -and (Probar-Comando 'docker')) {
         & docker compose -f (Join-Path $raiz 'docker-compose.yml') stop postgres *> $null
@@ -287,15 +339,34 @@ if ($Verificar) {
 
 # ----------------------------------------------------------------------------- base de datos
 
-# Si el contenedor del proyecto ya está corriendo, el puerto 5432 es suyo.
+# Puerto publicado por el contenedor: se toma de POSTGRES_PORT en el .env de la raíz.
+$puertoBase = 5432
+$envRaiz = Join-Path $raiz '.env'
+if (Test-Path $envRaiz) {
+    foreach ($linea in Get-Content $envRaiz) {
+        if ($linea -match '^\s*POSTGRES_PORT\s*=\s*(\d+)') { $puertoBase = [int]$matches[1] }
+    }
+}
+
+# Si el contenedor del proyecto ya está corriendo, el puerto es suyo.
 $compose = Join-Path $raiz 'docker-compose.yml'
 $idContenedorBase = ''
 if ($dockerDisponible) {
     $idContenedorBase = (& docker compose -f $compose ps -q postgres 2>&1 | Out-String).Trim()
 }
 # Si hay otro PostgreSQL escuchando (instalación local) se reutiliza ese.
-if ($dockerDisponible -and -not $idContenedorBase -and (Puerto-Abierto 5432) -and -not $LimpiarBase) {
-    Escribir-Aviso 'Ya hay un PostgreSQL escuchando en el puerto 5432 que no es el del proyecto: se usa ese.'
+if ($dockerDisponible -and -not $idContenedorBase -and (Puerto-Abierto $puertoBase) -and -not $LimpiarBase) {
+    $dueno = ''
+    try {
+        $conexion = Get-NetTCPConnection -LocalPort $puertoBase -State Listen -ErrorAction Stop | Select-Object -First 1
+        if ($conexion) { $dueno = (Get-Process -Id $conexion.OwningProcess -ErrorAction SilentlyContinue).ProcessName }
+    } catch { }
+    $sufijo = ''
+    if ($dueno) { $sufijo = " (proceso: $dueno)" }
+    Escribir-Aviso ("Ya hay algo escuchando en el puerto {0} que no es el contenedor del proyecto{1}: se usa ese." -f $puertoBase, $sufijo)
+    if ($dueno -and $dueno -notmatch 'docker|com.docker|vpnkit') {
+        Escribir-Aviso ('Ese proceso no es Docker: definí POSTGRES_PORT con otro puerto en el .env de la raíz (por ejemplo 5433), ajustá DB_URL en backend/.env y volvé a ejecutar.')
+    }
     $dockerDisponible = $false
 }
 if (-not $dockerDisponible -and $LimpiarBase) {
@@ -323,20 +394,26 @@ if ($dockerDisponible) {
         if (-not $baseLista) { Start-Sleep -Seconds 2 }
     }
     if ($baseLista) {
-        Escribir-Ok 'PostgreSQL listo en localhost:5432'
+        Escribir-Ok ("PostgreSQL listo en localhost:{0}" -f $puertoBase)
     } else {
         Escribir-Aviso 'PostgreSQL no reportó "healthy": sigo igual y verifico la conexión al arrancar la API.'
     }
 } else {
-    Escribir-Aviso 'Sin Docker propio: se usa el PostgreSQL que ya esté escuchando en localhost:5432'
+    Escribir-Aviso ("Sin Docker propio: se usa el PostgreSQL que ya esté escuchando en localhost:{0}" -f $puertoBase)
 }
 
 # Si backend/.env apunta a otro usuario/base que el contenedor, -LimpiarBase no afecta los datos reales
 $envBackend = Join-Path $raiz 'backend\.env'
 if (Test-Path $envBackend) {
     $usuarioApp = 'dulcemayor'
+    $puertoApp = $puertoBase
     foreach ($linea in Get-Content $envBackend) {
         if ($linea -match '^\s*DB_USERNAME\s*=\s*(.+)$') { $usuarioApp = $matches[1].Trim() }
+        if ($linea -match '^\s*DB_URL\s*=.*:(\d+)/') { $puertoApp = [int]$matches[1] }
+    }
+    if ($puertoApp -ne $puertoBase) {
+        Escribir-Aviso ("backend/.env apunta a la base en el puerto {0} pero el contenedor publica el {1}: la API NO usa la base de Docker." -f $puertoApp, $puertoBase)
+        Escribir-Aviso ('Ajustá DB_URL en backend/.env a jdbc:postgresql://localhost:{0}/<base> o cambiá POSTGRES_PORT en el .env de la raíz.' -f $puertoBase)
     }
     $idContenedor = (& docker compose -f (Join-Path $raiz 'docker-compose.yml') ps -q postgres 2>&1 | Out-String).Trim()
     if ($idContenedor) {
@@ -405,7 +482,18 @@ foreach ($servicio in $servicios) {
     $salida = Join-Path $carpetaLogs ('{0}.log' -f $servicio.Nombre)
 
     if (Puerto-Abierto $servicio.Puerto) {
-        Escribir-Aviso ('{0}: el puerto {1} ya está en uso, se omite' -f $servicio.Etiqueta, $servicio.Puerto)
+        # Puede ser una instancia anterior de este mismo script: se registra para poder detenerla
+        $dueno = Proceso-DuenoDePuerto $servicio.Puerto
+        $envoltorio = 0
+        if ($dueno -gt 0) { $envoltorio = Envoltorio-Propio $dueno }
+        if ($envoltorio -gt 0) {
+            $lanzados += @{ nombre = $servicio.Nombre; pid = $envoltorio; puerto = $servicio.Puerto }
+            Escribir-Ok ('{0} ya estaba en ejecución en el puerto {1} (PID {2})' -f $servicio.Etiqueta, $servicio.Puerto, $envoltorio)
+        } else {
+            $nombreDueno = ''
+            if ($dueno -gt 0) { $nombreDueno = (Get-Process -Id $dueno -ErrorAction SilentlyContinue).ProcessName }
+            Escribir-Aviso ('{0}: el puerto {1} lo ocupa otro programa (PID {2}, {3}); se omite. Detenelo o usá -Detener para liberar los del script.' -f $servicio.Etiqueta, $servicio.Puerto, $dueno, $nombreDueno)
+        }
         continue
     }
 
@@ -521,3 +609,10 @@ if ($AbrirNavegador) {
         if ($resultado) { Start-Process $urls[$nombre] }
     }
 }
+
+# Código de salida explícito: lo usan levantar.cmd y las tareas de CI
+$fallidos = @($resultados | Where-Object { -not $_.listo })
+if ($fallidos.Count -gt 0) {
+    exit 1
+}
+exit 0

@@ -124,7 +124,15 @@ docker compose up -d postgres
 docker compose ps
 ```
 
-Compose conserva los datos en el volumen `dulce-mayor_postgres-data`. Para eliminar la base y volver a empezar, ejecutar explícitamente `docker compose down -v` (borra los datos). Usuario/base/contraseña por defecto son únicamente para desarrollo local y pueden sustituirse con `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` y `POSTGRES_PORT` en el entorno.
+Compose conserva los datos en el volumen `dulce-mayor_postgres-data`. Para eliminar la base y volver a empezar, ejecutar explícitamente `docker compose down -v` (borra los datos). Usuario/base/contraseña por defecto son únicamente para desarrollo local y pueden sustituirse con `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` y `POSTGRES_PORT`. Los cuatro valores se leen del archivo `.env` de la raíz del proyecto (Compose lo carga solo), así que no hace falta definirlos como variables de entorno del sistema.
+
+> **Si ya hay un PostgreSQL instalado como servicio de Windows** (por ejemplo `postgresql-x64-18`), ese servicio ocupa el puerto 5432 y el contenedor queda inalcanzable aunque figure *healthy*. En ese caso:
+>
+> 1. Elegir otro puerto en el `.env` de la raíz: `POSTGRES_PORT=5433`.
+> 2. Apuntar la API a ese mismo puerto en `backend/.env`: `DB_URL=jdbc:postgresql://localhost:5433/dulcemayor`.
+> 3. Volver a crear el contenedor para que publique el puerto nuevo: `docker compose down` y `docker compose up -d postgres`.
+>
+> El síntoma de haber quedado desalineados los puertos es un fallo de arranque del backend con `Unable to determine Dialect without JDBC metadata`: Hibernate lo informa así, pero la causa real es que no pudo conectarse (`password authentication failed` o conexión rechazada). `levantar.ps1` avisa si detecta esa diferencia entre `POSTGRES_PORT` y el `DB_URL`.
 
 ### Arranque con un solo comando (recomendado)
 
@@ -170,11 +178,21 @@ Detalles de comportamiento:
 
 - Los procesos se lanzan **desacoplados**: siguen corriendo cuando el script termina. Los PIDs quedan en
   `.run\pids.json` y los logs en `.run\logs`.
-- Si el puerto de un servicio ya está en uso, ese servicio se omite y se avisa.
-- Si ya hay un PostgreSQL escuchando en 5432 (instalación local), se usa ese y no se inicia el contenedor; en ese
-  caso `-LimpiarBase` avisa que no puede recrearlo automáticamente (habría que hacer
-  `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` a mano o detener el servicio externo).
+- Si el puerto de un servicio ya lo ocupa una instancia lanzada antes por este mismo script, la reconoce, la
+  informa como *ya en ejecución* y la registra para poder detenerla. Si lo ocupa otro programa, lo avisa con el
+  nombre y el PID del proceso, y ese servicio se omite (no se duplica).
+- `-Detener` termina el árbol completo de cada servicio y además barre cualquier envoltorio residual de
+  `.run\scripts`, de modo que los puertos quedan libres aunque `pids.json` se haya perdido. Al final informa los
+  puertos que sigan ocupados por programas ajenos al script.
+- El puerto de PostgreSQL se toma de `POSTGRES_PORT` en el `.env` de la raíz (5432 por defecto). Si ya hay algo
+  escuchando ahí y no es el contenedor, se reutiliza esa base; cuando el proceso dueño no es Docker, se avisa que
+  conviene elegir otro puerto con `POSTGRES_PORT`.
+- `-LimpiarBase` borra el volumen de Docker y lo recrea vacío. Solo tiene efecto sobre los datos que ve la API si
+  `DB_URL` de `backend/.env` apunta al puerto que publica el contenedor y usa el mismo usuario; el script avisa
+  cuando detecta lo contrario para que nadie se quede con datos viejos creyendo que se reiniciaron.
 - `-Solo` acepta tanto `-Solo backend,admin-web` como `-Solo "backend,admin-web"`.
+- El script termina con código 0 si todos los servicios responden y distinto de 0 si alguno no arrancó, para poder
+  encadenarlo en otras tareas.
 
 ### Arranque manual (Windows)
 
@@ -184,7 +202,7 @@ cd admin-web         && mvnw.cmd spring-boot:run
 cd institucional-web && mvnw.cmd spring-boot:run
 ```
 
-El backend toma PostgreSQL local de `application.properties` de forma predeterminada. Si se configura `backend/.env`, establecer `DB_URL=jdbc:postgresql://localhost:5432/dulcemayor`, `DB_USERNAME=dulcemayor` y `DB_PASSWORD=dulcemayor_dev`, o los valores que se hayan configurado en Compose. En entornos persistentes existentes mantener `JPA_DDL_AUTO=update` hasta que haya migraciones revisadas; no usar `create` salvo que se quiera borrar/recrear el esquema.
+El backend toma PostgreSQL local de `application.properties` de forma predeterminada. Si se configura `backend/.env`, establecer `DB_URL=jdbc:postgresql://localhost:<puerto>/dulcemayor`, `DB_USERNAME=dulcemayor` y `DB_PASSWORD=dulce-mayor_dev` (o los valores configurados en Compose), usando el mismo puerto que `POSTGRES_PORT` en el `.env` de la raíz. En entornos persistentes existentes mantener `JPA_DDL_AUTO=update` hasta que haya migraciones revisadas; no usar `create` salvo que se quiera borrar/recrear el esquema.
 
 ### Primer ingreso
 
