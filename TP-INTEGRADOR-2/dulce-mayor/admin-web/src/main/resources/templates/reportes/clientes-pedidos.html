@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Reportes · Clientes y pedidos')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Reportes')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Clientes y pedidos</h1>
+                    <p>Comercios minoristas con sus pedidos, estado de envío y monto facturado. Los pedidos se ubican en el período por su fecha de carga.</p>
+                </div>
+            </div>
+            <nav class="pestanias" aria-label="Reportes">
+                <a th:href="@{/reportes/clientes-pedidos}" class="activo">Clientes y pedidos</a>
+                <a th:href="@{/reportes/ventas}">Histórico de ventas</a>
+            </nav>
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <form class="tarjeta form-pagina" th:action="@{/reportes/clientes-pedidos}" method="get" data-envio-unico>
+                <div class="fila-campos tres">
+                    <div class="campo"><label for="desde">Desde</label>
+                        <input class="control" type="date" id="desde" name="desde" th:value="${filtro.desde}"></div>
+                    <div class="campo"><label for="hasta">Hasta</label>
+                        <input class="control" type="date" id="hasta" name="hasta" th:value="${filtro.hasta}"></div>
+                    <div class="campo"><label for="idDepartamento">Departamento</label>
+                        <select class="control" id="idDepartamento" name="idDepartamento">
+                            <option value="">Todos</option>
+                            <option th:each="d : ${departamentos}" th:value="${d.id}" th:text="${d.nombre}"
+                                    th:selected="${d.id == filtro.idDepartamento}">Departamento</option>
+                        </select></div>
+                </div>
+                <div class="fila-campos tres">
+                    <div class="campo"><label for="estado">Estado del pedido</label>
+                        <select class="control" id="estado" name="estado">
+                            <option value="">Todos</option>
+                            <option th:each="e : ${estados}" th:value="${e.id}" th:text="${e.nombre}"
+                                    th:selected="${e.id == filtro.estado}">Estado</option>
+                        </select></div>
+                </div>
+                <div class="barra-acciones">
+                    <a class="btn btn-fantasma" th:href="@{/reportes/clientes-pedidos}">Limpiar</a>
+                    <button type="submit" class="btn btn-primario"><svg class="icono icono-sm"><use href="#i-buscar"/></svg>Consultar</button>
+                </div>
+            </form>
+
+            <th:block th:if="${reporte != null}">
+                <div class="kpis mt-4">
+                    <div class="kpi"><span class="kpi-icono tono-violeta"><svg class="icono"><use href="#i-tienda"/></svg></span>
+                        <span class="kpi-etiqueta">Comercios</span><span class="kpi-valor" th:text="${reporte.cantidadComercios}">0</span></div>
+                    <div class="kpi"><span class="kpi-icono tono-azul"><svg class="icono"><use href="#i-pedido"/></svg></span>
+                        <span class="kpi-etiqueta">Pedidos</span><span class="kpi-valor" th:text="${reporte.cantidadPedidos}">0</span></div>
+                    <div class="kpi"><span class="kpi-icono tono-verde"><svg class="icono"><use href="#i-camion"/></svg></span>
+                        <span class="kpi-etiqueta">Entregados</span><span class="kpi-valor" th:text="${reporte.cantidadEntregados}">0</span>
+                        <span class="kpi-pie" th:text="${reporte.cantidadPendientesDeEntrega} + ' pendientes de entrega'">0 pendientes</span></div>
+                    <div class="kpi"><span class="kpi-icono tono-magenta"><svg class="icono"><use href="#i-factura"/></svg></span>
+                        <span class="kpi-etiqueta">Total facturado</span>
+                        <span class="kpi-valor" th:text="'$ ' + ${#numbers.formatDecimal(reporte.totalFacturado, 1, 'POINT', 2, 'COMMA')}">$ 0,00</span></div>
+                </div>
+
+                <div class="barra-acciones" style="justify-content:flex-start;flex-wrap:wrap">
+                    <a class="btn btn-secundario"
+                       th:href="@{/reportes/clientes-pedidos/pdf(desde=${filtro.desde},hasta=${filtro.hasta},idDepartamento=${filtro.idDepartamento},estado=${filtro.estado})}">
+                        <svg class="icono icono-sm"><use href="#i-documento"/></svg>Descargar PDF</a>
+                    <a class="btn btn-secundario"
+                       th:href="@{/reportes/clientes-pedidos/excel(desde=${filtro.desde},hasta=${filtro.hasta},idDepartamento=${filtro.idDepartamento},estado=${filtro.estado})}">
+                        <svg class="icono icono-sm"><use href="#i-grafico"/></svg>Descargar Excel</a>
+                </div>
+
+                <section class="tarjeta tarjeta-tabla mt-4">
+                    <div class="vacio" th:if="${reporte.pedidos.isEmpty()}">
+                        <svg class="icono"><use href="#i-pedido"/></svg>
+                        <p class="mb-0">No hay pedidos para los filtros elegidos.</p>
+                    </div>
+                    <table class="tabla tabla-apilable" th:unless="${reporte.pedidos.isEmpty()}">
+                        <thead><tr><th>Cliente</th><th>Comercio</th><th>Pedido</th><th>Preventista</th><th>Estado</th>
+                            <th>Envío</th><th>Facturación</th><th>Entrega</th><th>Monto facturado</th></tr></thead>
+                        <tbody>
+                        <tr th:each="p : ${reporte.pedidos}">
+                            <td class="celda-principal">
+                                <strong th:text="${p.nombreCliente}">Cliente</strong><br>
+                                <small class="texto-secundario" th:text="${p.numeroDocumentoCliente != null} ? 'Doc. ' + ${p.numeroDocumentoCliente} : 'Documento sin informar'">doc</small><br>
+                                <small class="texto-secundario" th:text="${p.correoCliente}">correo</small>
+                            </td>
+                            <td data-label="Comercio"><span th:text="${p.nombreComercio}">Comercio</span><br>
+                                <small class="texto-secundario" th:text="${p.departamento} + ' · ' + ${p.domicilioComercio}">dir</small></td>
+                            <td data-label="Pedido"><strong th:text="'N.º ' + ${p.numeroPedido}">N.º</strong><br>
+                                <small class="texto-secundario" th:text="${p.cargaLegible}">fecha</small></td>
+                            <td data-label="Preventista" th:text="${p.preventista}">Preventista</td>
+                            <td data-label="Estado" th:switch="${p.estado}">
+                                <span th:case="'ENTREGADO'" class="insignia insignia-verde" th:text="${p.descripcionEstado}">Entregado</span>
+                                <span th:case="'PENDIENTE_DE_ENTREGA'" class="insignia insignia-naranja" th:text="${p.descripcionEstado}">Pendiente</span>
+                                <span th:case="'ANULADO'" class="insignia insignia-roja" th:text="${p.descripcionEstado}">Anulado</span>
+                                <span th:case="*" class="insignia insignia-gris" th:text="${p.descripcionEstado}">Cargado</span>
+                            </td>
+                            <td data-label="Envío"><span th:text="${p.estadoEnvio}">Envío</span>
+                                <br th:if="${p.distribuidor != null}"><small class="texto-secundario" th:if="${p.distribuidor != null}" th:text="${p.distribuidor}">Distribuidor</small></td>
+                            <td data-label="Facturación" th:text="${p.fechaFacturacion != null} ? ${p.facturacionLegible} : '-'">-</td>
+                            <td data-label="Entrega" th:text="${p.fechaEntrega != null} ? ${p.entregaLegible} : '-'">-</td>
+                            <td data-label="Monto facturado"><strong th:text="${p.montoFacturado != null} ? '$ ' + ${#numbers.formatDecimal(p.montoFacturado, 1, 'POINT', 2, 'COMMA')} : '-'">-</strong></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+                <p class="texto-chico texto-secundario mt-4"
+                   th:text="'Generado por ' + ${reporte.generadoPor} + ' el ' + ${reporte.generadoEnLegible}">Generado</p>
+            </th:block>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

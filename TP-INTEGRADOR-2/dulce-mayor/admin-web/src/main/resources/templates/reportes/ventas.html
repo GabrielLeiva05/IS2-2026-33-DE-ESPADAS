@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Reportes · Histórico de ventas')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Reportes')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Histórico de ventas</h1>
+                    <p>Ventas confirmadas por los clientes en un período, por departamento y preventista. Se ubican por su fecha de facturación.</p>
+                </div>
+            </div>
+            <nav class="pestanias" aria-label="Reportes">
+                <a th:href="@{/reportes/clientes-pedidos}">Clientes y pedidos</a>
+                <a th:href="@{/reportes/ventas}" class="activo">Histórico de ventas</a>
+            </nav>
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <form class="tarjeta form-pagina" th:action="@{/reportes/ventas}" method="get" data-envio-unico>
+                <input type="hidden" name="consultar" value="1">
+                <div class="fila-campos dos">
+                    <div class="campo"><label class="requerido" for="desde">Fecha de inicio</label>
+                        <input class="control" type="date" id="desde" name="desde" required th:value="${filtro.desde}"></div>
+                    <div class="campo"><label class="requerido" for="hasta">Fecha de finalización</label>
+                        <input class="control" type="date" id="hasta" name="hasta" required th:value="${filtro.hasta}"></div>
+                </div>
+                <div class="fila-campos dos">
+                    <div class="campo"><label for="idDepartamento">Departamento</label>
+                        <select class="control" id="idDepartamento" name="idDepartamento">
+                            <option value="">Todos</option>
+                            <option th:each="d : ${departamentos}" th:value="${d.id}" th:text="${d.nombre}"
+                                    th:selected="${d.id == filtro.idDepartamento}">Departamento</option>
+                        </select></div>
+                    <div class="campo"><label for="idPreventista">Preventista</label>
+                        <select class="control" id="idPreventista" name="idPreventista">
+                            <option value="">Todos</option>
+                            <option th:each="p : ${preventistas}" th:value="${p.id}" th:text="${p.nombreCompleto}"
+                                    th:selected="${p.id == filtro.idPreventista}">Preventista</option>
+                        </select></div>
+                </div>
+                <div class="barra-acciones">
+                    <a class="btn btn-fantasma" th:href="@{/reportes/ventas}">Limpiar</a>
+                    <button type="submit" class="btn btn-primario"><svg class="icono icono-sm"><use href="#i-buscar"/></svg>Consultar</button>
+                </div>
+            </form>
+
+            <th:block th:if="${reporte != null}">
+                <div class="kpis mt-4">
+                    <div class="kpi"><span class="kpi-icono tono-azul"><svg class="icono"><use href="#i-pedido"/></svg></span>
+                        <span class="kpi-etiqueta">Pedidos vendidos</span><span class="kpi-valor" th:text="${reporte.cantidadPedidos}">0</span></div>
+                    <div class="kpi"><span class="kpi-icono tono-violeta"><svg class="icono"><use href="#i-tienda"/></svg></span>
+                        <span class="kpi-etiqueta">Clientes</span><span class="kpi-valor" th:text="${reporte.cantidadClientes}">0</span></div>
+                    <div class="kpi"><span class="kpi-icono tono-magenta"><svg class="icono"><use href="#i-factura"/></svg></span>
+                        <span class="kpi-etiqueta">Total del período</span>
+                        <span class="kpi-valor" th:text="'$ ' + ${#numbers.formatDecimal(reporte.totalGeneral, 1, 'POINT', 2, 'COMMA')}">$ 0,00</span></div>
+                </div>
+
+                <div class="barra-acciones" style="justify-content:flex-start;flex-wrap:wrap">
+                    <a class="btn btn-secundario"
+                       th:href="@{/reportes/ventas/excel(desde=${filtro.desde},hasta=${filtro.hasta},idDepartamento=${filtro.idDepartamento},idPreventista=${filtro.idPreventista})}">
+                        <svg class="icono icono-sm"><use href="#i-grafico"/></svg>Descargar Excel</a>
+                </div>
+
+                    <section class="tarjeta tarjeta-tabla mt-4">
+                        <div class="tarjeta-encabezado" style="padding:var(--dm-e-4) var(--dm-e-4) 0"><h2>Ventas por departamento</h2></div>
+                        <div class="vacio" th:if="${reporte.porDepartamento.isEmpty()}"><p class="mb-0">Sin ventas en el período.</p></div>
+                        <table class="tabla tabla-apilable" th:unless="${reporte.porDepartamento.isEmpty()}">
+                            <thead><tr><th>Departamento</th><th>Pedidos</th><th>Total vendido</th></tr></thead>
+                            <tbody>
+                            <tr th:each="s : ${reporte.porDepartamento}">
+                                <td class="celda-principal" th:text="${s.departamento}">Departamento</td>
+                                
+                                <td data-label="Pedidos" th:text="${s.cantidadPedidos}">0</td>
+                                <td data-label="Total vendido"><strong th:text="'$ ' + ${#numbers.formatDecimal(s.total, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    <section class="tarjeta tarjeta-tabla mt-4">
+                        <div class="tarjeta-encabezado" style="padding:var(--dm-e-4) var(--dm-e-4) 0"><h2>Ventas por preventista</h2></div>
+                        <div class="vacio" th:if="${reporte.porPreventista.isEmpty()}"><p class="mb-0">Sin ventas en el período.</p></div>
+                        <table class="tabla tabla-apilable" th:unless="${reporte.porPreventista.isEmpty()}">
+                            <thead><tr><th>Preventista</th><th>Pedidos</th><th>Total vendido</th></tr></thead>
+                            <tbody>
+                            <tr th:each="s : ${reporte.porPreventista}">
+                                
+                                <td class="celda-principal" th:text="${s.preventista}">Preventista</td>
+                                <td data-label="Pedidos" th:text="${s.cantidadPedidos}">0</td>
+                                <td data-label="Total vendido"><strong th:text="'$ ' + ${#numbers.formatDecimal(s.total, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+                    <section class="tarjeta tarjeta-tabla mt-4">
+                        <div class="tarjeta-encabezado" style="padding:var(--dm-e-4) var(--dm-e-4) 0"><h2>Ventas por departamento y preventista</h2></div>
+                        <div class="vacio" th:if="${reporte.porDepartamentoYPreventista.isEmpty()}"><p class="mb-0">Sin ventas en el período.</p></div>
+                        <table class="tabla tabla-apilable" th:unless="${reporte.porDepartamentoYPreventista.isEmpty()}">
+                            <thead><tr><th>Departamento</th><th>Preventista</th><th>Pedidos</th><th>Total vendido</th></tr></thead>
+                            <tbody>
+                            <tr th:each="s : ${reporte.porDepartamentoYPreventista}">
+                                <td class="celda-principal" th:text="${s.departamento}">Departamento</td>
+                                <td data-label="Preventista" th:text="${s.preventista}">Preventista</td>
+                                <td data-label="Pedidos" th:text="${s.cantidadPedidos}">0</td>
+                                <td data-label="Total vendido"><strong th:text="'$ ' + ${#numbers.formatDecimal(s.total, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                <section class="tarjeta tarjeta-tabla mt-4">
+                    <div class="tarjeta-encabezado" style="padding:var(--dm-e-4) var(--dm-e-4) 0"><h2>Detalle de ventas</h2></div>
+                    <div class="vacio" th:if="${reporte.ventas.isEmpty()}">
+                        <svg class="icono"><use href="#i-pedido"/></svg>
+                        <p class="mb-0">No hay ventas en el período elegido.</p>
+                    </div>
+                    <table class="tabla tabla-apilable" th:unless="${reporte.ventas.isEmpty()}">
+                        <thead><tr><th>Departamento</th><th>Preventista</th><th>Cliente</th><th>Pedido</th><th>Fecha</th><th>Subtotal</th><th>Descuento</th><th>Total</th></tr></thead>
+                        <tbody>
+                        <tr th:each="v : ${reporte.ventas}">
+                            <td class="celda-principal" th:text="${v.departamento}">Departamento</td>
+                            <td data-label="Preventista" th:text="${v.preventista}">Preventista</td>
+                            <td data-label="Cliente"><span th:text="${v.nombreCliente}">Cliente</span><br>
+                                <small class="texto-secundario" th:text="${v.nombreComercio}">Comercio</small></td>
+                            <td data-label="Pedido" th:text="'N.º ' + ${v.numeroPedido}">N.º</td>
+                            <td data-label="Fecha" th:text="${v.fechaLegible}">fecha</td>
+                            <td data-label="Subtotal" th:text="'$ ' + ${#numbers.formatDecimal(v.subtotal, 1, 'POINT', 2, 'COMMA')}">$</td>
+                            <td data-label="Descuento" th:text="'$ ' + ${#numbers.formatDecimal(v.descuento, 1, 'POINT', 2, 'COMMA')}">$</td>
+                            <td data-label="Total"><strong th:text="'$ ' + ${#numbers.formatDecimal(v.total, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </section>
+                <p class="texto-chico texto-secundario mt-4"
+                   th:text="'Generado por ' + ${reporte.generadoPor} + ' el ' + ${reporte.generadoEnLegible}">Generado</p>
+            </th:block>
+
+            <p class="texto-secundario mt-4" th:if="${reporte == null and error == null}">
+                Elegí el período y presioná Consultar para ver las ventas y descargar el Excel.</p>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -39,6 +40,7 @@ import java.util.Map;
  * Es idempotente: si los datos ya existen, no los vuelve a crear.
  */
 @Component
+@Order(1)
 public class InicializadorDatos implements ApplicationRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(InicializadorDatos.class);

@@ -339,6 +339,26 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
     }
 
     // ------------------------------------------------------------------
+    // Reportes administrativos (los consume ServicioReporte; este servicio es el único dueño de RepositorioPedido)
+    // ------------------------------------------------------------------
+
+    /** Pedidos activos cargados entre las dos fechas (hastaExclusivo no se incluye), del más antiguo al más nuevo. */
+    @Transactional(readOnly = true)
+    public List<Pedido> listarEntidadesCargadasEntre(LocalDateTime desde, LocalDateTime hastaExclusivo) {
+        return repositorioPedido
+                .findByEliminadoFalseAndFechaHoraCargaGreaterThanEqualAndFechaHoraCargaLessThanOrderByFechaHoraCargaAsc(
+                        desde, hastaExclusivo);
+    }
+
+    /** Pedidos activos confirmados (con fecha de facturación) entre las dos fechas (hastaExclusivo no se incluye). */
+    @Transactional(readOnly = true)
+    public List<Pedido> listarEntidadesFacturadasEntre(LocalDateTime desde, LocalDateTime hastaExclusivo) {
+        return repositorioPedido
+                .findByEliminadoFalseAndFechaFacturacionGreaterThanEqualAndFechaFacturacionLessThanOrderByFechaFacturacionAsc(
+                        desde, hastaExclusivo);
+    }
+
+    // ------------------------------------------------------------------
     // Distribuidor
     // ------------------------------------------------------------------
 

@@ -17,6 +17,9 @@
         <java.version>25</java.version>
         <!-- Misma versión de jjwt que Blockazo (probada con Spring Boot 4) -->
         <jjwt.version>0.12.6</jjwt.version>
+        <!-- Reportes: Excel (.xlsx) y PDF. La versión de JasperReports es la de la plantilla JRXML (Jaspersoft Studio 6.20.6) -->
+        <poi.version>5.4.1</poi.version>
+        <jasperreports.version>6.20.6</jasperreports.version>
     </properties>
     <dependencies>
         <!-- Mismas dependencias base que el Integrador 1 (mismas versiones, gestionadas por el parent) -->
@@ -54,6 +57,18 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
+        </dependency>
+        <!-- Exportación a Excel (.xlsx) del reporte de clientes y del histórico de ventas -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <!-- Exportación a PDF del reporte de clientes y pedidos (plantilla JRXML) -->
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+            <version>${jasperreports.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

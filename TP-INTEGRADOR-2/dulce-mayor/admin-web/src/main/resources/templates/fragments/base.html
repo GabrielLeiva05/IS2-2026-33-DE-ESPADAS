@@ -46,13 +46,15 @@
             <svg class="icono"><use href="#i-factura"/></svg>Facturas</a></li>
         <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/proveedores}" th:classappend="${#strings.startsWith(rutaActual, '/proveedores')} ? 'activo'">
             <svg class="icono"><use href="#i-documento"/></svg>Proveedores</a></li>
+        <li th:if="${sesion != null and sesion.jefe}"><a th:href="@{/reportes/clientes-pedidos}" th:classappend="${#strings.startsWith(rutaActual, '/reportes')} ? 'activo'">
+            <svg class="icono"><use href="#i-grafico"/></svg>Reportes</a></li>
         <li><a th:href="@{/cambiar-clave}" th:classappend="${rutaActual == '/cambiar-clave'} ? 'activo'">
             <svg class="icono"><use href="#i-llave"/></svg>Mi contraseña</a></li>
     </ul>
     <p class="menu-titulo">Próximos módulos</p>
     <ul class="menu" aria-label="Módulos todavía no disponibles">
         <li><span class="menu-item pendiente"><svg class="icono"><use href="#i-etiqueta"/></svg>Promociones<span class="insignia insignia-gris">Pronto</span></span></li>
-        <li><span class="menu-item pendiente"><svg class="icono"><use href="#i-tarjeta"/></svg>Pagos<span class="insignia insignia-gris">Pronto</span></span></li>
+        <li><span class="menu-item pendiente"><svg class="icono"><use href="#i-factura"/></svg>Facturación<span class="insignia insignia-gris">Pronto</span></span></li>
     </ul>
     <div class="sidebar-pie">
         <form th:action="@{/salir}" method="post">
