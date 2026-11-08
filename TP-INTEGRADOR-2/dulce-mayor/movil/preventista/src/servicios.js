@@ -8,7 +8,7 @@ const conUbicacion = (posicion) => (posicion ? { lat: posicion.latitud, lon: pos
 export const rutas = {
   /** Ruta de visitas de hoy, con el siguiente punto sugerido desde la posición (si se informa). */
   miRuta: (posicion) => api.get('/api/rutas/mia', { params: conUbicacion(posicion) }).then((r) => r.data),
-  /** Reordena los puntos pendientes por cercanía desde la posición actual (vecino más cercano). */
+  /** Optimiza en el backend el orden de los pendientes desde la posición actual (OSRM /table + optimizador). */
   ordenar: (posicion) => api.post('/api/rutas/mia/ordenar', { latitud: posicion.latitud, longitud: posicion.longitud }).then((r) => r.data),
   /** Visita sin pedido (botón "Siguiente punto" sin cargar pedido). */
   sinPedido: (idPuntoVenta, motivo) => api.post(`/api/rutas/mia/puntos/${encodeURIComponent(idPuntoVenta)}/sin-pedido`, { motivo }),

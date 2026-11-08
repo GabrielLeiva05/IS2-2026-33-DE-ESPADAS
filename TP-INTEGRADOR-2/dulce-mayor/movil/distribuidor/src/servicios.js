@@ -3,7 +3,7 @@ import { api } from '@comun/api/cliente.js'
 // Endpoints REST de la app del distribuidor (el backend exige el rol DISTRIBUIDOR y usa el usuario del token:
 // solo se ven y se modifican los pedidos asignados a quien inició sesión).
 export const entregas = {
-  /** Arma (o completa) la ruta de entregas de hoy con los comercios de los pedidos asignados y la ordena por cercanía. */
+  /** Arma (o completa) la ruta de entregas de hoy con los comercios de los pedidos asignados y optimiza su orden desde la ubicación. */
   generarRuta: (posicion) => api.post('/api/pedidos/entregas/ruta',
     posicion ? { latitud: posicion.latitud, longitud: posicion.longitud } : null).then((r) => r.data),
   consultarRuta: (posicion) => api.get('/api/pedidos/entregas/ruta',

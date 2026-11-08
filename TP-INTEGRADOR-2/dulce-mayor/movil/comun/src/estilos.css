@@ -266,3 +266,37 @@ textarea.control { min-height: 84px; resize: vertical; }
 .hoja h2 { font-size: 1.1rem; }
 .hoja-asa { width: 44px; height: 5px; border-radius: 4px; background: var(--dm-borde); margin: 0 auto 4px; }
 .opciones-motivo { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ---------- Tablets (Ola 3) ----------
+   En el teléfono todo va en una columna. Desde 768 px (tablet vertical) la app usa el ancho disponible:
+   las rutas muestran el mapa y la lista lado a lado, y los listados y formularios aprovechan dos columnas. */
+.dos-paneles { display: flex; flex-direction: column; gap: 14px; }
+.panel-mapa, .panel-lista { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+@media (min-width: 768px) {
+  #root { max-width: 1180px; }
+  .barra-inferior { max-width: 1180px; }
+  .barra-carrito { max-width: 640px; }
+  .hoja { max-width: 640px; border-radius: 20px; margin-bottom: 24px; }
+  .hoja-fondo { align-items: center; }
+  .contenido { padding: 20px 24px; }
+  .panel-mapa .mapa { height: min(46vh, 460px) !important; }
+  /* Listados (catálogo, pedidos): dos columnas de tarjetas */
+  .lista-grilla { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  /* Formularios: ancho de lectura cómodo, centrados */
+  .contenido > .formulario, .contenido > form, .contenido > .tarjeta { width: 100%; max-width: 760px; margin-inline: auto; }
+  .boton { min-height: 48px; }
+  .item { padding: 14px 16px; }
+  .pantalla-acceso > * { width: 100%; max-width: 520px; margin-inline: auto; }
+}
+
+/* Tablet horizontal: mapa y lista lado a lado (en vertical van uno debajo del otro, con el mapa más alto) */
+@media (min-width: 960px) {
+  .dos-paneles { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .panel-mapa { position: sticky; top: 92px; z-index: 1; }
+  .panel-mapa .mapa { height: min(58vh, 560px) !important; }
+}
+
+@media (min-width: 1100px) {
+  .lista-grilla { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

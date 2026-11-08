@@ -110,7 +110,7 @@ class FlujoPedidosIntegrationTest {
     private String empleado(String jefe, String rol, String correo, String dni, String idLocalidad) throws Exception {
         String json = """
                 {"nombre":"Juan","apellido":"Pérez","fechaNacimiento":"1990-05-20","tipoDocumento":"DNI",
-                 "numeroDocumento":"%s","correo":"%s","rol":"%s","zona":"Centro","vehiculo":"Kangoo","patente":"AB123CD",
+                 "numeroDocumento":"%s","correo":"%s","rol":"%s","vehiculo":"Kangoo","patente":"AB123CD",
                  "direccion":{"calle":"Colón","numeracion":"100","idLocalidad":"%s"}}
                 """.formatted(dni, correo, rol, idLocalidad);
         return JsonPath.read(enviar("POST", "/api/empleados", jefe, json, 201), "$.id");
@@ -145,9 +145,9 @@ class FlujoPedidosIntegrationTest {
         String distribuidor = habilitar("dist@dm.test");
         String alfajor = producto("ALF-1", 1000, 10);
 
-        // Alta de cliente en el celular del preventista: el cliente elige su clave
+        // Alta de cliente en el celular del preventista: queda con la clave temporal y debe cambiarla
         String idCliente = JsonPath.read(enviar("POST", "/api/clientes/campo", preventista, """
-                {"nombre":"Ana","apellido":"López","correo":"ana@kiosco.test","clave":"Kiosco2026","confirmacionClave":"Kiosco2026"}
+                {"nombre":"Ana","apellido":"López","correo":"ana@kiosco.test","tipoDocumento":"DNI","numeroDocumento":"28111222","fechaNacimiento":"1985-03-10"}
                 """, 201), "$.id");
         // Punto de venta (HU-17) con coordenadas; sin coordenadas se rechaza
         enviar("POST", "/api/puntos-venta", preventista, """
@@ -181,11 +181,12 @@ class FlujoPedidosIntegrationTest {
                 .andExpect(jsonPath("$.ruta.puntos[0].resultado").value("CON_PEDIDO"));
 
         // El cliente ve y confirma SU pedido (por POST); otro cliente no lo ve
-        String cliente = login("ana@kiosco.test", "Kiosco2026");
+        String cliente = habilitar("ana@kiosco.test");
         enviar("POST", "/api/auth/registro", null, """
-                {"nombre":"Beto","apellido":"Sosa","correo":"beto@almacen.test","clave":"Almacen2026","confirmacionClave":"Almacen2026"}
+                {"nombre":"Beto","apellido":"Sosa","correo":"beto@almacen.test","clave":"Almacen2026","confirmacionClave":"Almacen2026",
+                 "tipoDocumento":"DNI","numeroDocumento":"29333444","fechaNacimiento":"1985-03-10"}
                 """, 201);
-        String otroCliente = login("beto@almacen.test", "Almacen2026");
+        String otroCliente = login("beto@almacen.test", "Almacen2026"); // registro institucional: elige su clave
         enviar("GET", "/api/pedidos/mis-pedidos/" + idPedido, otroCliente, null, 404);
         enviar("GET", "/api/pedidos/mis-pedidos/" + idPedido + "/confirmar", cliente, null, 405);
         enviar("POST", "/api/pedidos/mis-pedidos/" + idPedido + "/confirmar", preventista, null, 403);
@@ -202,7 +203,7 @@ class FlujoPedidosIntegrationTest {
         mvc.perform(post("/api/pedidos/entregas/ruta").header("Authorization", distribuidor))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ruta.tipoRuta").value("ENTREGA"))
-                .andExpect(jsonPath("$.ruta.puntos[0].pedidos[0].total").value(3000.0));
+                .andExpect(jsonPath("$.ruta.puntos[0].pedidos[0].total").value(3630.0)); // total facturado: 3000 + IVA 21 %
 
         // Entrega no concretada: sigue pendiente; el stock no cambia
         enviar("POST", "/api/pedidos/entregas/" + idPv + "/no-entregado", distribuidor, "{\"motivo\":\"Local cerrado\"}", 204);
@@ -221,7 +222,7 @@ class FlujoPedidosIntegrationTest {
         String preventista = habilitar("prev@dm.test");
         String alfajor = producto("ALF-2", 500, 5);
         String idCliente = JsonPath.read(enviar("POST", "/api/clientes/campo", preventista, """
-                {"nombre":"Ana","apellido":"López","correo":"ana@kiosco.test","clave":"Kiosco2026","confirmacionClave":"Kiosco2026"}
+                {"nombre":"Ana","apellido":"López","correo":"ana@kiosco.test","tipoDocumento":"DNI","numeroDocumento":"28111222","fechaNacimiento":"1985-03-10"}
                 """, 201), "$.id");
         String idPv = JsonPath.read(enviar("POST", "/api/puntos-venta", preventista, """
                 {"nombreFantasia":"Kiosco","razonSocial":"Ana López","cuit":"20123456786","condicionIva":"MONOTRIBUTISTA",
@@ -231,7 +232,7 @@ class FlujoPedidosIntegrationTest {
                 "{\"idPuntoVenta\":\"%s\",\"detalles\":[{\"idProducto\":\"%s\",\"cantidad\":4}]}".formatted(idPv, alfajor), 201), "$.id");
         assertEquals(1, servicioStock.cantidadDisponible(alfajor));
 
-        String cliente = login("ana@kiosco.test", "Kiosco2026");
+        String cliente = habilitar("ana@kiosco.test");
         enviar("POST", "/api/pedidos/mis-pedidos/" + idPedido + "/anular", cliente, null, 200);
         assertEquals(5, servicioStock.cantidadDisponible(alfajor));
         enviar("POST", "/api/pedidos/mis-pedidos/" + idPedido + "/anular", cliente, null, 400);
@@ -246,7 +247,8 @@ class FlujoPedidosIntegrationTest {
         enviar("GET", "/api/pedidos/entregas/pendientes", jefe, null, 403);
         enviar("GET", "/api/mapas/geocodificar?direccion=Belgrano 441", null, null, 401);
         enviar("POST", "/api/auth/registro", null, """
-                {"nombre":"Beto","apellido":"Sosa","correo":"beto@almacen.test","clave":"Almacen2026","confirmacionClave":"Almacen2026"}
+                {"nombre":"Beto","apellido":"Sosa","correo":"beto@almacen.test","clave":"Almacen2026","confirmacionClave":"Almacen2026",
+                 "tipoDocumento":"DNI","numeroDocumento":"29333444","fechaNacimiento":"1985-03-10"}
                 """, 201);
         String cliente = login("beto@almacen.test", "Almacen2026");
         enviar("GET", "/api/pedidos/mis-pedidos", cliente, null, 200);

@@ -20,6 +20,7 @@ import com.ejercicioIntegrador.dulcemayor.model.Cliente;
 import com.ejercicioIntegrador.dulcemayor.model.DetallePedido;
 import com.ejercicioIntegrador.dulcemayor.model.Distribuidor;
 import com.ejercicioIntegrador.dulcemayor.model.Empleado;
+import com.ejercicioIntegrador.dulcemayor.model.FacturaCliente;
 import com.ejercicioIntegrador.dulcemayor.model.Pedido;
 import com.ejercicioIntegrador.dulcemayor.model.Preventista;
 import com.ejercicioIntegrador.dulcemayor.model.Producto;
@@ -61,6 +62,7 @@ import java.util.function.Function;
 public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoResponseDTO> {
 
     private final RepositorioPedido repositorioPedido;
+    private final ServicioFacturaCliente servicioFacturaCliente;
     private final ServicioEmpleado servicioEmpleado;
     private final ServicioCliente servicioCliente;
     private final ServicioPuntoVenta servicioPuntoVenta;
@@ -72,7 +74,8 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
     public ServicioPedido(RepositorioPedido repositorioPedido, ServicioEmpleado servicioEmpleado,
                           ServicioCliente servicioCliente, ServicioPuntoVenta servicioPuntoVenta,
                           ServicioProducto servicioProducto, ServicioCatalogo servicioCatalogo,
-                          ServicioStock servicioStock, ServicioRuta servicioRuta) {
+                          ServicioStock servicioStock, ServicioRuta servicioRuta,
+                          ServicioFacturaCliente servicioFacturaCliente) {
         super(repositorioPedido);
         this.repositorioPedido = repositorioPedido;
         this.servicioEmpleado = servicioEmpleado;
@@ -82,6 +85,7 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         this.servicioCatalogo = servicioCatalogo;
         this.servicioStock = servicioStock;
         this.servicioRuta = servicioRuta;
+        this.servicioFacturaCliente = servicioFacturaCliente;
     }
 
     // ------------------------------------------------------------------
@@ -165,6 +169,18 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
 
     @Override
     public PedidoResponseDTO convertirAResponse(Pedido pedido) {
+        return convertir(pedido, servicioFacturaCliente.facturaDelPedido(pedido.getId()).orElse(null));
+    }
+
+    /** Listados: las facturas de todos los pedidos se buscan en una sola consulta. */
+    @Override
+    protected List<PedidoResponseDTO> convertirAResponse(java.util.Collection<Pedido> pedidos) {
+        Map<String, FacturaCliente> facturas = servicioFacturaCliente.facturasDePedidos(
+                pedidos.stream().map(Pedido::getId).toList());
+        return pedidos.stream().map(p -> convertir(p, facturas.get(p.getId()))).toList();
+    }
+
+    private PedidoResponseDTO convertir(Pedido pedido, FacturaCliente factura) {
         PuntoVenta pv = pedido.getPuntoVenta();
         Cliente cliente = pv.getCliente();
         Preventista preventista = pedido.getPreventista();
@@ -185,7 +201,9 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
                 preventista.getNombre() + " " + preventista.getApellido(),
                 distribuidor == null ? null : distribuidor.getId(),
                 distribuidor == null ? null : distribuidor.getNombre() + " " + distribuidor.getApellido(),
-                detalles, pedido.isEliminado());
+                detalles, pedido.isEliminado(),
+                factura == null ? null : factura.getId(), factura == null ? null : factura.getNumeroFactura(),
+                factura == null ? null : factura.getTotal());
     }
 
     @Override
@@ -243,7 +261,13 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         return convertirAResponse(pedidoDelCliente(correoCliente, obtenerEntidad(id)));
     }
 
-    /** El cliente confirma un pedido CARGADO: queda PENDIENTE_DE_ENTREGA (se cobra al entregar). */
+    /**
+     * El cliente confirma un pedido CARGADO. En UNA transacción (con el pedido bloqueado):
+     *  1. se registra fechaFacturacion y el pedido pasa a PENDIENTE_DE_ENTREGA (sin Pagos se cobra al entregar);
+     *  2. se emite la FacturaCliente en PENDIENTE_PAGO (Ola 3), con los mismos renglones, precios y descuento.
+     * Si la factura no se puede emitir, se deshace todo y el pedido sigue CARGADO. Una segunda confirmación se
+     * rechaza (el pedido ya no está CARGADO) y la columna única pedido_id impide una factura duplicada.
+     */
     @Transactional(rollbackFor = Exception.class)
     public PedidoResponseDTO confirmarPedido(String correoCliente, String id) throws MiException {
         Pedido pedido = pedidoDelCliente(correoCliente, bloquear(id));
@@ -252,7 +276,9 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         }
         pedido.setFechaFacturacion(LocalDateTime.now());
         pedido.setEstado(EstadoPedido.PENDIENTE_DE_ENTREGA);
-        return convertirAResponse(repositorioPedido.save(pedido));
+        Pedido guardado = repositorioPedido.save(pedido);
+        FacturaCliente factura = servicioFacturaCliente.facturarPedido(guardado);
+        return convertir(guardado, factura);
     }
 
     /**
@@ -474,14 +500,58 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
                 .toList();
         List<Pedido> todos = new ArrayList<>(pendientes);
         todos.addAll(entregadosHoy);
+        Map<String, FacturaCliente> facturas = servicioFacturaCliente.facturasDePedidos(
+                todos.stream().map(Pedido::getId).toList());
         return puntoVenta -> todos.stream()
                 .filter(p -> p.getPuntoVenta().getId().equals(puntoVenta.getId()))
                 .map(p -> new PedidoResumenDTO(p.getId(), p.getNumeroPedido(), p.getEstado(),
-                        p.getDetalles().stream().mapToInt(DetallePedido::getCantidad).sum(), p.getTotal()))
+                        p.getDetalles().stream().mapToInt(DetallePedido::getCantidad).sum(),
+                        // A cobrar: el total facturado (con IVA); sin factura (datos anteriores) el del pedido
+                        facturas.containsKey(p.getId()) ? facturas.get(p.getId()).getTotal() : p.getTotal()))
                 .toList();
     }
 
     private static double redondear(double valor) {
         return Math.round(valor * 100.0) / 100.0;
+    }
+
+    // ------------------------------------------------------------------
+    // Estadísticas y consultas para otros módulos
+    // ------------------------------------------------------------------
+
+    /**
+     * Pedidos por preventista por día de un mes (gráfico de barras HU-43). Los datos salen de la base
+     * (pedidos no anulados, por fecha de carga); acá solo se agrupan por preventista y día.
+     */
+    @Transactional(readOnly = true)
+    public com.ejercicioIntegrador.dulcemayor.dto.PedidosPorPreventistaDTO pedidosPorPreventistaYDia(java.time.YearMonth mes) {
+        java.time.YearMonth periodo = mes == null ? java.time.YearMonth.now() : mes;
+        int dias = periodo.lengthOfMonth();
+        List<Object[]> filas = repositorioPedido.pedidosCargadosEntre(periodo.atDay(1).atStartOfDay(),
+                periodo.plusMonths(1).atDay(1).atStartOfDay(), EstadoPedido.ANULADO);
+        Map<String, String> nombres = new java.util.TreeMap<>();
+        Map<String, long[]> conteos = new LinkedHashMap<>();
+        for (Object[] fila : filas) {
+            String id = (String) fila[0];
+            nombres.putIfAbsent(id, (fila[1] + " " + fila[2]).trim());
+            int dia = ((LocalDateTime) fila[3]).getDayOfMonth();
+            conteos.computeIfAbsent(id, clave -> new long[dias])[dia - 1]++;
+        }
+        List<com.ejercicioIntegrador.dulcemayor.dto.PedidosPorPreventistaDTO.Serie> series = conteos.entrySet().stream()
+                .map(e -> new com.ejercicioIntegrador.dulcemayor.dto.PedidosPorPreventistaDTO.Serie(e.getKey(),
+                        nombres.get(e.getKey()),
+                        java.util.Arrays.stream(e.getValue()).boxed().toList(),
+                        java.util.Arrays.stream(e.getValue()).sum()))
+                .sorted(java.util.Comparator.comparing(com.ejercicioIntegrador.dulcemayor.dto.PedidosPorPreventistaDTO.Serie::preventista))
+                .toList();
+        return new com.ejercicioIntegrador.dulcemayor.dto.PedidosPorPreventistaDTO(periodo.toString(),
+                java.util.stream.IntStream.rangeClosed(1, dias).boxed().toList(), series, filas.size());
+    }
+
+    /** ¿El producto está en pedidos sin terminar? Lo consulta ServicioProducto antes de darlo de baja. */
+    @Transactional(readOnly = true)
+    public boolean hayPedidosAbiertosConProducto(String idProducto) {
+        return repositorioPedido.existenPedidosConProducto(idProducto,
+                List.of(EstadoPedido.CARGADO, EstadoPedido.PENDIENTE_DE_ENTREGA));
     }
 }

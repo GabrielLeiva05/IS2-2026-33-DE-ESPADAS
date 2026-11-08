@@ -1,5 +1,7 @@
 package com.ejercicioIntegrador.dulcemayor.service;
 
+import com.ejercicioIntegrador.dulcemayor.service.rutas.MatrizRecorrido;
+import com.ejercicioIntegrador.dulcemayor.service.rutas.MotorRecorridos;
 import com.ejercicioIntegrador.dulcemayor.dto.GeocodificacionDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.TrayectoDTO;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
@@ -26,19 +28,23 @@ import java.util.stream.Collectors;
 /**
  * Servicios de mapas que OpenStreetMap NO resuelve por sí solo (el mapa en sí lo dibuja Leaflet en el navegador):
  *  - Geocodificación y geocodificación inversa con Nominatim (datos de OpenStreetMap).
- *  - Trazado del recorrido por calles con OSRM. Si OSRM no responde, se devuelve una línea recta entre los
- *    puntos y el campo "fuente" lo aclara: nunca se presenta una línea recta como recorrido por calles.
+ *  - Motor de recorridos (MotorRecorridos) con OSRM: matriz de tiempos de manejo entre puntos (/table) para que
+ *    el servicio de rutas decida el orden, y trazado por calles en el orden decidido (/route). Si OSRM no responde,
+ *    se usan distancias / líneas rectas y el campo "fuente" o el criterio lo aclaran: nunca se presenta una línea
+ *    recta como recorrido por calles.
  * Se consultan desde el backend (y no desde el navegador) para respetar la política de uso de Nominatim:
  * como máximo una consulta por segundo, un User-Agent que identifique a la aplicación y resultados en caché.
  * No extiende BaseService porque no administra una entidad.
  */
 @Service
-public class ServicioMapas {
+public class ServicioMapas implements MotorRecorridos {
 
     private static final Logger LOG = LoggerFactory.getLogger(ServicioMapas.class);
     private static final long INTERVALO_MINIMO_MS = 1100;
     private static final int TAMANIO_CACHE = 300;
     private static final int MAXIMO_RESULTADOS = 5;
+    /** Límite por defecto de OSRM para /table (--max-table-size). */
+    private static final int MAXIMO_PUNTOS_MATRIZ = 100;
 
     private final RestClient nominatim;
     private final RestClient osrm;
@@ -125,16 +131,59 @@ public class ServicioMapas {
     // ------------------------------------------------------------------
 
     /**
+     * Matriz de tiempos de manejo entre todos los puntos con el servicio /table de OSRM (una sola consulta).
+     * Si OSRM no responde, devuelve algún tramo sin ruta o hay más puntos que su límite, se usa la distancia en
+     * línea recta y el criterio lo informa.
+     */
+    @Override
+    public MatrizRecorrido matriz(List<double[]> puntos) {
+        if (puntos == null || puntos.size() < 2) {
+            return new MatrizRecorrido(new double[puntos == null ? 0 : puntos.size()][puntos == null ? 0 : puntos.size()],
+                    true, "sin tramos");
+        }
+        if (puntos.size() > MAXIMO_PUNTOS_MATRIZ) {
+            LOG.warn("Ruta con {} puntos: supera el límite de /table de OSRM, se ordena en línea recta", puntos.size());
+            return MatrizRecorrido.lineaRecta(puntos);
+        }
+        try {
+            RespuestaTablaOsrm respuesta = osrm.get()
+                    .uri(URI.create(urlOsrm + "/table/v1/driving/" + coordenadasOsrm(puntos) + "?annotations=duration"))
+                    .retrieve().body(RespuestaTablaOsrm.class);
+            if (respuesta == null || !"Ok".equals(respuesta.code()) || respuesta.durations() == null
+                    || respuesta.durations().size() != puntos.size()) {
+                throw new IllegalStateException("OSRM no devolvió la matriz");
+            }
+            int n = puntos.size();
+            double[][] segundos = new double[n][n];
+            for (int i = 0; i < n; i++) {
+                List<Double> fila = respuesta.durations().get(i);
+                if (fila == null || fila.size() != n) {
+                    throw new IllegalStateException("Matriz incompleta");
+                }
+                for (int j = 0; j < n; j++) {
+                    if (fila.get(j) == null) {
+                        throw new IllegalStateException("Hay puntos sin recorrido por calles entre sí");
+                    }
+                    segundos[i][j] = fila.get(j);
+                }
+            }
+            return new MatrizRecorrido(segundos, true, "tiempo de manejo estimado por calles (OSRM)");
+        } catch (RestClientException | IllegalStateException | NullPointerException e) {
+            LOG.warn("OSRM /table no disponible, se ordena en línea recta: {}", e.getMessage());
+            return MatrizRecorrido.lineaRecta(puntos);
+        }
+    }
+
+    /**
      * Recorrido por calles que pasa por los puntos EN EL ORDEN DADO (el orden lo decide el servicio de rutas).
      * Cada punto es {latitud, longitud}.
      */
+    @Override
     public TrayectoDTO trazar(List<double[]> puntos) {
         if (puntos == null || puntos.size() < 2) {
             return TrayectoDTO.vacio();
         }
-        String coordenadas = puntos.stream()
-                .map(p -> String.format(Locale.ROOT, "%.6f,%.6f", p[1], p[0]))
-                .collect(Collectors.joining(";"));
+        String coordenadas = coordenadasOsrm(puntos);
         try {
             RespuestaOsrm respuesta = osrm.get()
                     .uri(URI.create(urlOsrm + "/route/v1/driving/" + coordenadas
@@ -174,6 +223,13 @@ public class ServicioMapas {
     // ------------------------------------------------------------------
     // Auxiliares
     // ------------------------------------------------------------------
+
+    /** OSRM recibe "longitud,latitud;longitud,latitud;…". */
+    private static String coordenadasOsrm(List<double[]> puntos) {
+        return puntos.stream()
+                .map(p -> String.format(Locale.ROOT, "%.6f,%.6f", p[1], p[0]))
+                .collect(Collectors.joining(";"));
+    }
 
     private interface Consulta<T> {
         T ejecutar();
@@ -254,6 +310,10 @@ public class ServicioMapas {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     record RespuestaOsrm(String code, List<RutaOsrm> routes) {
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    record RespuestaTablaOsrm(String code, List<List<Double>> durations) {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

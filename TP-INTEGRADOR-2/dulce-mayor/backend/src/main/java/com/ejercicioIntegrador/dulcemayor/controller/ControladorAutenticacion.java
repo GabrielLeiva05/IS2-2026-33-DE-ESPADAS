@@ -8,6 +8,7 @@ import com.ejercicioIntegrador.dulcemayor.dto.SesionDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.UsuarioSesionDTO;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.service.ServicioAutenticacion;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -53,6 +55,17 @@ public class ControladorAutenticacion {
     public ResponseEntity<SesionDTO> cambiarClave(Authentication autenticacion,
                                                   @RequestBody CambioClaveRequestDTO cambio) throws MiException {
         return ResponseEntity.ok(servicioAutenticacion.cambiarClave(autenticacion.getName(), cambio));
+    }
+
+    /**
+     * Renueva el token sin pedir la contraseña, mientras el actual esté vigente y la sesión no supere
+     * su duración máxima (jwt.sesion-maxima). Lo usan las apps móviles para no cerrar la sesión al volver a abrirlas.
+     */
+    @PostMapping("/renovar")
+    public ResponseEntity<SesionDTO> renovar(Authentication autenticacion,
+                                             @RequestHeader(HttpHeaders.AUTHORIZATION) String encabezado) throws MiException {
+        String token = encabezado.startsWith("Bearer ") ? encabezado.substring(7) : encabezado;
+        return ResponseEntity.ok(servicioAutenticacion.renovar(autenticacion.getName(), token));
     }
 
     /** Canje del código de un solo uso del ingreso con Google/Facebook por el token. */

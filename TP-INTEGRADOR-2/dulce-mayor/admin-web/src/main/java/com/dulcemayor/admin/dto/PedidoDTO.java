@@ -18,6 +18,9 @@ public class PedidoDTO {
     private String fechaConfirmacion;
     private String fechaDespacho;
     private double total;
+    /** Total de la factura (con IVA). Lo tienen los pedidos confirmados. */
+    private Double totalFacturado;
+    private Long numeroFactura;
     private String estado;
     private String nombreFantasia;
     private String direccion;
@@ -25,6 +28,11 @@ public class PedidoDTO {
     private String nombrePreventista;
     private String idDistribuidor;
     private String nombreDistribuidor;
+
+    /** Importe a cobrar: el facturado (con IVA) si existe; si no, el del pedido. */
+    public double getTotalACobrar() {
+        return totalFacturado != null ? totalFacturado : total;
+    }
 
     /** "2026-11-03T10:15:30" -> "03/11 10:15". */
     public String getCargaLegible() {

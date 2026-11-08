@@ -21,6 +21,10 @@ import java.util.Map;
  * El "subject" es el correo. El rol viaja como dato informativo para los clientes: los permisos
  * reales se recalculan en cada request a partir de la base (ver DetallesUsuarioService), así que
  * una baja, un cambio de clave o un cambio de rol tienen efecto inmediato.
+ *
+ * Persistencia de sesión (corrección Ola 1): cada token lleva "inicioSesion", el momento del ingreso.
+ * Las apps pueden pedir un token nuevo (renovar) mientras el actual siga vigente, pero nunca más allá de
+ * jwt.sesion-maxima desde el ingreso: así la sesión sobrevive a cerrar y abrir la app sin quedar abierta para siempre.
  */
 @Service
 public class JwtService {
@@ -29,9 +33,13 @@ public class JwtService {
     private static final String PREFIJO_CLAVE_DESARROLLO = "clave-de-desarrollo";
 
     private final SecretKey clave;
-    private final long expiracionMs;
+    private static final String CLAIM_INICIO = "inicioSesion";
 
-    public JwtService(@Value("${jwt.secret}") String secreto, @Value("${jwt.expiration}") long expiracionMs) {
+    private final long expiracionMs;
+    private final long sesionMaximaMs;
+
+    public JwtService(@Value("${jwt.secret}") String secreto, @Value("${jwt.expiration}") long expiracionMs,
+                      @Value("${jwt.sesion-maxima:86400000}") long sesionMaximaMs) {
         if (secreto == null || secreto.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw new IllegalStateException("jwt.secret debe tener al menos 32 caracteres");
         }
@@ -40,17 +48,46 @@ public class JwtService {
         }
         this.clave = Keys.hmacShaKeyFor(secreto.getBytes(StandardCharsets.UTF_8));
         this.expiracionMs = expiracionMs;
+        this.sesionMaximaMs = Math.max(sesionMaximaMs, expiracionMs);
     }
 
+    /** Token de un ingreso nuevo: la sesión empieza ahora. */
     public String generarToken(String correo, RolUsuario rol, String idUsuario) {
+        return generarToken(correo, rol, idUsuario, new Date());
+    }
+
+    /**
+     * Token que conserva el inicio de la sesión (renovación). Su vencimiento nunca supera el límite
+     * de la sesión: inicioSesion + jwt.sesion-maxima.
+     */
+    public String generarToken(String correo, RolUsuario rol, String idUsuario, Date inicioSesion) {
         Date ahora = new Date();
+        long vencimiento = Math.min(ahora.getTime() + expiracionMs, inicioSesion.getTime() + sesionMaximaMs);
         return Jwts.builder()
                 .subject(correo)
-                .claims(Map.of("rol", rol.name(), "idUsuario", idUsuario))
+                .claims(Map.of("rol", rol.name(), "idUsuario", idUsuario, CLAIM_INICIO, inicioSesion.getTime()))
                 .issuedAt(ahora)
-                .expiration(new Date(ahora.getTime() + expiracionMs))
+                .expiration(new Date(vencimiento))
                 .signWith(clave)
                 .compact();
+    }
+
+    /**
+     * Inicio de la sesión del token si todavía se puede renovar (token válido y dentro de la sesión máxima),
+     * o vacío si no. Los tokens emitidos antes de esta versión no tienen el dato: se toma su fecha de emisión.
+     */
+    public java.util.Optional<Date> inicioSesionRenovable(String token) {
+        try {
+            Claims claims = leerClaims(token);
+            Number inicio = claims.get(CLAIM_INICIO, Number.class);
+            Date desde = inicio == null ? claims.getIssuedAt() : new Date(inicio.longValue());
+            if (desde == null || System.currentTimeMillis() - desde.getTime() >= sesionMaximaMs) {
+                return java.util.Optional.empty();
+            }
+            return java.util.Optional.of(desde);
+        } catch (JwtException | IllegalArgumentException e) {
+            return java.util.Optional.empty();
+        }
     }
 
     /** Correo del token, o null si el token es inválido, está vencido o fue adulterado. */
@@ -74,6 +111,10 @@ public class JwtService {
 
     public long getExpiracionSegundos() {
         return expiracionMs / 1000;
+    }
+
+    public long getSesionMaximaSegundos() {
+        return sesionMaximaMs / 1000;
     }
 
     private Claims leerClaims(String token) {

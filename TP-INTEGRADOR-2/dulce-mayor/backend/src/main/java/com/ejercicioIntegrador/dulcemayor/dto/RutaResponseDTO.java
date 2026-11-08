@@ -8,5 +8,5 @@ import java.util.List;
 
 public record RutaResponseDTO(String id, LocalDate fecha, TipoRuta tipoRuta, String idEmpleado, String nombreEmpleado,
                               List<PuntoRutaDTO> puntos, int pendientes, int visitados,
-                              boolean eliminado) implements BaseResponseDTO {
+                              boolean eliminado, String criterioOrden) implements BaseResponseDTO {
 }

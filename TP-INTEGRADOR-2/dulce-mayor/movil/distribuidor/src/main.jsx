@@ -6,10 +6,12 @@ import '@comun/estilos.css'
 import { AuthProvider } from '@comun/auth/AuthContext.jsx'
 import App from './App.jsx'
 
+const ROLES = ['DISTRIBUIDOR']
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider rolesPermitidos={['DISTRIBUIDOR']} nombreApp="distribuidores">
+      <AuthProvider rolesPermitidos={ROLES} nombreApp="distribuidores">
         <App />
       </AuthProvider>
     </BrowserRouter>

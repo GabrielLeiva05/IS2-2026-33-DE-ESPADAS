@@ -56,7 +56,8 @@ export default function DetalleEntrega() {
   if (error && !parada) return <div className="pantalla"><Encabezado titulo="Entrega" volver="/" /><main className="contenido"><Alerta>{error}</Alerta></main></div>
   if (!parada) return <div className="pantalla"><Encabezado titulo="Entrega" volver="/" /><Cargando /></div>
 
-  const total = pedidos.reduce((s, p) => s + p.total, 0)
+  // A cobrar: el total de la factura (con IVA) emitida al confirmar el pedido
+  const total = pedidos.reduce((s, p) => s + (p.totalFacturado ?? p.total), 0)
   const pendiente = parada.resultado === 'PENDIENTE'
 
   return (
@@ -77,6 +78,9 @@ export default function DetalleEntrega() {
         {pedidos.map((p) => (
           <section className="tarjeta" key={p.id}>
             <div className="tarjeta-titulo"><h2>Pedido N.º {p.numeroPedido}</h2><InsigniaPedido estado={p.estado} /></div>
+            {p.numeroFactura && (
+              <p className="texto-chico texto-secundario">Factura N.º {p.numeroFactura} · {formatoMoneda(p.totalFacturado)} con IVA</p>
+            )}
             {p.detalles.map((d) => (
               <div key={d.id} className="fila texto-chico" style={{ marginTop: 6 }}>
                 <span>{d.cantidad} × {d.nombreProducto} <span className="texto-secundario">({presentacionLegible(d.presentacion, d.unidadesPorPresentacion)})</span></span>
@@ -89,7 +93,7 @@ export default function DetalleEntrega() {
 
         {pedidos.length > 0 && (
           <section className="tarjeta fila">
-            <span>Total a cobrar (contra entrega)</span><span className="fila-total">{formatoMoneda(total)}</span>
+            <span>Total a cobrar con IVA (contra entrega)</span><span className="fila-total">{formatoMoneda(total)}</span>
           </section>
         )}
 

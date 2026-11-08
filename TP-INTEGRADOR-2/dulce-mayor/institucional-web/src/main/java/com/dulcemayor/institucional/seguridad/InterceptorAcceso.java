@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * El sitio es público salvo "Mi cuenta" y "Mis pedidos". Sin sesión, se deriva al ingreso recordando la
@@ -24,7 +25,14 @@ public class InterceptorAcceso implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws IOException {
-        if (gestorSesion.actual(request).isPresent()) {
+        Optional<SesionCliente> sesion = gestorSesion.actual(request);
+        if (sesion.isPresent()) {
+            if (sesion.get().isDebeCambiarClave()) {
+                // Clave temporal (alta desde la app del preventista): hasta cambiarla no se usa el resto del sitio.
+                // La API aplica la misma regla (403 + X-Accion-Requerida), así que no se puede saltear desde el navegador.
+                response.sendRedirect(request.getContextPath() + "/cambiar-clave");
+                return false;
+            }
             return true;
         }
         if ("GET".equalsIgnoreCase(request.getMethod())) {

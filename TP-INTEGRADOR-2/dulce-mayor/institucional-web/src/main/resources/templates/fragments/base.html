@@ -52,6 +52,7 @@
                 <a th:href="@{/catalogo}" th:classappend="${rutaActual == '/catalogo' and !(ofertas ?: false)} ? 'activo'">Catálogo mayorista</a>
                 <a th:href="@{/catalogo(ofertas=true)}" th:classappend="${rutaActual == '/catalogo' and (ofertas ?: false)} ? 'activo'">Ofertas</a>
                 <a th:if="${sesion != null}" th:href="@{/mis-pedidos}" th:classappend="${#strings.startsWith(rutaActual, '/mis-pedidos')} ? 'activo'">Mis pedidos</a>
+                <a th:if="${sesion != null}" th:href="@{/mis-facturas}" th:classappend="${#strings.startsWith(rutaActual, '/mis-facturas')} ? 'activo'">Mis facturas</a>
                 <a th:href="@{/} + '#nosotros'">Nosotros</a>
             </nav>
         </div>
@@ -94,12 +95,13 @@
                 <li><a th:href="@{/catalogo(ofertas=true)}">Ofertas</a></li>
                 <li><a th:href="${sesion != null} ? @{/mi-cuenta} : @{/registro}" th:text="${sesion != null} ? 'Mi cuenta' : 'Crear cuenta'">Crear cuenta</a></li>
                 <li><a th:href="@{/mis-pedidos}">Mis pedidos</a></li>
+                <li><a th:href="@{/mis-facturas}">Mis facturas</a></li>
             </ul>
         </div>
         <div>
             <h4>Próximamente</h4>
             <ul>
-                <li>Pago online de pedidos</li>
+                <li>Pago online de facturas</li>
                 <li>Promociones por volumen</li>
             </ul>
         </div>

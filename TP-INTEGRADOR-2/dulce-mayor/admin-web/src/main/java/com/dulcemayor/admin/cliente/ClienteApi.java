@@ -82,6 +82,33 @@ public class ClienteApi {
                 .retrieve().body(tipo));
     }
 
+    /** PATCH con cuerpo JSON (por ejemplo, reponer stock). */
+    public <T> T parchear(String token, Object cuerpo, Class<T> tipo, String uri, Object... variables) {
+        return ejecutar(() -> restClient.patch().uri(uri, variables)
+                .headers(h -> autorizar(h, token))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(cuerpo)
+                .retrieve().body(tipo));
+    }
+
+    /** POST multipart (subida de una imagen). El archivo viaja tal cual a la API, que valida tipo y tamaño. */
+    public <T> T enviarArchivo(String token, org.springframework.util.MultiValueMap<String, Object> partes, Class<T> tipo,
+                               String uri, Object... variables) {
+        return ejecutar(() -> restClient.post().uri(uri, variables)
+                .headers(h -> autorizar(h, token))
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(partes)
+                .retrieve().body(tipo));
+    }
+
+    /** GET de un archivo binario (por ejemplo, el PDF de una factura). */
+    public byte[] obtenerArchivo(String token, String uri, Object... variables) {
+        return ejecutar(() -> restClient.get().uri(uri, variables)
+                .headers(h -> autorizar(h, token))
+                .accept(MediaType.APPLICATION_PDF, MediaType.APPLICATION_OCTET_STREAM)
+                .retrieve().body(byte[].class));
+    }
+
     public void eliminar(String token, String uri, Object... variables) {
         ejecutar(() -> restClient.delete().uri(uri, variables)
                 .headers(h -> autorizar(h, token))

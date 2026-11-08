@@ -4,5 +4,5 @@ package com.dulcemayor.admin.dto;
 public record EmpleadoSolicitudDTO(String nombre, String apellido, String fechaNacimiento,
                                    String tipoDocumento, String numeroDocumento, String correo, String rol,
                                    String legajo, String fechaIngreso, DireccionSolicitudDTO direccion,
-                                   String zona, String vehiculo, String patente, String idImagen) {
+                                   String vehiculo, String patente, String idImagen) {
 }

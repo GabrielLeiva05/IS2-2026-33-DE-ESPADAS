@@ -91,7 +91,7 @@ class FlujoSeguridadIntegrationTest {
     private String empleadoJson(String rol, String correo, String dni, String idLocalidad) {
         return """
                 {"nombre":"Ana","apellido":"Pérez","fechaNacimiento":"1990-05-20","tipoDocumento":"DNI",
-                 "numeroDocumento":"%s","correo":"%s","rol":"%s","zona":"Zona Este",
+                 "numeroDocumento":"%s","correo":"%s","rol":"%s",
                  "vehiculo":"Fiat Fiorino","patente":"AB123CD",
                  "direccion":{"calle":"San Martín","numeracion":"1234","idLocalidad":"%s"}}
                 """.formatted(dni, correo, rol, idLocalidad);
@@ -168,7 +168,8 @@ class FlujoSeguridadIntegrationTest {
         String cuerpo = mvc.perform(post("/api/auth/registro").contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"nombre":"Marta","apellido":"Suárez","correo":"Marta@Kiosco.com","clave":"Golosinas2026",
-                                 "confirmacionClave":"Golosinas2026","rol":"JEFE"}
+                                 "confirmacionClave":"Golosinas2026","tipoDocumento":"DNI","numeroDocumento":"31222333",
+                                 "fechaNacimiento":"1988-07-01","rol":"JEFE"}
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.usuario.rol").value("CLIENTE"))

@@ -10,6 +10,7 @@ import com.ejercicioIntegrador.dulcemayor.dto.UsuarioSesionDTO;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.ProveedorAutenticacion;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.RolUsuario;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
+import com.ejercicioIntegrador.dulcemayor.exceptions.SesionVencidaException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.RecursoNoEncontradoException;
 import com.ejercicioIntegrador.dulcemayor.model.Persona;
 import com.ejercicioIntegrador.dulcemayor.model.Usuario;
@@ -80,6 +81,19 @@ public class ServicioAutenticacion {
         Usuario usuario = servicioUsuario.modificarClave(correo, cambio.claveActual(), cambio.nuevaClave(),
                 cambio.confirmarClave());
         return crearSesion(usuario);
+    }
+
+    /**
+     * Renovación del token (persistencia de sesión): emite un token nuevo que conserva el inicio de la sesión.
+     * Solo con un token vigente y dentro de la sesión máxima; los permisos se recalculan desde la base.
+     */
+    @Transactional(readOnly = true)
+    public SesionDTO renovar(String correo, String tokenActual) throws MiException {
+        java.util.Date inicio = jwtService.inicioSesionRenovable(tokenActual)
+                .orElseThrow(() -> new SesionVencidaException("Tu sesión llegó al máximo permitido. Volvé a ingresar."));
+        Usuario usuario = cuentaActiva(correo);
+        String token = jwtService.generarToken(usuario.getNombreUsuario(), usuario.getRol(), usuario.getId(), inicio);
+        return SesionDTO.bearer(token, jwtService.getExpiracionSegundos(), datosDeSesion(usuario));
     }
 
     @Transactional(readOnly = true)

@@ -80,7 +80,7 @@ public class SecurityConfig {
                         // --- Autenticación ---
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registro",
                                 "/api/auth/oauth2/canje").permitAll()
-                        .requestMatchers("/api/auth/yo", "/api/auth/clave").authenticated() // incluso con clave pendiente
+                        .requestMatchers("/api/auth/yo", "/api/auth/clave", "/api/auth/renovar").authenticated() // incluso con clave pendiente
 
                         // --- Público: catálogo, imágenes de productos y clasificación ---
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/imagenes/*/contenido",
@@ -90,6 +90,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/stock/producto/*/disponibilidad")
                                 .hasAnyRole(ADMINISTRATIVO, PREVENTISTA)
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").hasAnyRole(ADMINISTRATIVO, PREVENTISTA)
+
+                        // --- Facturación (Ola 3). El cliente solo ve las suyas (lo verifica el servicio) ---
+                        .requestMatchers(HttpMethod.GET, "/api/facturas/mis-facturas/**").hasRole(CLIENTE)
+                        .requestMatchers("/api/facturas/**", "/api/proveedores/**").hasRole(ADMINISTRATIVO)
+
+                        // --- Estadísticas del panel (HU-43) ---
+                        .requestMatchers(HttpMethod.GET, "/api/estadisticas/pedidos-por-preventista").hasRole(JEFE)
+                        .requestMatchers(HttpMethod.GET, "/api/estadisticas/stock-por-categoria").hasRole(ADMINISTRATIVO)
 
                         // --- Catálogo y stock: personal administrativo (el jefe lo hereda) ---
                         .requestMatchers(RECURSOS_CATALOGO).hasRole(ADMINISTRATIVO)

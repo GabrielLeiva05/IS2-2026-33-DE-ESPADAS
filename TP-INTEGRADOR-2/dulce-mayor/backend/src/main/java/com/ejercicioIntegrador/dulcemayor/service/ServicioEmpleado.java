@@ -140,9 +140,6 @@ public class ServicioEmpleado extends BaseService<Empleado, EmpleadoRequestDTO, 
         if (empleado.getImagen() != null && empleado.getImagen().getTipoImagen() != TipoImagen.PERSONA) {
             throw new MiException("La foto del empleado debe ser una imagen de tipo PERSONA");
         }
-        if (empleado instanceof Preventista preventista && estaVacio(preventista.getZona())) {
-            throw new MiException("Debe indicar la zona del preventista");
-        }
         if (empleado instanceof Distribuidor distribuidor) {
             if (estaVacio(distribuidor.getVehiculo())) {
                 throw new MiException("Debe indicar el vehículo del distribuidor");
@@ -172,7 +169,6 @@ public class ServicioEmpleado extends BaseService<Empleado, EmpleadoRequestDTO, 
 
     @Override
     public EmpleadoResponseDTO convertirAResponse(Empleado empleado) {
-        String zona = empleado instanceof Preventista preventista ? preventista.getZona() : null;
         String vehiculo = empleado instanceof Distribuidor distribuidor ? distribuidor.getVehiculo() : null;
         String patente = empleado instanceof Distribuidor distribuidor ? distribuidor.getPatente() : null;
         return new EmpleadoResponseDTO(empleado.getId(), empleado.getNombre(), empleado.getApellido(),
@@ -180,7 +176,7 @@ public class ServicioEmpleado extends BaseService<Empleado, EmpleadoRequestDTO, 
                 empleado.getUsuario().getNombreUsuario(), empleado.getUsuario().getRol(),
                 empleado.getUsuario().isDebeCambiarClave(), empleado.getLegajo(), empleado.getFechaIngreso(),
                 empleado.getDireccion() == null ? null : servicioDireccion.convertirAResponse(empleado.getDireccion()),
-                zona, vehiculo, patente,
+                vehiculo, patente,
                 empleado.getImagen() == null ? null : empleado.getImagen().getId(),
                 empleado.isEliminado());
     }
@@ -245,14 +241,16 @@ public class ServicioEmpleado extends BaseService<Empleado, EmpleadoRequestDTO, 
         empleado.setNombre(normalizarTexto(dto.nombre()));
         empleado.setApellido(normalizarTexto(dto.apellido()));
         empleado.setFechaNacimiento(dto.fechaNacimiento());
-        empleado.setTipoDocumento(dto.tipoDocumento());
-        empleado.setNumeroDocumento(ValidacionesPersona.normalizarDocumento(dto.numeroDocumento()));
+        if (empleado.getId() == null) {
+            empleado.setTipoDocumento(dto.tipoDocumento());
+            empleado.setNumeroDocumento(ValidacionesPersona.normalizarDocumento(dto.numeroDocumento()));
+        } else {
+            // Corrección Ola 1: el documento no se modifica desde administración
+            ValidacionesPersona.aplicarDocumentoEnModificacion(empleado, dto.tipoDocumento(), dto.numeroDocumento());
+        }
         if (dto.idImagen() != null) {
             empleado.setImagen(estaVacio(dto.idImagen()) ? null
                     : obtenerReferencia(servicioImagen, dto.idImagen(), "la imagen"));
-        }
-        if (empleado instanceof Preventista preventista) {
-            preventista.setZona(normalizarTexto(dto.zona()));
         }
         if (empleado instanceof Distribuidor distribuidor) {
             distribuidor.setVehiculo(normalizarTexto(dto.vehiculo()));

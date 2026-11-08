@@ -32,9 +32,15 @@
                     </tbody>
                 </table>
                 <div class="barra-fila" style="display:flex;justify-content:space-between;padding:1rem;border-top:1px solid var(--dm-borde, #eee)">
-                    <strong>Total</strong>
+                    <strong th:text="${pedido.totalFacturado != null} ? 'Subtotal sin IVA' : 'Total sin IVA'">Total</strong>
                     <strong class="producto-precio" th:text="'$ ' + ${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}">$</strong>
                 </div>
+                <div class="barra-fila" th:if="${pedido.totalFacturado != null}" style="display:flex;justify-content:space-between;padding:0 1rem 1rem">
+                    <strong>Total facturado (con IVA)</strong>
+                    <strong class="producto-precio" th:text="'$ ' + ${#numbers.formatDecimal(pedido.totalFacturado, 1, 'POINT', 2, 'COMMA')}">$</strong>
+                </div>
+                <p class="ayuda" style="padding:0 1rem 1rem" th:if="${pedido.totalFacturado == null and pedido.estado == 'CARGADO'}">
+                    Al confirmarlo se emite la factura, con el IVA (21 %) discriminado.</p>
             </section>
 
             <div class="pila">
@@ -55,7 +61,7 @@
 
                 <section class="tarjeta" th:if="${pedido.puedeConfirmarse or pedido.puedeAnularse}">
                     <div class="tarjeta-encabezado"><h2>¿Lo confirmás?</h2></div>
-                    <p class="texto-secundario">Al confirmarlo sale a reparto y lo pagás al recibirlo. Si lo anulás, la mercadería
+                    <p class="texto-secundario">Al confirmarlo se emite la factura, sale a reparto y la pagás al recibirlo. Si lo anulás, la mercadería
                         reservada vuelve al depósito.</p>
                     <form th:if="${pedido.puedeConfirmarse}" th:action="@{/mis-pedidos/{id}/confirmar(id=${pedido.id})}" method="post"
                           data-envio-unico class="mb-4">
@@ -65,6 +71,13 @@
                           th:data-confirmar="'¿Anular el pedido N.º ' + ${pedido.numeroPedido} + '? Esta acción no se puede deshacer.'" data-envio-unico>
                         <button type="submit" class="btn btn-peligro btn-bloque"><svg class="icono icono-sm"><use href="#i-baja"/></svg>Anular pedido</button>
                     </form>
+                </section>
+
+                <section class="tarjeta" th:if="${pedido.idFactura != null}">
+                    <div class="tarjeta-encabezado"><h2 th:text="'Factura N.º ' + ${pedido.numeroFactura}">Factura</h2>
+</div>
+                    <a class="btn btn-secundario btn-bloque" th:href="@{/mis-facturas/{id}/pdf(id=${pedido.idFactura})}">
+                        <svg class="icono icono-sm"><use href="#i-descarga"/></svg>Descargar factura (PDF)</a>
                 </section>
 
                 <div class="alerta alerta-info" role="note" th:if="${pedido.estado == 'PENDIENTE_DE_ENTREGA'}">

@@ -59,7 +59,6 @@ class ServicioEmpleadoTest {
         EmpleadoResponseDTO creado = servicio.alta(DatosPersonas.empleado(RolUsuario.PREVENTISTA, "ana@dulcemayor.com"));
 
         assertEquals(RolUsuario.PREVENTISTA, creado.rol());
-        assertEquals("Zona Este", creado.zona());
         assertEquals("30111222", creado.numeroDocumento());
         assertEquals("EMP-00001", creado.legajo());
         assertEquals(LocalDate.now(), creado.fechaIngreso());
@@ -73,7 +72,7 @@ class ServicioEmpleadoTest {
 
         EmpleadoRequestDTO patenteInvalida = new EmpleadoRequestDTO("Luis", "Gómez", LocalDate.of(1985, 1, 1),
                 TipoDocumento.DNI, "28111222", "luis2@dulcemayor.com", RolUsuario.DISTRIBUIDOR, null, null,
-                DatosPersonas.direccion(), null, "Camioneta", "1234", null);
+                DatosPersonas.direccion(), "Camioneta", "1234", null);
         assertThrows(MiException.class, () -> servicio.alta(patenteInvalida));
     }
 
@@ -92,7 +91,7 @@ class ServicioEmpleadoTest {
     void elEmpleadoDebeSerMayorDeEdad() {
         EmpleadoRequestDTO menor = new EmpleadoRequestDTO("Ana", "Pérez", LocalDate.now().minusYears(16),
                 TipoDocumento.DNI, "45111222", "ana@dulcemayor.com", RolUsuario.ADMINISTRATIVO, null, null,
-                DatosPersonas.direccion(), null, null, null, null);
+                DatosPersonas.direccion(), null, null, null);
 
         assertThrows(MiException.class, () -> servicio.alta(menor));
     }

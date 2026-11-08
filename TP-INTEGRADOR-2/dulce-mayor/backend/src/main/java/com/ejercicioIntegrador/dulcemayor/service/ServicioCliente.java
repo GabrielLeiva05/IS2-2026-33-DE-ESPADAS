@@ -17,6 +17,8 @@ import com.ejercicioIntegrador.dulcemayor.service.base.BaseUseCaseService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoDocumento;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -49,7 +51,11 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
         copiarDatosPersonales(cliente, dto);
         ProveedorAutenticacion proveedor = dto.proveedorAutenticacion() == null
                 ? ProveedorAutenticacion.LOCAL : dto.proveedorAutenticacion();
-        cliente.setUsuario(servicioUsuario.crearUsuario(dto.correo(), RolUsuario.CLIENTE, dto.clave(), proveedor));
+        cliente.setTipoDocumento(dto.tipoDocumento());
+        cliente.setNumeroDocumento(ValidacionesPersona.normalizarDocumento(dto.numeroDocumento()));
+        cliente.setUsuario(dto.claveTemporal()
+                ? servicioUsuario.crearCuentaClienteConClaveTemporal(dto.correo())
+                : servicioUsuario.crearUsuario(dto.correo(), RolUsuario.CLIENTE, dto.clave(), proveedor));
         return cliente;
     }
 
@@ -60,6 +66,7 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
             throw new MiException("El correo no se puede modificar: es el usuario de ingreso");
         }
         copiarDatosPersonales(cliente, dto);
+        ValidacionesPersona.aplicarDocumentoEnModificacion(cliente, dto.tipoDocumento(), dto.numeroDocumento());
     }
 
     @Override
@@ -115,6 +122,7 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
         if (registro.clave() == null || !registro.clave().equals(registro.confirmacionClave())) {
             throw new MiException("La contraseña y su confirmación no coinciden");
         }
+        exigirDocumentoYNacimiento(registro.tipoDocumento(), registro.numeroDocumento(), registro.fechaNacimiento());
         return altaEntidad(new ClienteRequestDTO(registro.nombre(), registro.apellido(), registro.fechaNacimiento(),
                 registro.tipoDocumento(), registro.numeroDocumento(), registro.correo(), registro.clave(),
                 ProveedorAutenticacion.LOCAL));
@@ -138,8 +146,9 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
     }
 
     /**
-     * Alta de un cliente desde el celular del preventista (Ola 2): el cliente escribe su correo y su contraseña,
-     * por lo que la cuenta queda LOCAL, con rol CLIENTE y sin cambio obligatorio (las mismas reglas que HU-09).
+     * Alta de un cliente desde el celular del preventista. La cuenta queda LOCAL, con rol CLIENTE, la clave temporal
+     * "dulcemayor" (guardada con BCrypt) y debeCambiarClave = true: hasta cambiarla, la API solo le permite el
+     * cambio de clave (mismo mecanismo que los empleados, HU-06). Documento y fecha de nacimiento son obligatorios.
      * La dirección particular es opcional y se crea por ServicioDireccion, en la misma transacción.
      */
     @Transactional(rollbackFor = Exception.class)
@@ -147,9 +156,9 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
         if (alta == null) {
             throw new MiException("Debe indicar los datos del cliente");
         }
-        Cliente cliente = registrarCliente(new RegistroClienteDTO(alta.nombre(), alta.apellido(), alta.correo(),
-                alta.clave(), alta.confirmacionClave(), alta.tipoDocumento(), alta.numeroDocumento(),
-                alta.fechaNacimiento()));
+        exigirDocumentoYNacimiento(alta.tipoDocumento(), alta.numeroDocumento(), alta.fechaNacimiento());
+        Cliente cliente = altaEntidad(new ClienteRequestDTO(alta.nombre(), alta.apellido(), alta.fechaNacimiento(),
+                alta.tipoDocumento(), alta.numeroDocumento(), alta.correo(), null, ProveedorAutenticacion.LOCAL, true));
         if (alta.direccion() != null) {
             cliente.setDireccion(servicioDireccion.crearDireccion(alta.direccion()));
             cliente = repositorioCliente.save(cliente);
@@ -207,11 +216,20 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
                 .orElseThrow(() -> new RecursoNoEncontradoException("La cuenta no pertenece a un cliente"));
     }
 
+    /** Nombre, apellido y fecha de nacimiento. El documento se trata aparte (no se modifica una vez cargado). */
     private static void copiarDatosPersonales(Cliente cliente, ClienteRequestDTO dto) {
         cliente.setNombre(normalizarTexto(dto.nombre()));
         cliente.setApellido(normalizarTexto(dto.apellido()));
         cliente.setFechaNacimiento(dto.fechaNacimiento());
-        cliente.setTipoDocumento(dto.tipoDocumento());
-        cliente.setNumeroDocumento(ValidacionesPersona.normalizarDocumento(dto.numeroDocumento()));
+    }
+
+    /**
+     * Registro en el sitio y alta desde la app del preventista: documento y fecha de nacimiento obligatorios.
+     * En la base siguen siendo opcionales porque los clientes de Google o Facebook se crean sin ellos.
+     */
+    private static void exigirDocumentoYNacimiento(TipoDocumento tipo, String numero, LocalDate nacimiento)
+            throws MiException {
+        ValidacionesPersona.validarDocumento(tipo, ValidacionesPersona.normalizarDocumento(numero), true);
+        ValidacionesPersona.validarMayorDeEdad(nacimiento, true);
     }
 }

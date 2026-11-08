@@ -7,10 +7,12 @@ import { AuthProvider } from '@comun/auth/AuthContext.jsx'
 import { CarritoProvider } from './contexto/CarritoContext.jsx'
 import App from './App.jsx'
 
+const ROLES = ['PREVENTISTA']
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider rolesPermitidos={['PREVENTISTA']} nombreApp="preventistas">
+      <AuthProvider rolesPermitidos={ROLES} nombreApp="preventistas">
         <CarritoProvider>
           <App />
         </CarritoProvider>

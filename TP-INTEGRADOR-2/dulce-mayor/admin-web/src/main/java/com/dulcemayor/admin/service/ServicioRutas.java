@@ -17,7 +17,7 @@ import java.util.Map;
 
 /**
  * HU-18: el personal administrativo arma la ruta diaria de cada preventista (preventista, fecha y puntos).
- * La API valida una ruta por preventista y día, fechas y puntos; la app del preventista la ordena por cercanía.
+ * La API valida una ruta por preventista y día, fechas y puntos; la app optimiza el orden desde la ubicación del preventista (OSRM + optimizador en la API).
  */
 @Service
 public class ServicioRutas {

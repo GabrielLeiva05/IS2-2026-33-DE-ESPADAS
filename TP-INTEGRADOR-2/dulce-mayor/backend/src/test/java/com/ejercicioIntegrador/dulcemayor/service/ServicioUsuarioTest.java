@@ -55,6 +55,16 @@ class ServicioUsuarioTest {
     }
 
     @Test
+    void elClienteDadoDeAltaEnCampoRecibeLaClaveInicialYDebeCambiarla() throws MiException {
+        Usuario usuario = servicio.crearCuentaClienteConClaveTemporal(" Kiosco@Mail.com ");
+
+        assertEquals("kiosco@mail.com", usuario.getNombreUsuario());
+        assertEquals(RolUsuario.CLIENTE, usuario.getRol());
+        assertEquals("HASH(dulcemayor)", usuario.getClave());   // nunca en texto plano
+        assertTrue(usuario.isDebeCambiarClave());
+    }
+
+    @Test
     void laClaveDelClienteDebeCumplirLaPolitica() {
         assertThrows(MiException.class, () -> servicio.crearUsuario("c@mail.com", RolUsuario.CLIENTE, "corta1",
                 ProveedorAutenticacion.LOCAL));

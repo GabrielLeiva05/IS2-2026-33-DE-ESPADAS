@@ -26,6 +26,10 @@ public class PedidoDTO {
     private double descuento;
     private double total;
     private String estado;
+    /** Factura emitida al confirmar (Ola 3): id, número y total con IVA. */
+    private String idFactura;
+    private Long numeroFactura;
+    private Double totalFacturado;
     private boolean confirmado;
     private boolean puedeConfirmarse;
     private boolean puedeAnularse;

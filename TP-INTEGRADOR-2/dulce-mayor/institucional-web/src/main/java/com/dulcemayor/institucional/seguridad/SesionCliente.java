@@ -20,24 +20,32 @@ public final class SesionCliente implements Serializable {
     private final String nombre;
     private final String apellido;
     private final String proveedorAutenticacion;
+    /** Cuenta creada por el preventista con la clave temporal: debe cambiarla antes de usar el sitio. */
+    private final boolean debeCambiarClave;
 
-    private SesionCliente(String token, String correo, String nombre, String apellido, String proveedorAutenticacion) {
+    private SesionCliente(String token, String correo, String nombre, String apellido, String proveedorAutenticacion,
+                          boolean debeCambiarClave) {
         this.token = token;
         this.correo = correo;
         this.nombre = nombre;
         this.apellido = apellido;
         this.proveedorAutenticacion = proveedorAutenticacion;
+        this.debeCambiarClave = debeCambiarClave;
     }
 
     public static SesionCliente desde(SesionApiDTO sesion) {
         UsuarioSesionApiDTO usuario = sesion.getUsuario();
         return new SesionCliente(sesion.getToken(), usuario.getCorreo(), usuario.getNombre(), usuario.getApellido(),
-                usuario.getProveedorAutenticacion());
+                usuario.getProveedorAutenticacion(), usuario.isDebeCambiarClave());
     }
 
     /** Copia con nombre y apellido actualizados (después de editar "Mis datos"). */
     public SesionCliente conNombre(String nuevoNombre, String nuevoApellido) {
-        return new SesionCliente(token, correo, nuevoNombre, nuevoApellido, proveedorAutenticacion);
+        return new SesionCliente(token, correo, nuevoNombre, nuevoApellido, proveedorAutenticacion, debeCambiarClave);
+    }
+
+    public boolean isDebeCambiarClave() {
+        return debeCambiarClave;
     }
 
     public String getToken() {

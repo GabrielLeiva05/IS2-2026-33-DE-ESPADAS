@@ -27,7 +27,7 @@
                         <svg class="icono"><use href="#i-ok"/></svg><p class="mb-0">No hay pedidos confirmados esperando distribuidor.</p>
                     </div>
                     <table class="tabla tabla-apilable" th:unless="${sinAsignar.isEmpty()}">
-                        <thead><tr><th>Pedido</th><th>Comercio</th><th>Preventista</th><th>Total</th></tr></thead>
+                        <thead><tr><th>Pedido</th><th>Comercio</th><th>Preventista</th><th>Total c/IVA</th></tr></thead>
                         <tbody>
                         <tr th:each="p : ${sinAsignar}">
                             <td class="celda-principal">
@@ -38,7 +38,7 @@
                             </td>
                             <td data-label="Comercio"><span th:text="${p.nombreFantasia}">Comercio</span><br><small class="texto-secundario" th:text="${p.direccion}">dir</small></td>
                             <td data-label="Preventista" th:text="${p.nombrePreventista}">Preventista</td>
-                            <td data-label="Total"><strong th:text="'$ ' + ${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                            <td data-label="Total"><strong th:text="'$ ' + ${#numbers.formatDecimal(p.totalACobrar, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
                         </tr>
                         </tbody>
                     </table>
@@ -57,13 +57,13 @@
                 <div class="tarjeta-encabezado" style="padding:var(--dm-e-4) var(--dm-e-4) 0"><h2>Asignados, pendientes de entrega</h2></div>
                 <div class="vacio" th:if="${asignados.isEmpty()}"><p class="mb-0">No hay pedidos en reparto.</p></div>
                 <table class="tabla tabla-apilable" th:unless="${asignados.isEmpty()}">
-                    <thead><tr><th>Pedido</th><th>Comercio</th><th>Distribuidor</th><th>Total</th></tr></thead>
+                    <thead><tr><th>Pedido</th><th>Comercio</th><th>Distribuidor</th><th>Total c/IVA</th></tr></thead>
                     <tbody>
                     <tr th:each="p : ${asignados}">
                         <td class="celda-principal"><strong th:text="'N.º ' + ${p.numeroPedido}">N.º</strong></td>
                         <td data-label="Comercio" th:text="${p.nombreFantasia}">Comercio</td>
                         <td data-label="Distribuidor" th:text="${p.nombreDistribuidor}">Distribuidor</td>
-                        <td data-label="Total" th:text="'$ ' + ${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')}">$</td>
+                        <td data-label="Total" th:text="'$ ' + ${#numbers.formatDecimal(p.totalACobrar, 1, 'POINT', 2, 'COMMA')}">$</td>
                     </tr>
                     </tbody>
                 </table>

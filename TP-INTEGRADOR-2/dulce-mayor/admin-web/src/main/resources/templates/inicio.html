@@ -29,7 +29,46 @@
                 </a>
             </section>
 
-            <div class="grilla-panel">
+            <!-- Gráficos (HU-43): barras solo para el jefe; torta de stock para administración y jefe -->
+            <div class="grilla-panel mt-4" th:if="${sesion.administrativo}">
+                <section class="tarjeta" th:if="${sesion.jefe}" style="grid-column: 1 / -1">
+                    <div class="tarjeta-encabezado">
+                        <div>
+                            <h2>Pedidos por preventista y por día</h2>
+                            <span class="texto-secundario texto-chico"
+                                  th:text="${pedidosPorPreventista.total()} + ' pedidos en el mes (sin anulados)'">0 pedidos</span>
+                        </div>
+                        <form class="filtro-linea" th:action="@{/}" method="get">
+                            <label class="oculto-visual" for="mes">Mes</label>
+                            <input class="control" id="mes" name="mes" type="month" th:value="${mes}" data-auto-envio>
+                            <noscript><button class="btn btn-secundario btn-chico" type="submit">Ver</button></noscript>
+                        </form>
+                    </div>
+                    <div class="grafico-vacio" th:if="${pedidosPorPreventista.series().isEmpty()}">
+                        <p class="mb-0">No hay pedidos cargados en este mes.</p>
+                    </div>
+                    <div class="grafico grafico-alto" th:unless="${pedidosPorPreventista.series().isEmpty()}">
+                        <canvas id="graficoPedidos" role="img"
+                                th:aria-label="'Pedidos por preventista y por día de ' + ${mes}"></canvas>
+                    </div>
+                </section>
+
+                <section class="tarjeta">
+                    <div class="tarjeta-encabezado">
+                        <h2>Stock por categoría</h2>
+                        <span class="texto-secundario texto-chico">Bultos en el almacén central</span>
+                    </div>
+                    <div class="grafico-vacio" th:if="${stockPorCategoria.isEmpty()}">
+                        <p class="mb-0">Todavía no hay stock cargado.</p>
+                    </div>
+                    <div class="grafico" th:unless="${stockPorCategoria.isEmpty()}">
+                        <canvas id="graficoStock" role="img" aria-label="Distribución del stock por categoría"></canvas>
+                    </div>
+                    <p class="ayuda mt-4" th:unless="${stockPorCategoria.isEmpty()}">Se actualiza solo cada minuto.</p>
+                </section>
+            </div>
+
+            <div class="grilla-panel mt-4">
                 <!-- Stock crítico (administración) -->
                 <section class="tarjeta" th:if="${sesion.administrativo}">
                     <div class="tarjeta-encabezado">
@@ -97,7 +136,7 @@
                     <div class="tarjeta-encabezado"><h2>Próximos módulos</h2></div>
                     <ul class="lista-modulos">
                         <li><svg class="icono"><use href="#i-etiqueta"/></svg>Promociones<span class="insignia insignia-gris">En desarrollo</span></li>
-                        <li><svg class="icono"><use href="#i-factura"/></svg>Facturación y pagos<span class="insignia insignia-gris">En desarrollo</span></li>
+                        <li><svg class="icono"><use href="#i-tarjeta"/></svg>Pagos<span class="insignia insignia-gris">En desarrollo</span></li>
                         <li><svg class="icono"><use href="#i-grafico"/></svg>Reportes<span class="insignia insignia-gris">En desarrollo</span></li>
                     </ul>
                 </section>
@@ -121,5 +160,18 @@
     </div>
 </div>
 <nav th:replace="~{fragments/base :: navInferior}"></nav>
+<th:block th:if="${sesion.administrativo}">
+<script th:src="@{/js/vendor/chart.umd.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.datosPanel = {
+        stock: /*[[${datosStock}]]*/ [],
+        pedidos: /*[[${datosPedidos}]]*/ null,
+        urlStock: /*[[@{/estadisticas/stock}]]*/ '/estadisticas/stock'
+    };
+    /*]]>*/
+</script>
+<script th:src="@{/js/graficos.js}"></script>
+</th:block>
 </body>
 </html>

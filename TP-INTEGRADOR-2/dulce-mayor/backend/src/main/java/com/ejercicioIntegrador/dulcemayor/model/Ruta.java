@@ -47,4 +47,11 @@ public class Ruta extends BaseEntity {
     @CollectionTable(name = "ruta_puntos", joinColumns = @JoinColumn(name = "ruta_id"))
     @OrderBy("orden ASC")
     private List<PuntoRuta> puntos = new ArrayList<>();
+
+    /**
+     * Cómo se decidió el orden actual de los pendientes (por ejemplo "óptimo por tiempo de manejo (OSRM)").
+     * Null mientras el orden sea el que armó administración o el de alta de la ruta de entregas.
+     */
+    @Column(length = 200)
+    private String criterioOrden;
 }

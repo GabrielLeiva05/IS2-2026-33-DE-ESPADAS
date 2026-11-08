@@ -500,3 +500,37 @@ select.control {
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* =====================================================================
+   Ola 3: ABM de productos, facturación, gráficos y tablets
+   ===================================================================== */
+.grilla-edicion { display: grid; gap: var(--dm-e-4); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1100px) { .grilla-edicion { grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr); } }
+.galeria-mini { display: flex; flex-wrap: wrap; gap: 8px; }
+.galeria-mini img { width: 88px; height: 88px; object-fit: cover; border-radius: var(--dm-radio-chico, 10px); border: 1px solid var(--dm-borde); }
+.campo-casilla { justify-content: flex-end; }
+.casilla { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 600; cursor: pointer; }
+.casilla input { width: 20px; height: 20px; accent-color: var(--dm-magenta); }
+/* Tablas anchas: desplazamiento horizontal controlado dentro de la tarjeta, nunca de la página */
+.tabla-desplazable { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.grafico { position: relative; width: 100%; min-height: 260px; }
+.grafico-alto { min-height: 340px; }
+.grafico canvas { max-width: 100%; }
+.grafico-vacio { display: grid; place-items: center; min-height: 200px; color: var(--dm-texto-2); text-align: center; padding: var(--dm-e-4); }
+.filtro-linea { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.filtro-linea .control { width: auto; min-width: 160px; }
+.renglones-factura { display: flex; flex-direction: column; gap: var(--dm-e-3, 12px); }
+.renglon-factura { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr); padding: 12px; border: 1px solid var(--dm-borde); border-radius: var(--dm-radio-chico, 10px); }
+@media (min-width: 768px) { .renglon-factura { grid-template-columns: minmax(0, 3fr) minmax(90px, 1fr) minmax(120px, 1fr) auto; align-items: end; } }
+.totales-factura { display: grid; gap: 6px; max-width: 360px; margin-left: auto; }
+.totales-factura div { display: flex; justify-content: space-between; gap: 12px; }
+.totales-factura .total { font-size: 1.15rem; font-weight: 700; border-top: 1px solid var(--dm-borde); padding-top: 6px; }
+
+/* Tablets (768–1199 px, vertical y horizontal): más aire táctil y columnas prioritarias en tablas */
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .btn, .control { min-height: 46px; }
+    .tabla th, .tabla td { padding-left: 10px; padding-right: 10px; }
+    .tabla .col-secundaria { display: none; }
+    .grilla-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fila-campos.tres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

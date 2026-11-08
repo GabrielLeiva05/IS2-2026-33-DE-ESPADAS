@@ -29,7 +29,8 @@ public class InterceptorAcceso implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws IOException {
         String ruta = request.getRequestURI().substring(request.getContextPath().length());
-        boolean pedidoJson = ruta.startsWith("/ubicacion/");
+        boolean pedidoJson = ruta.startsWith("/ubicacion/") || ruta.startsWith("/estadisticas/")
+                || ruta.equals("/productos/subcategorias");
         Optional<SesionUsuario> sesion = gestorSesion.actual(request);
 
         if (sesion.isEmpty()) {
@@ -58,10 +59,15 @@ public class InterceptorAcceso implements HandlerInterceptor {
 
     /** Matriz de navegación por sección (coherente con la matriz de permisos de la API). */
     private static Predicate<SesionUsuario> rolHabilitado(String ruta) {
-        if (ruta.startsWith("/empleados") || ruta.startsWith("/ubicacion/")) {
+        if (ruta.startsWith("/empleados")) {
             return SesionUsuario::isJefe;
         }
-        if (ruta.startsWith("/clientes") || ruta.startsWith("/rutas") || ruta.startsWith("/entregas")) {
+        if (ruta.startsWith("/ubicacion/")) {
+            // Selects de dirección: empleados (jefe) y proveedores (administración); el jefe hereda administración
+            return SesionUsuario::isAdministrativo;
+        }
+        if (ruta.startsWith("/clientes") || ruta.startsWith("/rutas") || ruta.startsWith("/entregas")
+                || ruta.startsWith("/productos") || ruta.startsWith("/facturas") || ruta.startsWith("/proveedores")) {
             return SesionUsuario::isAdministrativo;
         }
         if (ruta.startsWith("/catalogo")) {

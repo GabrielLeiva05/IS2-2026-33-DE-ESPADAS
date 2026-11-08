@@ -27,6 +27,22 @@ public interface RepositorioPedido extends BaseRepository<Pedido> {
 
     List<Pedido> findByPuntoVenta_Cliente_IdAndEliminadoFalseOrderByFechaHoraCargaDesc(String idCliente);
 
+    /** ¿Hay pedidos sin terminar (cargados o pendientes de entrega) con ese producto? Protege la baja del producto. */
+    @Query("SELECT COUNT(d) > 0 FROM DetallePedido d WHERE d.producto.id = :idProducto AND d.pedido.eliminado = false "
+            + "AND d.pedido.estado IN :estados")
+    boolean existenPedidosConProducto(@Param("idProducto") String idProducto,
+                                      @Param("estados") java.util.Collection<EstadoPedido> estados);
+
+    /**
+     * Pedidos cargados en un período (gráfico de barras HU-43): preventista y fecha de carga, sin los anulados.
+     * Devuelve filas [idPreventista, nombre, apellido, fechaHoraCarga]; la agrupación por día la hace el servicio.
+     */
+    @Query("SELECT p.preventista.id, p.preventista.nombre, p.preventista.apellido, p.fechaHoraCarga FROM Pedido p "
+            + "WHERE p.eliminado = false AND p.estado <> :excluido AND p.fechaHoraCarga >= :desde AND p.fechaHoraCarga < :hasta")
+    List<Object[]> pedidosCargadosEntre(@Param("desde") java.time.LocalDateTime desde,
+                                        @Param("hasta") java.time.LocalDateTime hasta,
+                                        @Param("excluido") EstadoPedido excluido);
+
     List<Pedido> findByPreventista_IdAndEliminadoFalseOrderByFechaHoraCargaDesc(String idPreventista);
 
     List<Pedido> findByEstadoAndEliminadoFalseOrderByFechaHoraCargaAsc(EstadoPedido estado);

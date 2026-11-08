@@ -25,7 +25,8 @@ import java.util.regex.Pattern;
 /**
  * Cuentas de acceso. Reglas principales:
  *  - Empleados: se crean con la clave temporal "dulcemayor" y debeCambiarClave = true (nota del diagrama).
- *  - Clientes con registro local: eligen su clave y debeCambiarClave = false.
+ *  - Clientes con registro local en el sitio: eligen su clave y debeCambiarClave = false.
+ *  - Clientes dados de alta por el preventista (app móvil): clave temporal "dulcemayor" y debeCambiarClave = true.
  *  - Clientes de Google o Facebook: sin clave.
  *  - La clave se guarda siempre con hashing (BCrypt), nunca en texto plano.
  * Las cuentas no se crean por un endpoint propio: las crean ServicioEmpleado y ServicioCliente.
@@ -66,6 +67,10 @@ public class ServicioUsuario extends BaseService<Usuario, UsuarioRequestDTO, Usu
             // Regla del enunciado: todo empleado nuevo recibe la clave temporal y debe cambiarla
             usuario.setClave(CLAVE_TEMPORAL);
             usuario.setDebeCambiarClave(true);
+        } else if (dto.claveTemporal() && proveedor == ProveedorAutenticacion.LOCAL) {
+            // Alta en campo: la cuenta nace con la clave temporal y el cliente debe cambiarla al ingresar
+            usuario.setClave(CLAVE_TEMPORAL);
+            usuario.setDebeCambiarClave(true);
         } else {
             usuario.setClave(proveedor == ProveedorAutenticacion.LOCAL ? dto.clave() : null);
             usuario.setDebeCambiarClave(false);
@@ -97,7 +102,8 @@ public class ServicioUsuario extends BaseService<Usuario, UsuarioRequestDTO, Usu
         if (usuario.getRol() != RolUsuario.CLIENTE && !esLocal) {
             throw new MiException("Los empleados solo pueden ingresar con correo y contraseña");
         }
-        if (casoDeUso == BaseUseCaseService.ALTA && usuario.getRol() == RolUsuario.CLIENTE && esLocal) {
+        if (casoDeUso == BaseUseCaseService.ALTA && usuario.getRol() == RolUsuario.CLIENTE && esLocal
+                && !usuario.isDebeCambiarClave()) {
             validarPoliticaClave(usuario.getClave(), usuario.getNombreUsuario());
         }
         Optional<Usuario> mismoCorreo = repositorioUsuario
@@ -135,6 +141,12 @@ public class ServicioUsuario extends BaseService<Usuario, UsuarioRequestDTO, Usu
     public Usuario crearUsuario(String nombreUsuario, RolUsuario rol, String clave, ProveedorAutenticacion proveedor)
             throws MiException {
         return altaEntidad(new UsuarioRequestDTO(nombreUsuario, rol, clave, proveedor));
+    }
+
+    /** Cuenta de cliente con la clave temporal y cambio obligatorio (alta desde la app del preventista). */
+    @Transactional(rollbackFor = Exception.class)
+    public Usuario crearCuentaClienteConClaveTemporal(String correo) throws MiException {
+        return altaEntidad(new UsuarioRequestDTO(correo, RolUsuario.CLIENTE, null, ProveedorAutenticacion.LOCAL, true));
     }
 
     /** buscarUsuarioPorNombre(nombreUsuario) del diagrama. */

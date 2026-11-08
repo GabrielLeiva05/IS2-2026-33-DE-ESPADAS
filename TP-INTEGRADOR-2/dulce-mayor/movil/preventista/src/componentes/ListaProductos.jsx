@@ -76,7 +76,7 @@ export default function ListaProductos({ cantidadDe, alCambiar }) {
       {productos?.length === 0 && !error && (
         <Vacio icono="caramelo" titulo="No hay productos para mostrar">Probá con otra búsqueda o categoría.</Vacio>
       )}
-      <ul className="lista">
+      <ul className="lista lista-grilla">
         {productos?.map((p) => (
           <li key={p.id} className="producto">
             <span className="producto-foto">

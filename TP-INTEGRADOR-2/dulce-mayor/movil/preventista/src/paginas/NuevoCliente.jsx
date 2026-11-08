@@ -5,12 +5,17 @@ import { Alerta, Encabezado } from '@comun/componentes/Interfaz.jsx'
 import Icono from '@comun/componentes/Icono.jsx'
 import { clientes, puntosVenta } from '../servicios.js'
 
-const VACIO = { nombre: '', apellido: '', clave: '', confirmacionClave: '', tipoDocumento: 'DNI', numeroDocumento: '' }
+const VACIO = { nombre: '', apellido: '', tipoDocumento: 'DNI', numeroDocumento: '', fechaNacimiento: '' }
+
+// Fecha máxima de nacimiento: mayor de edad (la API vuelve a validarlo).
+const hoy = new Date()
+const MAYOR_DE_EDAD = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate()).toISOString().slice(0, 10)
 
 /**
  * Alta de cliente desde el celular del preventista (paso 1 de 2).
- * Primero se busca por correo: si ya tiene cuenta se le asocia el comercio; si no, el propio cliente
- * escribe su correo y su contraseña en este teléfono (la cuenta queda con rol CLIENTE).
+ * Primero se busca por correo: si ya tiene cuenta se le asocia el comercio; si no, se registra con documento y
+ * fecha de nacimiento obligatorios. La cuenta (rol CLIENTE) nace con la contraseña provisoria "dulcemayor" y el
+ * cliente debe cambiarla en su primer ingreso al sitio de Dulce Mayor (lo exige la API).
  */
 export default function NuevoCliente() {
   const navegar = useNavigate()
@@ -18,7 +23,6 @@ export default function NuevoCliente() {
   const [encontrado, setEncontrado] = useState(null) // { cliente, puntos }
   const [alta, setAlta] = useState(false)
   const [datos, setDatos] = useState(VACIO)
-  const [verClave, setVerClave] = useState(false)
   const [error, setError] = useState(null)
   const [ocupado, setOcupado] = useState(false)
 
@@ -50,15 +54,13 @@ export default function NuevoCliente() {
         nombre: datos.nombre.trim(),
         apellido: datos.apellido.trim(),
         correo: correo.trim(),
-        clave: datos.clave,
-        confirmacionClave: datos.confirmacionClave,
-        tipoDocumento: datos.numeroDocumento.trim() ? datos.tipoDocumento : null,
-        numeroDocumento: datos.numeroDocumento.trim() || null,
+        tipoDocumento: datos.tipoDocumento,
+        numeroDocumento: datos.numeroDocumento.trim(),
+        fechaNacimiento: datos.fechaNacimiento,
       })
       navegar('/puntos/nuevo', { state: { cliente } })
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo registrar al cliente.'))
-      setDatos((d) => ({ ...d, clave: '', confirmacionClave: '' }))
     } finally {
       setOcupado(false)
     }
@@ -107,7 +109,7 @@ export default function NuevoCliente() {
 
         {alta && (
           <form className="tarjeta formulario" onSubmit={registrar}>
-            <Alerta tipo="info">No hay una cuenta con ese correo. Pedile al cliente que complete sus datos y elija su contraseña.</Alerta>
+            <Alerta tipo="info">No hay una cuenta con ese correo. Completá los datos del responsable del comercio.</Alerta>
             <div className="fila-campos">
               <label className="campo campo-requerido"><span>Nombre</span>
                 <input className="control" autoComplete="off" maxLength={80} required value={datos.nombre} onChange={cambiar('nombre')} /></label>
@@ -115,24 +117,23 @@ export default function NuevoCliente() {
                 <input className="control" autoComplete="off" maxLength={80} required value={datos.apellido} onChange={cambiar('apellido')} /></label>
             </div>
             <div className="fila-campos">
-              <label className="campo"><span>Documento</span>
-                <select className="control" value={datos.tipoDocumento} onChange={cambiar('tipoDocumento')}>
+              <label className="campo campo-requerido"><span>Documento</span>
+                <select className="control" required value={datos.tipoDocumento} onChange={cambiar('tipoDocumento')}>
                   <option value="DNI">DNI</option><option value="CUIL">CUIL</option><option value="CUIT">CUIT</option><option value="PASAPORTE">Pasaporte</option>
                 </select></label>
-              <label className="campo"><span>Número</span>
-                <input className="control" inputMode="numeric" maxLength={15} value={datos.numeroDocumento} onChange={cambiar('numeroDocumento')} /></label>
+              <label className="campo campo-requerido"><span>Número</span>
+                <input className="control" inputMode="numeric" maxLength={15} required value={datos.numeroDocumento}
+                  onChange={cambiar('numeroDocumento')} placeholder="Sin puntos" /></label>
             </div>
-            <label className="campo campo-requerido"><span>Contraseña (la escribe el cliente)</span>
-              <span className="control-con-accion">
-                <input className="control" type={verClave ? 'text' : 'password'} autoComplete="new-password" minLength={8} maxLength={72} required
-                  value={datos.clave} onChange={cambiar('clave')} />
-                <button type="button" className="boton-texto" onClick={() => setVerClave((v) => !v)}>{verClave ? 'Ocultar' : 'Ver'}</button>
-              </span>
-              <small className="ayuda">Entre 8 y 72 caracteres, con letras y números. No se guarda en este teléfono.</small>
+            <label className="campo campo-requerido"><span>Fecha de nacimiento</span>
+              <input className="control" type="date" required max={MAYOR_DE_EDAD} value={datos.fechaNacimiento}
+                onChange={cambiar('fechaNacimiento')} />
+              <small className="ayuda">Tiene que ser mayor de edad.</small>
             </label>
-            <label className="campo campo-requerido"><span>Repetir contraseña</span>
-              <input className="control" type={verClave ? 'text' : 'password'} autoComplete="new-password" minLength={8} maxLength={72} required
-                value={datos.confirmacionClave} onChange={cambiar('confirmacionClave')} /></label>
+            <Alerta tipo="info">
+              La cuenta se crea con la contraseña provisoria <b>dulcemayor</b>. Avisale al cliente que la va a tener que
+              cambiar la primera vez que entre al sitio de Dulce Mayor con su correo.
+            </Alerta>
             <button className="boton boton-primario" type="submit" disabled={ocupado}>{ocupado ? 'Registrando…' : 'Crear cuenta y seguir'}</button>
           </form>
         )}

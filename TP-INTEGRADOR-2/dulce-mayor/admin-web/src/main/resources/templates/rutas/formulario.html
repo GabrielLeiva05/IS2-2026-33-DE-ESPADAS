@@ -26,7 +26,7 @@
                             <select class="control" id="idPreventista" th:field="*{idPreventista}" required>
                                 <option value="">Seleccioná un preventista</option>
                                 <option th:each="p : ${preventistas}" th:value="${p.id}"
-                                        th:text="${p.nombreCompleto} + (${p.zona != null} ? ' · ' + ${p.zona} : '')">Preventista</option>
+                                        th:text="${p.nombreCompleto}">Preventista</option>
                             </select></div>
                         <div class="campo"><label class="requerido" for="fecha">Fecha</label>
                             <input class="control" id="fecha" type="date" th:field="*{fecha}" required></div>

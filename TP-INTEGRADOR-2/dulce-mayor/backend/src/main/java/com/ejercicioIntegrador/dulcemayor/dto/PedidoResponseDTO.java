@@ -9,6 +9,8 @@ import java.util.List;
 /**
  * Pedido completo. "confirmado" indica que el cliente ya lo confirmó (fechaConfirmacion = fechaFacturacion
  * del diagrama). Las acciones posibles se informan para que las vistas no repliquen reglas del negocio.
+ * idFactura/numeroFactura/totalFacturado: la FacturaCliente que se emitió al confirmar (total con IVA, el que se
+ * cobra al entregar); son null mientras el pedido no está confirmado.
  */
 public record PedidoResponseDTO(String id, long numeroPedido, LocalDateTime fechaHoraCarga,
                                 LocalDateTime fechaConfirmacion, LocalDateTime fechaDespacho,
@@ -17,5 +19,6 @@ public record PedidoResponseDTO(String id, long numeroPedido, LocalDateTime fech
                                 boolean puedeAnularse, String idPuntoVenta, String nombreFantasia, String direccion,
                                 String idCliente, String nombreCliente, String idPreventista,
                                 String nombrePreventista, String idDistribuidor, String nombreDistribuidor,
-                                List<DetallePedidoResponseDTO> detalles, boolean eliminado) implements BaseResponseDTO {
+                                List<DetallePedidoResponseDTO> detalles, boolean eliminado,
+                                String idFactura, Long numeroFactura, Double totalFacturado) implements BaseResponseDTO {
 }

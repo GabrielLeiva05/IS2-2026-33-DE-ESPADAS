@@ -22,6 +22,9 @@ import com.ejercicioIntegrador.dulcemayor.model.Ruta;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioRuta;
 import com.ejercicioIntegrador.dulcemayor.service.base.BaseService;
 import com.ejercicioIntegrador.dulcemayor.service.base.BaseUseCaseService;
+import com.ejercicioIntegrador.dulcemayor.service.rutas.MatrizRecorrido;
+import com.ejercicioIntegrador.dulcemayor.service.rutas.MotorRecorridos;
+import com.ejercicioIntegrador.dulcemayor.service.rutas.OptimizadorRecorrido;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,9 +42,11 @@ import java.util.function.Function;
  * Rutas del día (HU-18, HU-19, HU-20 y la ruta de entregas del distribuidor).
  *
  * - El administrativo arma la ruta de VISITA: preventista, fecha y puntos de venta (una por preventista y día).
- * - La app ordena los puntos PENDIENTES por cercanía desde la ubicación actual (ordenarRuta del diagrama):
- *   heurística del vecino más cercano con distancia en línea recta (Haversine). Es un recorrido razonable,
- *   NO el óptimo; los puntos ya visitados no se vuelven a ordenar ni se incluyen en el recorrido.
+ * - La app ordena los puntos PENDIENTES desde la ubicación actual (ordenarRuta del diagrama), igual para el
+ *   preventista (visitas) y el distribuidor (entregas): el motor de recorridos (OSRM /table) da los tiempos de
+ *   manejo entre todos los puntos y OptimizadorRecorrido decide el orden (exacto hasta 12 paradas, heurístico
+ *   con más). Si OSRM no responde se ordena con distancias en línea recta y se informa. Los puntos ya visitados
+ *   no se vuelven a ordenar ni se incluyen en el recorrido.
  * - Cada parada guarda su resultado (con pedido, sin pedido, entregado, no entregado) y un motivo.
  * Las rutas de la app se buscan SIEMPRE por el empleado autenticado, nunca por un id recibido.
  */
@@ -51,10 +56,10 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
     private final RepositorioRuta repositorioRuta;
     private final ServicioEmpleado servicioEmpleado;
     private final ServicioPuntoVenta servicioPuntoVenta;
-    private final ServicioMapas servicioMapas;
+    private final MotorRecorridos servicioMapas;
 
     public ServicioRuta(RepositorioRuta repositorioRuta, ServicioEmpleado servicioEmpleado,
-                        ServicioPuntoVenta servicioPuntoVenta, ServicioMapas servicioMapas) {
+                        ServicioPuntoVenta servicioPuntoVenta, MotorRecorridos servicioMapas) {
         super(repositorioRuta);
         this.repositorioRuta = repositorioRuta;
         this.servicioEmpleado = servicioEmpleado;
@@ -141,7 +146,7 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
         Empleado empleado = ruta.getEmpleado();
         return new RutaResponseDTO(ruta.getId(), ruta.getFecha(), ruta.getTipoRuta(), empleado.getId(),
                 empleado.getNombre() + " " + empleado.getApellido(), puntos, puntos.size() - visitados, visitados,
-                ruta.isEliminado());
+                ruta.isEliminado(), ruta.getCriterioOrden());
     }
 
     // ------------------------------------------------------------------
@@ -160,6 +165,7 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
             throw new MiException("El punto de venta ya está en la ruta");
         }
         ruta.getPuntos().add(new PuntoRuta(puntoVenta, siguienteOrden(ruta)));
+        ruta.setCriterioOrden(null); // el orden ya no es el calculado: la app lo vuelve a optimizar
         return convertirAResponse(repositorioRuta.save(ruta));
     }
 
@@ -176,6 +182,7 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
             throw new MiException("La ruta debe conservar al menos un punto: dala de baja si ya no corresponde");
         }
         ruta.getPuntos().remove(parada);
+        ruta.setCriterioOrden(null);
         return convertirAResponse(repositorioRuta.save(ruta));
     }
 
@@ -229,9 +236,8 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
     }
 
     /**
-     * ordenarRuta(idRuta, latitudInicio, longitudInicio) del diagrama: reordena los puntos PENDIENTES
-     * por cercanía desde la ubicación indicada y guarda el orden. Los visitados quedan primero, en el
-     * orden en que se visitaron.
+     * ordenarRuta(idRuta, latitudInicio, longitudInicio) del diagrama: decide el orden de los puntos PENDIENTES
+     * desde la ubicación indicada y lo guarda. Los visitados quedan primero, en el orden en que se visitaron.
      */
     @Transactional(rollbackFor = Exception.class)
     public RutaDelDiaDTO ordenarRuta(Empleado empleado, TipoRuta tipo, UbicacionDTO inicio,
@@ -247,16 +253,41 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
                 .sorted(Comparator.comparing(PuntoRuta::getFechaHoraVisita,
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
-        List<PuntoRuta> pendientes = ordenarPorCercania(inicio.latitud(), inicio.longitud(),
-                ruta.getPuntos().stream().filter(p -> !p.isVisitado()).toList());
+        List<PuntoRuta> pendientes = ruta.getPuntos().stream().filter(p -> !p.isVisitado()).toList();
+        OrdenCalculado calculado = ordenOptimo(inicio.latitud(), inicio.longitud(), pendientes);
         int orden = 1;
         for (PuntoRuta p : visitados) {
             p.setOrden(orden++);
         }
-        for (PuntoRuta p : pendientes) {
+        for (PuntoRuta p : calculado.orden()) {
             p.setOrden(orden++);
         }
+        if (!pendientes.isEmpty()) {
+            ruta.setCriterioOrden(calculado.criterio());
+        }
         return armarRutaDelDia(repositorioRuta.save(ruta), inicio, pedidosDe);
+    }
+
+    /** Orden de los pendientes y la explicación honesta de cómo se calculó. */
+    record OrdenCalculado(List<PuntoRuta> orden, String criterio) {
+    }
+
+    /** Matriz del motor de recorridos (ubicación = índice 0) + optimizador. */
+    OrdenCalculado ordenOptimo(double latitud, double longitud, List<PuntoRuta> pendientes) {
+        if (pendientes.size() <= 1) {
+            return new OrdenCalculado(pendientes, pendientes.isEmpty() ? null : "única parada pendiente");
+        }
+        List<double[]> puntos = new ArrayList<>();
+        puntos.add(new double[]{latitud, longitud});
+        pendientes.forEach(p -> puntos.add(new double[]{coordenada(p, true), coordenada(p, false)}));
+        MatrizRecorrido matriz = servicioMapas.matriz(puntos);
+        OptimizadorRecorrido.Resultado resultado = OptimizadorRecorrido.optimizar(matriz.costos());
+        List<PuntoRuta> orden = resultado.orden().stream().map(i -> pendientes.get(i - 1)).toList();
+        String metodo = resultado.exacto()
+                ? "Orden óptimo (búsqueda exacta Held-Karp)"
+                : "Orden aproximado (vecino más cercano + mejora 2-opt; con más de "
+                        + OptimizadorRecorrido.LIMITE_EXACTO + " paradas no se garantiza el óptimo)";
+        return new OrdenCalculado(orden, metodo + " por " + matriz.criterio());
     }
 
     /**
@@ -322,6 +353,7 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
         for (PuntoVenta comercio : comercios) {
             if (buscarParada(ruta, comercio.getId()).isEmpty()) {
                 ruta.getPuntos().add(new PuntoRuta(comercio, siguienteOrden(ruta)));
+                ruta.setCriterioOrden(null);
                 cambio = true;
             }
         }
@@ -349,11 +381,9 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
         PuntoRutaDTO siguiente = null;
         Double distancia = null;
         if (!pendientes.isEmpty()) {
-            // proponerSiguientePunto del diagrama: el pendiente más cercano a la ubicación; sin ubicación, el primero.
-            siguiente = conUbicacion
-                    ? pendientes.stream().min(Comparator.comparingDouble(p -> CalculoDistancia.kilometros(
-                            ubicacion.latitud(), ubicacion.longitud(), p.latitud(), p.longitud()))).orElseThrow()
-                    : pendientes.get(0);
+            // proponerSiguientePunto del diagrama: el primer pendiente del orden guardado (el que decidió
+            // el optimizador, o el de administración si todavía no se ordenó). Con ubicación, se informa la distancia.
+            siguiente = pendientes.get(0);
             if (conUbicacion) {
                 distancia = CalculoDistancia.kilometros(ubicacion.latitud(), ubicacion.longitud(),
                         siguiente.latitud(), siguiente.longitud());
@@ -366,27 +396,6 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
         pendientes.forEach(p -> puntosTrayecto.add(new double[]{p.latitud(), p.longitud()}));
         TrayectoDTO trayecto = puntosTrayecto.size() < 2 ? TrayectoDTO.vacio() : servicioMapas.trazar(puntosTrayecto);
         return new RutaDelDiaDTO(dto, siguiente, distancia, trayecto);
-    }
-
-    /** Vecino más cercano: desde el inicio, siempre el pendiente más próximo en línea recta. */
-    static List<PuntoRuta> ordenarPorCercania(double latitud, double longitud, List<PuntoRuta> pendientes) {
-        List<PuntoRuta> restantes = new ArrayList<>(pendientes);
-        List<PuntoRuta> orden = new ArrayList<>();
-        double latActual = latitud;
-        double lonActual = longitud;
-        while (!restantes.isEmpty()) {
-            final double lat = latActual;
-            final double lon = lonActual;
-            PuntoRuta masCercano = restantes.stream()
-                    .min(Comparator.comparingDouble(p -> CalculoDistancia.kilometros(lat, lon,
-                            coordenada(p, true), coordenada(p, false))))
-                    .orElseThrow();
-            orden.add(masCercano);
-            restantes.remove(masCercano);
-            latActual = coordenada(masCercano, true);
-            lonActual = coordenada(masCercano, false);
-        }
-        return orden;
     }
 
     private static double coordenada(PuntoRuta parada, boolean latitud) {

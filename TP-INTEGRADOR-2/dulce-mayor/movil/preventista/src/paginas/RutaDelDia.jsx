@@ -4,13 +4,14 @@ import { esNoEncontrado, mensajeDeError } from '@comun/api/cliente.js'
 import { Alerta, BotonEnlace, Cargando, Encabezado, InsigniaResultado, Vacio } from '@comun/componentes/Interfaz.jsx'
 import Icono from '@comun/componentes/Icono.jsx'
 import MapaRuta from '@comun/componentes/MapaRuta.jsx'
+import NotaRecorrido from '@comun/componentes/NotaRecorrido.jsx'
 import useUbicacion from '@comun/hooks/useUbicacion.js'
 import { formatoKm } from '@comun/utilidades/formato.js'
 import { rutas } from '../servicios.js'
 
 const TONO_NUMERO = { CON_PEDIDO: 'numero-hecho', SIN_PEDIDO: 'numero-aviso' }
 
-/** HU-19 / HU-20: ruta del día en el mapa, ordenada por cercanía desde la ubicación del preventista. */
+/** HU-19 / HU-20: ruta del día en el mapa, con el orden optimizado en el backend desde la ubicación del preventista. */
 export default function RutaDelDia() {
   const { posicion, error: errorUbicacion, buscando, manual, elegirManual, volverAlGps } = useUbicacion()
   const [datos, setDatos] = useState(null)
@@ -49,7 +50,7 @@ export default function RutaDelDia() {
     }
   }, [])
 
-  // Con la primera posición (GPS o marcada a mano) se ordenan los pendientes por cercanía.
+  // Con la primera posición (GPS o marcada a mano) el backend optimiza el orden de los pendientes.
   useEffect(() => {
     if (!posicion || sinRuta) return
     // El GPS se actualiza seguido: se ordena una sola vez con él; un inicio marcado a mano reordena cada vez.
@@ -97,8 +98,10 @@ export default function RutaDelDia() {
       <main className="contenido">
         <Alerta>{error}</Alerta>
         {errorUbicacion && !posicion && <Alerta tipo="aviso">{errorUbicacion}</Alerta>}
-        {buscando && !posicion && <Alerta tipo="info">Buscando tu ubicación para ordenar los puntos por cercanía…</Alerta>}
+        {buscando && !posicion && <Alerta tipo="info">Buscando tu ubicación para optimizar el orden de los puntos…</Alerta>}
 
+        <div className="dos-paneles">
+        <section className="panel-mapa">
         <div className="resumen-kpi">
           <div className="kpi"><b>{puntos.length}</b><span>Puntos</span></div>
           <div className="kpi"><b>{ruta?.visitados ?? 0}</b><span>Visitados</span></div>
@@ -112,11 +115,7 @@ export default function RutaDelDia() {
           destacado={siguiente?.idPuntoVenta}
           alTocarMapa={marcandoInicio || (!posicion && errorUbicacion) ? tocarMapa : undefined}
         />
-        {datos?.trayecto?.fuente && datos.trayecto.geometria?.length > 1 && (
-          <p className="mapa-nota">
-            {datos.trayecto.fuente}. Orden sugerido por cercanía (el más cercano primero); no es un recorrido óptimo calculado.
-          </p>
-        )}
+        <NotaRecorrido trayecto={datos?.trayecto} criterioOrden={datos?.ruta?.criterioOrden} />
 
         <div className="grupo-botones">
           <button type="button" className="boton boton-secundario boton-chico" disabled={!posicion || ordenando}
@@ -130,6 +129,8 @@ export default function RutaDelDia() {
               </button>}
         </div>
 
+        </section>
+        <section className="panel-lista">
         {siguiente && (
           <Link to={`/puntos/${siguiente.idPuntoVenta}`} className="item item-destacado">
             <span className="numero" style={{ background: 'var(--dm-magenta)', color: '#fff' }}>{siguiente.orden}</span>
@@ -162,6 +163,8 @@ export default function RutaDelDia() {
             </li>
           ))}
         </ul>
+        </section>
+        </div>
       </main>
     </div>
   )

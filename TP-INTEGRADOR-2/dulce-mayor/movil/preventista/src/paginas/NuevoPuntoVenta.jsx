@@ -13,11 +13,20 @@ const CONDICIONES = [
 ]
 
 const normalizar = (t) => (t ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+/** Compara nombres sin acentos: "Departamento Godoy Cruz" (OpenStreetMap) coincide con "Godoy Cruz". */
+const coincide = (informado, nombre) => {
+  const a = normalizar(informado)
+  const b = normalizar(nombre)
+  return a !== '' && b !== '' && (a === b || a.includes(b))
+}
 
 /**
  * HU-17 (según backlog): alta de punto de venta con datos del comercio (nombre de fantasía, razón social,
  * CUIT, condición de IVA), su responsable (cliente del paso 1) y la ubicación marcada en el mapa.
- * La ubicación sale de: buscar la dirección (Nominatim, vía backend), tocar el mapa o el GPS del teléfono.
+ * La ubicación sale de dos alternativas (corrección Ola 2):
+ *  A) escribir la dirección y buscarla (geocodificación directa, Nominatim vía backend): se obtienen las coordenadas;
+ *  B) tocar el mapa o usar el GPS (geocodificación inversa): se obtienen las coordenadas y se completa la dirección.
+ * En ambos casos el preventista revisa y corrige los campos antes de guardar.
  * Sin ubicación elegida no se puede guardar: no se usan coordenadas por defecto.
  */
 export default function NuevoPuntoVenta() {
@@ -37,6 +46,8 @@ export default function NuevoPuntoVenta() {
   const [avisoMapa, setAvisoMapa] = useState(null)
   const [error, setError] = useState(null)
   const [guardando, setGuardando] = useState(false)
+  const [firmaUbicacion, setFirmaUbicacion] = useState(null)
+  const [completando, setCompletando] = useState(false)
 
   useEffect(() => {
     ubicaciones.provincia(PROVINCIA)
@@ -45,15 +56,24 @@ export default function NuevoPuntoVenta() {
       .catch((e) => setError(mensajeDeError(e, 'No se pudieron cargar los departamentos.')))
   }, [])
 
+  // Localidad a seleccionar automáticamente cuando termine de cargarse la lista del departamento
+  // (viene de la geocodificación: el nombre que informa OpenStreetMap).
+  const [localidadSugerida, setLocalidadSugerida] = useState(null)
+
   useEffect(() => {
     if (!datos.idDepartamento) return
     ubicaciones.localidades(datos.idDepartamento)
       .then((lista) => {
         setLocalidades(lista)
-        // Si el departamento tiene una sola localidad cargada, se elige sola.
-        if (lista.length === 1) setDatos((d) => ({ ...d, idLocalidad: lista[0].id }))
+        const sugerida = localidadSugerida && lista.find((l) => coincide(localidadSugerida, l.nombre))
+        // Si el departamento tiene una sola localidad cargada, o la geocodificación indicó una, se elige sola.
+        if (sugerida) setDatos((d) => ({ ...d, idLocalidad: sugerida.id }))
+        else if (lista.length === 1) setDatos((d) => ({ ...d, idLocalidad: lista[0].id }))
+        setLocalidadSugerida(null)
       })
       .catch(() => setLocalidades([]))
+    // localidadSugerida se lee solo al cambiar de departamento
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datos.idDepartamento])
 
   if (!cliente) return <Navigate to="/clientes/nuevo" replace />
@@ -67,23 +87,65 @@ export default function NuevoPuntoVenta() {
   const departamento = departamentos.find((d) => d.id === datos.idDepartamento)
   const localidad = localidades.find((l) => l.id === datos.idLocalidad)
 
-  function ubicar(latitud, longitud, texto) {
+  // La dirección escrita y el pin tienen que ser el mismo lugar: si después de ubicar el comercio se cambia la
+  // calle, el número o el departamento, la ubicación queda "a revisar" y no se puede guardar hasta volver a
+  // ubicarla o confirmar que el pin está bien.
+  const firmaActual = `${normalizar(datos.calle)}|${normalizar(datos.numeracion)}|${datos.idDepartamento}`
+  const ubicacionARevisar = posicion != null && firmaUbicacion !== firmaActual
+
+  /**
+   * Completa la dirección con lo que devolvió la geocodificación (Nominatim vía backend).
+   * sobrescribir = true cuando el lugar lo eligió el preventista en el mapa o con el GPS (la dirección pasa a ser
+   * la de ese punto); false cuando buscó una dirección escrita (solo se completa lo que falta).
+   * Lo que el servicio no informe queda para completar a mano.
+   */
+  function completarDireccion(r, sobrescribir) {
+    const depto = r.departamento ? departamentos.find((d) => coincide(r.departamento, d.nombre)) : null
+    const siguiente = { ...datos }
+    const poner = (campo, valor) => { if (valor && (sobrescribir || !siguiente[campo])) siguiente[campo] = valor }
+    poner('calle', r.calle)
+    poner('numeracion', r.numeracion)
+    poner('barrio', r.barrio)
+    if (depto && (sobrescribir || !siguiente.idDepartamento) && depto.id !== siguiente.idDepartamento) {
+      siguiente.idDepartamento = depto.id
+      siguiente.idLocalidad = ''
+      setLocalidades([])
+      setLocalidadSugerida(r.localidad ?? null)
+    } else if (r.localidad && (sobrescribir || !siguiente.idLocalidad)) {
+      const loc = localidades.find((l) => coincide(r.localidad, l.nombre))
+      if (loc) siguiente.idLocalidad = loc.id
+    }
+    setDatos(siguiente)
+    return `${normalizar(siguiente.calle)}|${normalizar(siguiente.numeracion)}|${siguiente.idDepartamento}`
+  }
+
+  function ubicar(latitud, longitud, texto, firma) {
     setPosicion({ latitud, longitud })
     setDescripcion(texto ?? null)
+    setFirmaUbicacion(firma)
     setResultados(null)
     setAvisoMapa(null)
   }
 
+  /** Alternativa B: el preventista toca el mapa (o usa su GPS) y se completa la dirección de ese punto. */
   async function tocarMapa(latitud, longitud) {
-    ubicar(latitud, longitud)
+    ubicar(latitud, longitud, null, firmaActual)
+    setCompletando(true)
     try {
       const encontrado = await mapas.inversa(latitud, longitud)
+      const firma = completarDireccion(encontrado, true)
       setDescripcion(encontrado.descripcion)
+      setFirmaUbicacion(firma)
+      setAvisoMapa('Completamos la dirección con la del punto marcado. Revisala y corregila si hace falta.')
     } catch {
-      setDescripcion(null) // la ubicación tocada vale igual, aunque no se encuentre la dirección
+      // La ubicación tocada vale igual: la dirección se completa a mano.
+      setAvisoMapa('No encontramos la dirección de ese punto. Completala a mano: el pin queda donde tocaste.')
+    } finally {
+      setCompletando(false)
     }
   }
 
+  /** Alternativa A: el preventista escribe la dirección y se buscan sus coordenadas. */
   async function buscarDireccion() {
     if (!datos.calle.trim()) {
       setAvisoMapa('Escribí al menos la calle para buscarla en el mapa.')
@@ -105,13 +167,8 @@ export default function NuevoPuntoVenta() {
   }
 
   function elegirResultado(r) {
-    ubicar(r.latitud, r.longitud, r.descripcion)
-    // Completa el departamento si el resultado lo informa y todavía no se eligió.
-    if (!datos.idDepartamento && r.departamento) {
-      const coincide = departamentos.find((d) => normalizar(r.departamento).includes(normalizar(d.nombre)))
-      if (coincide) setDatos((d) => ({ ...d, idDepartamento: coincide.id, idLocalidad: '' }))
-    }
-    if (!datos.numeracion && r.numeracion) setDatos((d) => ({ ...d, numeracion: r.numeracion }))
+    const firma = completarDireccion(r, false)
+    ubicar(r.latitud, r.longitud, r.descripcion, firma)
   }
 
   function usarGps() {
@@ -131,6 +188,10 @@ export default function NuevoPuntoVenta() {
     e.preventDefault()
     if (!posicion) {
       setError('Ubicá el comercio en el mapa: buscá la dirección, usá tu ubicación o tocá el mapa.')
+      return
+    }
+    if (ubicacionARevisar) {
+      setError('Cambiaste la dirección después de ubicar el comercio: buscala de nuevo o confirmá que el pin está en el lugar correcto.')
       return
     }
     setGuardando(true)
@@ -208,7 +269,7 @@ export default function NuevoPuntoVenta() {
           <section className="tarjeta formulario">
             <div className="tarjeta-titulo" style={{ marginBottom: 0 }}>
               <h2>Ubicación en el mapa</h2>
-              {posicion ? <span className="insignia insignia-verde">Marcada</span> : <span className="insignia insignia-naranja">Falta</span>}
+              {!posicion ? <span className="insignia insignia-naranja">Falta</span> : ubicacionARevisar ? <span className="insignia insignia-naranja">A revisar</span> : <span className="insignia insignia-verde">Marcada</span>}
             </div>
             <div className="grupo-botones">
               <button type="button" className="boton boton-secundario boton-chico" onClick={buscarDireccion} disabled={buscando}>
@@ -231,6 +292,15 @@ export default function NuevoPuntoVenta() {
                 ))}
               </ul>
             )}
+            {ubicacionARevisar && (
+              <div className="alerta alerta-aviso" role="alert">
+                <span>Cambiaste la dirección después de ubicar el comercio. Buscala de nuevo, tocá el lugar en el mapa
+                  o confirmá que el pin está bien.</span>
+                <button type="button" className="boton boton-secundario boton-chico"
+                  onClick={() => setFirmaUbicacion(firmaActual)}>El pin está bien</button>
+              </div>
+            )}
+            {completando && <p className="ayuda">Buscando la dirección del punto marcado…</p>}
             <SelectorUbicacion posicion={posicion} alCambiar={tocarMapa} />
             <p className="ayuda">
               {posicion

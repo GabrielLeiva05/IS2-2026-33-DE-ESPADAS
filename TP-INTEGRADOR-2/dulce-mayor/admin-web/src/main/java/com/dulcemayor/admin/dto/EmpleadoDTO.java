@@ -24,7 +24,6 @@ public class EmpleadoDTO {
     private String legajo;
     private String fechaIngreso;
     private DireccionDTO direccion;
-    private String zona;
     private String vehiculo;
     private String patente;
     private String idImagen;

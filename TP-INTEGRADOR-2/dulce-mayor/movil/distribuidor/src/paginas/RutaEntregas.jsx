@@ -4,6 +4,7 @@ import { esNoEncontrado, mensajeDeError } from '@comun/api/cliente.js'
 import { Alerta, Cargando, Encabezado, InsigniaResultado, Vacio } from '@comun/componentes/Interfaz.jsx'
 import Icono from '@comun/componentes/Icono.jsx'
 import MapaRuta from '@comun/componentes/MapaRuta.jsx'
+import NotaRecorrido from '@comun/componentes/NotaRecorrido.jsx'
 import useUbicacion from '@comun/hooks/useUbicacion.js'
 import { formatoKm, formatoMoneda } from '@comun/utilidades/formato.js'
 import { entregas } from '../servicios.js'
@@ -12,8 +13,8 @@ const TONO_NUMERO = { ENTREGADO: 'numero-hecho', NO_ENTREGADO: 'numero-error' }
 const aCobrar = (punto) => (punto.pedidos ?? []).filter((p) => p.estado === 'PENDIENTE_DE_ENTREGA').reduce((s, p) => s + p.total, 0)
 
 /**
- * Ruta de entregas del día: comercios con pedidos asignados al distribuidor, ordenados por cercanía
- * desde su ubicación. Los pedidos no entregados siguen pendientes y vuelven a la ruta del día siguiente.
+ * Ruta de entregas del día: comercios con pedidos asignados al distribuidor, con el orden optimizado en el
+ * backend desde su ubicación (tiempos de manejo de OSRM). Los pedidos no entregados siguen pendientes y vuelven a la ruta del día siguiente.
  */
 export default function RutaEntregas() {
   const { state } = useLocation()
@@ -84,6 +85,8 @@ export default function RutaEntregas() {
         <Alerta>{error}</Alerta>
         {errorUbicacion && !posicion && <Alerta tipo="aviso">{errorUbicacion}</Alerta>}
 
+        <div className="dos-paneles">
+        <section className="panel-mapa">
         <div className="resumen-kpi">
           <div className="kpi"><b>{ruta.pendientes}</b><span>Por entregar</span></div>
           <div className="kpi"><b>{ruta.visitados}</b><span>Atendidos</span></div>
@@ -92,9 +95,7 @@ export default function RutaEntregas() {
 
         <MapaRuta puntos={ruta.puntos} posicion={posicion} trayecto={datos.trayecto} destacado={siguiente?.idPuntoVenta}
           alTocarMapa={marcandoInicio || (!posicion && errorUbicacion) ? tocarMapa : undefined} />
-        {datos.trayecto?.geometria?.length > 1 && (
-          <p className="mapa-nota">{datos.trayecto.fuente}. Orden por cercanía (el más cercano primero); no es un recorrido óptimo calculado.</p>
-        )}
+        <NotaRecorrido trayecto={datos.trayecto} criterioOrden={ruta.criterioOrden} />
         <div className="grupo-botones">
           <button type="button" className="boton boton-secundario boton-chico" disabled={trabajando} onClick={() => armar(posicion)}>
             <Icono nombre="gps" tamanio={18} />{trabajando ? 'Actualizando…' : 'Actualizar ruta'}
@@ -104,6 +105,8 @@ export default function RutaEntregas() {
             : <button type="button" className="boton boton-fantasma boton-chico" onClick={() => setMarcandoInicio((v) => !v)}>{marcandoInicio ? 'Tocá el mapa…' : 'Marcar inicio'}</button>}
         </div>
 
+        </section>
+        <section className="panel-lista">
         {siguiente
           ? (
             <Link to={`/entregas/${siguiente.idPuntoVenta}`} className="item item-destacado">
@@ -134,6 +137,8 @@ export default function RutaEntregas() {
             </li>
           ))}
         </ul>
+        </section>
+        </div>
       </main>
     </div>
   )

@@ -51,7 +51,7 @@ export default function MisPedidos() {
         <Alerta>{error}</Alerta>
         {lista === null && <Cargando />}
         {lista && visibles.length === 0 && !error && <Vacio icono="pedido" titulo="No hay pedidos en este período" />}
-        <ul className="lista">
+        <ul className="lista lista-grilla">
           {visibles.map((p) => (
             <li key={p.id}>
               <Link to={`/pedidos/${p.id}`} className="item">

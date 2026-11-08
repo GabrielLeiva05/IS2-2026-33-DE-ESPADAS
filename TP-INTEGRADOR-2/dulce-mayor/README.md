@@ -1,546 +1,727 @@
-# Dulce Mayor — Ola 2: Rutas y Pedidos
+# Dulce Mayor — Correcciones de las Olas 1 y 2 y Facturación (Ola 3)
 
-Mayorista de golosinas de Mendoza. Esta entrega agrega los módulos de **Rutas** y **Pedidos** sobre lo ya
-construido (Catálogo y Stock; Personas, Usuarios, Autenticación y Autorización) y completa el flujo de punta a punta:
+Dulce Mayor es un mayorista de golosinas de Mendoza. Esta entrega **continúa el proyecto existente**: no se rehízo nada.
+Se mantienen la arquitectura cliente-servidor, MVC en tres capas, REST, los DTO, el patrón Repository, el
+**Template Method** de `BaseService` y `BaseController`, la autenticación JWT/OAuth y las mismas tecnologías de
+frontend (Thymeleaf y React con Vite).
 
-1. Administración arma la ruta de visitas de cada preventista.
-2. El preventista, desde su celular, sigue la ruta en el mapa, da de alta comercios y carga pedidos (el stock se reserva).
-3. El cliente entra al sitio, ve su pedido y lo **confirma** o lo **anula** (si lo anula, el stock vuelve al depósito).
-4. Administración asigna los pedidos confirmados a un distribuidor.
-5. El distribuidor arma su ruta de entregas y registra cada entrega; lo que no se pudo entregar vuelve en la ruta del día siguiente.
+Resumen de esta entrega:
 
-> La documentación de la etapa anterior (autenticación, JWT, OAuth, matriz de permisos de personas) quedó en
-> [`docs/README-etapa2.md`](docs/README-etapa2.md) y la configuración de Google/Facebook en
-> [`CONFIGURACION-OAUTH.md`](CONFIGURACION-OAUTH.md).
+- **Ola 1 corregida.**
+  - El DNI no se modifica una vez registrado.
+  - DNI y fecha de nacimiento son obligatorios en los formularios de alta.
+  - El cliente dado de alta en la calle recibe la clave inicial `dulcemayor` y tiene que cambiarla.
+  - La sesión se mantiene abierta, con un límite.
+- **Ola 2 corregida.**
+  - El preventista ya no tiene zona.
+  - El alta del comercio ubica la dirección en el mapa (geocodificación directa e inversa) y valida que la dirección
+    coincida con el pin.
+  - Hay ABM de productos en administración.
+  - Hay gráficos con datos reales (HU-43).
+- **Rutas.** Se compararon OSRM y GraphHopper y se eligió **OSRM**. El orden de las paradas de preventistas y
+  distribuidores ahora se **optimiza** con una matriz de tiempos de manejo.
+- **Ola 3, Facturación** (sin Pagos):
+  - `FacturaCliente` se emite al confirmar el pedido y `FacturaProveedor` la carga administración.
+  - Se aplica el patrón **Factory Method**.
+  - El PDF se arma con **JasperReports** sobre la base real y cada cliente descarga solo sus facturas.
+- **Tablets.** Las apps React y las web se adaptan a tablets, verticales y horizontales.
+
+> **Sobre la verificación:** el entorno de desarrollo no tenía acceso a Maven Central, así que `mvnw test` y el
+> arranque de Spring Boot **no se pudieron ejecutar**. La [sección 19](#19-cómo-ejecutar-y-probar-el-proyecto) detalla
+> qué se ejecutó de verdad y qué falta correr antes de entregar.
 >
-> **Importante sobre la verificación:** en el entorno donde se desarrolló no había acceso a Maven Central, así que
-> **no se pudieron ejecutar** `mvnw test` ni levantar Spring Boot. Lo que sí se ejecutó y lo que falta ejecutar está
-> detallado en la [sección 24](#24-qué-se-verificó-y-qué-no). Antes de la entrega hay que correr las pruebas del backend.
+> La documentación anterior sigue disponible:
+> - Ola 2: [`docs/README-ola2.md`](docs/README-ola2.md).
+> - Etapa 2: [`docs/README-etapa2.md`](docs/README-etapa2.md).
+> - OAuth: [`CONFIGURACION-OAUTH.md`](CONFIGURACION-OAUTH.md).
 
 ## Índice
 
-1. [Funcionalidades implementadas](#1-funcionalidades-implementadas)
-2. [Historias de usuario HU-15 a HU-21](#2-historias-de-usuario-hu-15-a-hu-21)
-3. [HU-17 según el backlog](#3-hu-17-según-el-backlog)
-4. [Módulos de Rutas y Pedidos (modelo y cambios al diagrama)](#4-módulos-de-rutas-y-pedidos)
-5. [Integración con OpenStreetMap](#5-integración-con-openstreetmap)
-6. [Bibliotecas y servicios externos](#6-bibliotecas-y-servicios-externos)
-7. [Ubicación del usuario](#7-ubicación-del-usuario)
-8. [Geocodificación](#8-geocodificación)
-9. [Cálculo del recorrido](#9-cálculo-del-recorrido)
-10. [Registro de visitas](#10-registro-de-visitas)
-11. [Registro de pedidos](#11-registro-de-pedidos)
-12. [Confirmación y cancelación por el cliente](#12-confirmación-y-cancelación-por-el-cliente)
-13. [Reserva y devolución de stock](#13-reserva-y-devolución-de-stock)
-14. [Inicio del proceso de pago](#14-inicio-del-proceso-de-pago)
-15. [Entregas](#15-entregas)
-16. [Reprogramación de entregas](#16-reprogramación-de-entregas)
-17. [Alta de clientes y puntos de venta en campo](#17-alta-de-clientes-y-puntos-de-venta-en-campo)
-18. [Endpoints nuevos y permisos](#18-endpoints-nuevos-y-permisos)
-19. [Aplicaciones React: cómo ejecutarlas](#19-aplicaciones-react-cómo-ejecutarlas)
-20. [Backend y aplicaciones web: cómo ejecutar](#20-backend-y-aplicaciones-web-cómo-ejecutar)
-21. [Variables de entorno](#21-variables-de-entorno)
-22. [Seguridad: propiedad de los recursos](#22-seguridad-propiedad-de-los-recursos)
-23. [Funcionalidades pendientes](#23-funcionalidades-pendientes)
-24. [Qué se verificó y qué no](#24-qué-se-verificó-y-qué-no)
-
----
-
-## Estructura del proyecto
+1. [Correcciones realizadas](#1-correcciones-realizadas)
+2. [Cambios en usuarios y sesiones](#2-cambios-en-usuarios-y-sesiones)
+3. [Cambios en el alta de clientes](#3-cambios-en-el-alta-de-clientes)
+4. [Cambios en el ABM de productos](#4-cambios-en-el-abm-de-productos)
+5. [Funcionamiento de los gráficos](#5-funcionamiento-de-los-gráficos)
+6. [Implementación del módulo de Facturación](#6-implementación-del-módulo-de-facturación)
+7. [Relaciones entre Facturación y los demás módulos](#7-relaciones-entre-facturación-y-los-demás-módulos)
+8. [Reutilización de clases del Integrador 1](#8-reutilización-de-clases-del-integrador-1)
+9. [Factory Method y clases participantes](#9-factory-method-y-clases-participantes)
+10. [Integración del mini proyecto de PDF](#10-integración-del-mini-proyecto-de-pdf)
+11. [Configuración y funcionamiento del JRXML](#11-configuración-y-funcionamiento-del-jrxml)
+12. [Conexión con la base de datos](#12-conexión-con-la-base-de-datos)
+13. [OSRM vs. GraphHopper: comparación y decisión](#13-osrm-vs-graphhopper-comparación-y-decisión)
+14. [Arquitectura final de optimización de rutas](#14-arquitectura-final-de-optimización-de-rutas)
+15. [Configuración del motor de rutas](#15-configuración-del-motor-de-rutas)
+16. [Endpoints nuevos o modificados](#16-endpoints-nuevos-o-modificados)
+17. [Variables de entorno](#17-variables-de-entorno)
+18. [Mejoras responsive para tablets](#18-mejoras-responsive-para-tablets)
+19. [Cómo ejecutar y probar el proyecto](#19-cómo-ejecutar-y-probar-el-proyecto)
+20. [Funcionalidades pendientes (Pagos y otras)](#20-funcionalidades-pendientes)
 
 ```
 dulce-mayor/
-├── backend/             API REST (Spring Boot 4.1, Java 25, JPA, Spring Security + JWT)       — puerto 8080
-├── admin-web/           Sistema administrativo (Spring MVC + Thymeleaf)                       — puerto 8081
-├── institucional-web/   Sitio para clientes (Spring MVC + Thymeleaf)                          — puerto 8082
-├── movil/
-│   ├── comun/           Código React compartido: cliente Axios, sesión, mapa, ubicación, estilos
-│   ├── preventista/     App React del preventista (Vite)                                     — puerto 5173
-│   └── distribuidor/    App React del distribuidor (Vite)                                    — puerto 5174
-├── docs/                Documentación de la etapa 2 y capturas
-├── README.md
-└── CONFIGURACION-OAUTH.md
+├── backend/             API REST (Spring Boot 4.1, Java 25, JPA, Spring Security + JWT, JasperReports) — 8080
+├── admin-web/           Sistema administrativo (Spring MVC + Thymeleaf + Chart.js)                   — 8081
+├── institucional-web/   Sitio para clientes (Spring MVC + Thymeleaf)                                — 8082
+├── movil/comun          Código React compartido (sesión, Axios, mapa, estilos)
+├── movil/preventista    App React del preventista                                                   — 5173
+├── movil/distribuidor   App React del distribuidor                                                  — 5174
+└── docs/                Documentación anterior y capturas (docs/capturas/ola3)
 ```
-
-La arquitectura no cambia: **cliente-servidor**, **MVC**, **tres capas**, **REST** y **DTO**. Los servicios nuevos
-heredan de `BaseService` (patrón **Template Method**: `crearEntidad`, `validar`, `actualizarEntidad`,
-`convertirAResponse` y los ganchos `preAlta`/`postAlta`) y los controladores de `BaseController`. Los controladores no
-tienen lógica ni repositorios; cada servicio usa **solo su repositorio** y llega a las demás entidades a través de
-sus servicios (por ejemplo, `ServicioPedido` descuenta stock con `ServicioStock` y marca la visita con `ServicioRuta`).
-Las apps React y las web Thymeleaf son clientes de la API: ninguna accede a la base.
 
 ---
 
-## 1. Funcionalidades implementadas
+## 1. Correcciones realizadas
 
-| Quién | Dónde | Qué puede hacer |
+| Ola | Corrección | Dónde se controla |
 |---|---|---|
-| Administrativo | admin-web → **Rutas** | Ver las rutas de un día con el estado de cada punto, armar la ruta de visitas de un preventista (fecha + comercios), darla de baja si nadie la empezó. |
-| Administrativo | admin-web → **Entregas** | Ver los pedidos confirmados sin distribuidor, asignarlos a un distribuidor y ver los asignados que siguen pendientes. |
-| Preventista | app React (celular) | Ingresar (cambio de clave obligatorio en el primer ingreso), ver su ruta del día en el mapa y en lista, ordenarla por cercanía desde su ubicación, ver el detalle de un comercio, tomar un pedido con el catálogo (buscador, categorías, stock, precio vigente), ver el resumen y cargarlo, ver el siguiente punto sugerido, registrar una visita sin pedido con motivo, dar de alta un cliente (que escribe su correo y su contraseña) y su punto de venta con ubicación en el mapa, consultar el catálogo y sus pedidos. |
-| Cliente | institucional-web → **Mis pedidos** | Ver sus pedidos y su detalle; **confirmar** o **anular** los que están en estado CARGADO. Si entra por un enlace a un pedido sin sesión, después de ingresar vuelve a ese pedido. |
-| Distribuidor | app React (celular) | Ingresar, armar su ruta de entregas del día (comercios con pedidos asignados, ordenados por cercanía), ver cada parada con sus pedidos y el monto a cobrar, registrar **Entregado** o **No se pudo entregar** (con motivo), ver sus pedidos pendientes. |
+| 1 | El **DNI no se puede modificar** una vez registrado, tampoco desde administración. | `ValidacionesPersona.aplicarDocumentoEnModificacion` (backend), usado por `ServicioCliente` y `ServicioEmpleado`. En admin-web el campo queda de solo lectura, pero lo que cuenta es el backend. |
+| 1 | **DNI y fecha de nacimiento obligatorios** en el registro institucional y en el alta móvil. | `ServicioCliente.exigirDocumentoYNacimiento`, más los formularios. |
+| 1 | **Clave inicial `dulcemayor`** para el cliente dado de alta por el preventista, con cambio obligatorio. | Sección 2. |
+| 1 | **Persistencia de sesión.** | Sección 2. |
+| 2 | Se **elimina la zona** del preventista. | `Preventista`, DTO, formularios de admin-web e `InicializadorDatos`. |
+| 2 | **Alta de cliente y punto de venta** con geocodificación directa e inversa, y control de que dirección y pin coincidan. | Sección 3. |
+| 2 | **ABM de productos** para JEFE y ADMINISTRATIVO, reutilizando Catálogo y Stock. | Sección 4. |
+| 2 | **Gráficos HU-43** con datos de la base. | Sección 5. |
+| 2 | **Motor de rutas**: optimización del orden con OSRM. | Secciones 13 a 15. |
+| 3 | **Facturación** (sin Pagos). | Secciones 6 a 12. |
+| — | **Tablets.** | Sección 18. |
 
-Capturas (datos de ejemplo, ver sección 24) en [`docs/capturas/ola2/`](docs/capturas/ola2/).
+Hay otros cambios que vienen de los anteriores:
 
-| Preventista: ruta | Tomar pedido | Pedido cargado | Distribuidor: entregas |
+- **Un pedido confirmado no se puede anular.** Tampoco lo puede anular administración, por decisión del equipo: ya
+  tiene factura.
+- El **monto a cobrar** que ve el distribuidor ahora es el **total facturado con IVA**.
+
+**Decisión sobre el DNI.** El DNI sigue siendo **opcional en la base de datos** porque un cliente que entra con
+Google o Facebook todavía no lo tiene, y lo completa desde "Mi cuenta". Es **obligatorio en los dos formularios de
+alta**: el registro institucional y el alta móvil. Una vez cargado, no cambia.
+
+---
+
+## 2. Cambios en usuarios y sesiones
+
+### Clave inicial solo para el alta móvil
+
+El equipo decidió que la clave inicial exista **solo en el alta desde el celular del preventista**. En el registro
+institucional, el cliente elige su propia clave.
+
+- `ServicioUsuario.crearCuentaClienteConClaveTemporal(correo)` crea la cuenta CLIENTE con:
+  - la clave `dulcemayor` **hasheada** (BCrypt en la aplicación; nunca se guarda en texto plano);
+  - `debeCambiarClave = true`.
+- `ClienteCampoDTO` ya **no recibe clave**. La app avisa al preventista que la cuenta se crea con la clave
+  provisoria, para que se lo diga al cliente.
+- **El cambio obligatorio no se puede saltear desde el frontend.** Mientras `debeCambiarClave` sea `true`,
+  `DetallesUsuarioService` le da al usuario una sola autoridad, `CAMBIO_CLAVE_PENDIENTE`, que no es un rol. Con
+  ella, la API solo permite `/api/auth/yo`, `/api/auth/clave` y `/api/auth/renovar`. Cualquier otro endpoint
+  (pedidos, facturas, etc.) responde **403**, aunque alguien manipule la app.
+- En el sitio institucional:
+  - después de ingresar, `ControladorAcceso` redirige a la página nueva `/cambiar-clave`;
+  - `InterceptorAcceso` impide navegar a otra página mientras el cambio esté pendiente.
+- La nueva clave:
+  - sigue la política existente: de 8 a 72 caracteres, con letras y números;
+  - no puede ser igual al correo, a `dulcemayor` ni a la clave actual.
+- La clave no aparece en ninguna respuesta de la API ni en los logs.
+
+### Persistencia de sesión, sin sesiones eternas
+
+| Dónde | Antes | Ahora |
+|---|---|---|
+| Apps React | `sessionStorage`: se perdía al cerrar la pestaña. | `localStorage` (`comun/src/api/sesionGuardada.js`). Al leerlo se mira el `exp` del JWT y, si venció, se descarta. Una hora antes del vencimiento, y al volver a la app, `AuthContext` pide un token nuevo con `POST /api/auth/renovar`. "Cerrar sesión" lo borra. |
+| API (JWT) | Token de 8 h sin renovación. | El token lleva el *claim* `inicioSesion`. `/api/auth/renovar` emite otro **conservando el inicio**, y el vencimiento nunca supera `inicioSesion + jwt.sesion-maxima` (24 h por defecto). Pasado ese límite responde 401 (`SesionVencidaException`) y hay que volver a ingresar. Un token adulterado o vencido no se renueva. |
+| admin-web e institucional-web | Cookie de sesión del navegador. | Sesión del servidor con **60 min de inactividad** (`SESSION_TIMEOUT`) y cookie persistente de **8 h** (`SESSION_COOKIE_MAX_AGE`, igual que el token). La cookie es `HttpOnly` y `SameSite`; `Secure` se activa con `COOKIE_SECURE`. |
+
+---
+
+## 3. Cambios en el alta de clientes
+
+**Paso 1 – Responsable del comercio** (`NuevoCliente.jsx`)
+
+- Correo, nombre, apellido, **tipo y número de documento** y **fecha de nacimiento**. El selector no permite elegir
+  a un menor de edad, y el backend lo vuelve a validar.
+- Ya no se pide la clave: la cuenta se crea con la clave inicial (sección 2).
+
+**Paso 2 – Punto de venta** (`NuevoPuntoVenta.jsx`). Hay dos alternativas, y en las dos la ubicación pasa por el
+backend (`/api/mapas/…`, que respeta la política de Nominatim):
+
+1. **Escribir la dirección y buscarla (geocodificación).** Se elige uno de los resultados y el pin se ubica ahí. Si
+   la búsqueda no encuentra nada, no se inventan coordenadas: se pide tocar el mapa.
+2. **Tocar el mapa (geocodificación inversa).** Las coordenadas son las del punto tocado. Calle, número, barrio,
+   departamento y localidad se **completan solos** con la dirección aproximada que devuelve Nominatim (la localidad
+   se busca entre las del departamento cargadas en la base), y el usuario las puede corregir.
+
+**Coherencia entre dirección y coordenadas.** La app guarda una "firma" de la dirección que corresponde al pin. Si
+después se cambia la calle, el número o el departamento, el pin queda **"a revisar"** y no se puede guardar hasta
+que el usuario:
+
+- vuelva a buscar la dirección,
+- toque el mapa, o
+- confirme con **"El pin está bien"**.
+
+El backend sigue rechazando un comercio sin coordenadas, con una sola coordenada o con coordenadas fuera de rango.
+**No hay coordenadas por defecto.**
+
+---
+
+## 4. Cambios en el ABM de productos
+
+Antes el catálogo solo se podía cargar por la API. Ahora hay pantallas en **admin-web** (`/productos`) para el
+**ADMINISTRATIVO** y el **JEFE**, que hereda el rol administrativo:
+
+- **Listado** con búsqueda, precio vigente, stock e indicador de bajo mínimo.
+- **Alta**, en un solo formulario:
+  - datos del producto;
+  - categoría y subcategoría en cascada;
+  - presentación;
+  - foto;
+  - precio mayorista inicial (sin IVA);
+  - stock inicial y stock mínimo.
+- **Modificación** de los datos y fotos. El código no se modifica.
+- **Nuevo precio** con fecha de vigencia, que crea una `VigenciaPrecio`. Queda el historial de precios.
+- **Ingreso de mercadería**, que suma al `Stock`.
+- **Baja lógica.** El backend la **impide si el producto está en pedidos CARGADOS o PENDIENTES DE ENTREGA**
+  (`ServicioProducto.validar` → `ServicioPedido.hayPedidosAbiertosConProducto`). Los pedidos y facturas históricos
+  conservan su producto.
+
+No se duplicó lógica: admin-web llama a los endpoints existentes del módulo Catálogo y Stock (`/api/productos`,
+`/api/imagenes`, `/api/vigencias-precio`, `/api/stock`), que ya validaban todo con sus servicios.
+
+---
+
+## 5. Funcionamiento de los gráficos
+
+Los dos gráficos están en el inicio de admin-web. Se dibujan con **Chart.js 4.4.1**, servido localmente en
+`static/js/vendor` junto con su licencia MIT, y los datos salen **de la base** por la API.
+
+| Gráfico | Endpoint | Quién lo ve | Cómo se calcula |
 |---|---|---|---|
-| ![Ruta](docs/capturas/ola2/preventista-ruta.jpg) | ![Pedido](docs/capturas/ola2/preventista-pedido.jpg) | ![Cargado](docs/capturas/ola2/preventista-cargado.jpg) | ![Entregas](docs/capturas/ola2/distribuidor-entregas.jpg) |
+| **Barras: pedidos por preventista por día** | `GET /api/estadisticas/pedidos-por-preventista?mes=AAAA-MM` | Solo **JEFE**, en la API y en la web | Consulta JPQL de los pedidos cargados en el mes, **sin los anulados** (`RepositorioPedido.pedidosCargadosEntre`). El servicio los agrupa por preventista y día. Se puede elegir el mes. |
+| **Torta: stock por categoría** | `GET /api/estadisticas/stock-por-categoria` | **ADMINISTRATIVO** y **JEFE** | `SUM(cantidadActual)` y `COUNT` agrupados por la **categoría real** del producto (Stock → Producto → SubCategoría → Categoría), solo con productos y stock activos. |
+
+- Si no hay datos, se muestra un mensaje en lugar de un gráfico vacío.
+- Cada lienzo tiene una descripción accesible (`role="img"` y `aria-label`).
+- La torta se actualiza sola cada minuto, consultando `/estadisticas/stock` (JSON) de admin-web.
+- El código está en `templates/inicio.html` y `static/js/graficos.js`.
+- `ControladorInicio` le pasa a la vista estructuras simples (`Map` y `List`), no `record`, para que el *inlining*
+  de Thymeleaf en JavaScript sea confiable.
 
 ---
 
-## 2. Historias de usuario HU-15 a HU-21
+## 6. Implementación del módulo de Facturación
 
-| HU | Estado | Dónde | Notas |
+### Entidades
+
+Todas están en `backend/model`, con baja lógica heredada de `BaseEntity`:
+
+```
+Factura (abstracta, tabla facturas, herencia JOINED)
+ ├─ numeroFactura, fechaFactura, total (con IVA), estado: EstadoFactura, detalles: List<DetalleFactura>
+ ├─ getSubtotal()  = Σ detalles (sin IVA)          getDescuento() = 0 (lo redefine FacturaCliente)
+ ├─ getIva()       = total − (subtotal − descuento)
+ ├─ FacturaCliente   (facturas_clientes)   pedido: Pedido (1 a 1, pedido_id ÚNICO), codigoQrPago (para Pagos)
+ └─ FacturaProveedor (facturas_proveedores) proveedor: Proveedor
+DetalleFactura (detalles_factura): producto, cantidad, precioUnitario (sin IVA), subtotal
+Proveedor (proveedores): razonSocial, cuit (validado con dígito verificador, único), direccion
+EstadoFactura: PENDIENTE_PAGO, PAGADA, ANULADA
+```
+
+### Reglas
+
+- **Cuándo se emite la factura del cliente.** Al **confirmar el pedido**, en la **misma transacción**:
+  `ServicioPedido.confirmarPedido` → `ServicioFacturaCliente.facturarPedido`. Si falla la factura, tampoco queda
+  confirmado el pedido.
+- **Sin duplicados.** Una sola factura por pedido: se valida en el servicio y, además, la columna `pedido_id` es
+  única.
+- **Numeración.** Correlativo simple (1, 2, 3…), elegido por el equipo en lugar de un formato tipo `FC-0001-…`.
+  Las facturas de proveedor llevan **el número del comprobante del proveedor**, que es único por proveedor.
+- **IVA discriminado.**
+  - El precio de lista es **sin IVA**.
+  - Subtotal = Σ renglones.
+  - Base = subtotal − descuento.
+  - IVA = base × alícuota (21 % por defecto, `app.facturacion.alicuota-iva`).
+  - Total = base + IVA, redondeado a centavos.
+  - Ejemplo: 3 × $1.000 = $3.000 + IVA $630 = **$3.630**.
+- **Estado inicial `PENDIENTE_PAGO`.** No hay ninguna operación que la marque `PAGADA`: eso le corresponde al módulo
+  de Pagos, que no se implementó (sección 20). No se simulan pagos.
+- **Las facturas no se modifican ni se dan de baja.** Responde 405. La de proveedor se puede **corregir mientras
+  esté `PENDIENTE_PAGO`**: se vuelve a armar con su creador.
+- **La factura de proveedor no mueve el stock.** El ingreso de mercadería se registra aparte, en el ABM de productos.
+  Está documentado como pendiente vincularlos.
+
+### Pantallas
+
+- **admin-web:**
+  - `/facturas`: pestañas de clientes y proveedores, con PDF;
+  - `/facturas/proveedores/nueva`: renglones dinámicos y total estimado;
+  - `/proveedores`: ABM con dirección.
+- **institucional-web:**
+  - `/mis-facturas`: listado y descarga del PDF;
+  - el detalle del pedido muestra la factura y el total con IVA.
+- **App del distribuidor:** cobra el total facturado.
+
+---
+
+## 7. Relaciones entre Facturación y los demás módulos
+
+```
+Pedidos ──confirmarPedido──▶ ServicioFacturaCliente ──CreadorFacturaCliente──▶ FacturaCliente ─1:1─ Pedido
+   │                                                                                   │
+   │ PedidoResponseDTO.idFactura / numeroFactura / totalFacturado ◀────────────────────┘
+   │ PedidoResumenDTO.total (monto a cobrar por el distribuidor) = total facturado
+Personas ──Pedido → PuntoVenta → Cliente──▶ propiedad de la factura (el cliente solo ve las suyas)
+Catálogo ──Producto──▶ DetalleFactura (precio del pedido, no el vigente al facturar)
+          Baja de producto: bloqueada con pedidos abiertos; las facturas históricas lo conservan
+Proveedores ──▶ FacturaProveedor ──CreadorFacturaProveedor──▶ productos por ServicioProducto
+Direcciones ──▶ Proveedor.direccion (ServicioDireccion)
+Pagos (pendiente) ──▶ EstadoFactura PAGADA, FormaDePago, codigoQrPago
+```
+
+- Cada servicio usa **solo su repositorio**. `ServicioFacturaCliente` llega al cliente por `ServicioCliente`, y
+  `ServicioFacturaProveedor` llega a proveedores y productos por sus servicios.
+- La relación con el cliente **no se duplica**: se deriva de `Pedido → PuntoVenta → Cliente`.
+
+---
+
+## 8. Reutilización de clases del Integrador 1
+
+Del Integrador 1 (`tiendaderopa`) se tomó el **diseño del módulo de facturas**, adaptándolo. No se copió el `.env`
+que venía en el ZIP: tenía valores reales y no se usó.
+
+| Integrador 1 | Dulce Mayor | Adaptación |
+|---|---|---|
+| `Factura` abstracta, `@Inheritance(JOINED)`, tabla `facturas` | `Factura` | Hereda de `BaseEntity` (id y baja lógica comunes). `fechaFactura` pasa a `LocalDateTime`, en lugar de `Date` con `@Temporal`. Los detalles se manejan con `cascade` y `orphanRemoval`. El IVA se calcula. |
+| `FacturaCliente`, `FacturaProveedor` | Mismas clases | Relación con `Pedido` (1:1 única) y con `Proveedor`. |
+| `DetalleFactura` | `DetalleFactura` | Relación bidireccional con la factura; precio sin IVA. |
+| `EstadoFactura` (PAGADA, ANULADA, SIN_DEFINIR) | `EstadoFactura` (PENDIENTE_PAGO, PAGADA, ANULADA) | `SIN_DEFINIR` pasa a `PENDIENTE_PAGO`, como en el diagrama. |
+| `RepositorioFacturaCliente`, `RepositorioFacturaProveedor` | Mismos nombres | Consultas derivadas para la propiedad del cliente, el correlativo y el número por proveedor. |
+| `ServicioFacturaCliente`, `ServicioFacturaProveedor` | Mismos nombres | Ahora extienden `BaseService` (Template Method) y crean las facturas con Factory Method. |
+| `Factura.formaDePago` (`FormaDePago`) | — | **No se trajo.** Pertenece a Pagos, que no se implementa. En el PDF figura "A definir". |
+
+Las clases genéricas que ya venían del Integrador 1 en etapas anteriores (`Pais`, `Provincia`, `Departamento`,
+`Localidad`, `Direccion`, `Persona`, `Usuario`, `MiException`, `ServicioImagen`…) se siguieron usando sin cambios
+de diseño.
+
+---
+
+## 9. Factory Method y clases participantes
+
+Se siguió la estructura del ejemplo del equipo (`factory_method_facturas.zip`): `Envio` es el producto,
+`EnvioCreator.crearEnvio()` es el método fábrica, `procesarEnvio()` es la operación común y hay un creador concreto
+por tipo.
+
+| Rol del patrón | Clase en Dulce Mayor (`service/facturacion`) |
+|---|---|
+| Producto | `Factura` (abstracta) |
+| Productos concretos | `FacturaCliente`, `FacturaProveedor` |
+| Creador | `CreadorFactura<D>`, donde `D` son los datos de origen |
+| **Método fábrica** | `protected abstract Factura crearFactura(D datos)` |
+| Operación común, la que usa el método fábrica | `public final Factura emitir(D datos)`: crea la factura, agrega y valida los renglones, calcula subtotal, descuento, IVA y total, y pone el estado y la fecha |
+| Creadores concretos | `CreadorFacturaCliente` (D = `Pedido`) y `CreadorFacturaProveedor` (D = `DatosFacturaProveedor`) |
+| Otros pasos que varían | `renglones(D)`, `descuento(D)`, `fechaFactura(D)` |
+| Clientes del patrón | `ServicioFacturaCliente.crearEntidad` y `ServicioFacturaProveedor.crearEntidad`/`actualizarEntidad` |
+
+**Por qué Factory Method y no otra cosa.** Hay dos familias de factura que comparten el procedimiento de emisión
+pero se instancian y se completan distinto. El patrón deja la parte común en un solo lugar, `emitir`. Los servicios
+no hacen `new FacturaCliente(...)`: piden al creador que emita. Para agregar otra clase de factura, por ejemplo una
+nota de crédito, se suma una subclase de `Factura` y su creador, sin tocar `emitir` ni a quien la usa.
+
+**Por qué no se usó para "factura A / factura B".** Lo hablamos en el equipo: A y B (según la condición de IVA del
+comercio) no son clases distintas en el diagrama. Diferenciarlas es una regla fiscal que se puede aplicar después
+en el creador o como una estrategia, sin crear subclases.
+
+**Convivencia con Template Method.** El creador **solo arma** la factura. El número, la validación y el guardado
+siguen en el Template Method de `BaseService`:
+
+```
+altaEntidad → crearEntidad (Factory Method) → validar → preAlta (número) → save
+```
+
+---
+
+## 10. Integración del mini proyecto de PDF
+
+El mini proyecto (`dulce_mayor_facturacion`: Spring Boot 3.2, JasperReports 6.20.6, H2) generaba el PDF de esta
+forma:
+
+- compilaba el `.jrxml` en **cada pedido de descarga**;
+- lo llenaba con un `JRBeanCollectionDataSource`, es decir, con objetos armados a mano en Java;
+- usaba su propia base H2, con usuario y clave en `application.yml`.
+
+Así quedó la adaptación:
+
+| Mini proyecto | Dulce Mayor (`service/GeneradorPdfFactura`) |
+|---|---|
+| Plantilla `factura_dulce_mayor.jrxml` | Es la base de `reportes/factura_cliente.jrxml`. A partir de ella se hizo `reportes/factura_proveedor.jrxml`, como pidió el equipo. |
+| Datos desde objetos en memoria (`JRBeanCollectionDataSource`) | Datos **desde la base real**: cada plantilla tiene su `queryString` SQL con el parámetro `$P{ID_FACTURA}` y se llena con una conexión del **`DataSource` de Spring** (sección 12). |
+| Compilación por pedido | Compilación **una sola vez** por plantilla, en caché (`ConcurrentHashMap`). |
+| Base H2 propia con credenciales en `application.yml` | La misma base de la aplicación. No hay credenciales nuevas en ningún lado. |
+| `jasperreports` 6.20.6 | La **misma versión**, agregada al `pom.xml` del backend. |
+
+- Se mantuvieron los colores y el diseño. El título pasó a "FACTURA" (sin la "B") y "Comp. N°" en proveedores.
+- Se agregaron **descuento** e **IVA discriminado** (con la alícuota usada) y **"Forma de pago: A definir"**, que
+  queda reservado para Pagos.
+
+### Descarga protegida por propietario
+
+| Quién | Endpoint | Control |
+|---|---|---|
+| Cliente | `GET /api/facturas/mis-facturas/{id}/pdf` | El cliente sale **del token**. Si la factura no es suya, responde **404**, igual que si no existiera, así que cambiar el id en la URL no sirve. |
+| Administración | `GET /api/facturas/clientes/{id}/pdf`, `GET /api/facturas/proveedores/{id}/pdf` | Rol ADMINISTRATIVO o JEFE. |
+
+- Las web hacen de *proxy*: el navegador nunca ve el token de la API.
+- Se responde `application/pdf` como adjunto (`Content-Disposition: attachment`).
+- Un preventista o distribuidor recibe 403.
+
+---
+
+## 11. Configuración y funcionamiento del JRXML
+
+Las plantillas están en `backend/src/main/resources/reportes/`:
+
+| Parámetro | Tipo | Valor |
+|---|---|---|
+| `ID_FACTURA` | `String` | Id de la factura. Lo pone el backend después de controlar los permisos; **no viaja desde el navegador**. |
+| `ALICUOTA_IVA` | `Double` | `app.facturacion.alicuota-iva`, para mostrar "IVA (21 %)". |
+| `MEDIO_PAGO` | `String` | Por defecto, "A definir" (Pagos pendiente). |
+| `REPORT_LOCALE` | `Locale` | `es-AR`, para formatear `$ 45.072,50` y las fechas `dd/MM/yyyy`. |
+
+- **Factura de cliente.** La consulta une `facturas → facturas_clientes → pedidos → puntos_venta → personas
+  (cliente) → direcciones → localidades → detalles_factura → productos`. Trae una fila por renglón y, por subconsulta,
+  el subtotal de la factura.
+- **Factura de proveedor.** Une `facturas → facturas_proveedores → proveedores → direcciones → localidades →
+  detalles_factura → productos`.
+- Los nombres de tablas y columnas son los que genera Hibernate (`snake_case`).
+- Las variables del reporte calculan:
+  - el subtotal sin IVA;
+  - el descuento;
+  - el IVA, como total − (subtotal − descuento);
+  - el total con IVA.
+- El estado de la factura se ve en la leyenda ("pendiente de pago").
+
+Para cambiar el diseño: abrir el `.jrxml` con Jaspersoft Studio, compatible con 6.20, y conservar los nombres de
+parámetros y campos. **No hace falta configurar un *Data Adapter* con usuario y clave en la plantilla.** Para
+probar en Studio, el adaptador se configura en Studio y queda fuera del proyecto.
+
+---
+
+## 12. Conexión con la base de datos
+
+```java
+try (Connection conexion = dataSource.getConnection()) {          // DataSource de Spring (HikariCP)
+    JasperPrint impreso = JasperFillManager.fillReport(plantilla, parametros, conexion);
+    return JasperExportManager.exportReportToPdf(impreso);
+}
+```
+
+- Se inyecta el **mismo `DataSource`** que usa JPA, configurado con `DB_URL`, `DB_USERNAME` y `DB_PASSWORD` desde
+  `backend/.env`.
+- **Ni el `.jrxml` ni el código fuente tienen credenciales.**
+- La conexión se toma del *pool* y se devuelve al terminar, con *try-with-resources*.
+- El reporte solo lee.
+- Las consultas usan `$P{ID_FACTURA}`, que JasperReports pasa como **parámetro de `PreparedStatement`**: no es
+  concatenación de texto, así que no hay inyección SQL.
+- Si algo falla, se registra el error técnico en el log del servidor y el usuario recibe un mensaje genérico, sin
+  detalles internos.
+
+---
+
+## 13. OSRM vs. GraphHopper: comparación y decisión
+
+**Qué necesitamos.** Ordenar las paradas del día (de 5 a 30 comercios) partiendo de la ubicación del preventista o
+del distribuidor. Eso requiere los **tiempos de manejo entre todos los puntos** (una matriz) y después **dibujar** el
+recorrido por calles.
+
+| Criterio | OSRM | GraphHopper |
+|---|---|---|
+| Licencia del motor | BSD-2, *open source* | Apache 2.0, *open source* (el motor de ruteo) |
+| Servicio hospedado gratuito | Servidor de demostración `router.project-osrm.org`: sin clave, sin garantía de disponibilidad, para uso razonable | Plan gratuito con **clave**: unos 500 créditos por día, **uso no comercial**, límites de puntos por pedido |
+| Matriz de distancias y tiempos | `/table`, incluido y gratuito (en el servidor propio, sin límite de licencia) | Matrix API: en el plan gratuito, con límites muy bajos y solo para uso no comercial |
+| Optimización de recorrido (TSP/VRP) | `/trip`: TSP aproximado (fuerza bruta con pocos puntos y heurística de inserción con más), un solo vehículo, sin ventanas horarias | Route Optimization API (VRP con ventanas horarias, capacidades, varios vehículos): **producto pago**. Existe `jsprit`, la biblioteca *open source* de optimización, pero hay que integrarla y operarla aparte |
+| Instalación propia | Docker más un extracto de OpenStreetMap de Mendoza o Argentina | Java más el mismo extracto |
+| Lo que ya tenía el proyecto | Trazado con `/route` (Ola 2) y el respaldo en línea recta | Nada |
+
+**Decisión: OSRM.**
+
+- Ya estaba integrado.
+- La matriz `/table` se puede usar **sin clave y sin restricción comercial** en una instancia propia.
+- El servidor de demostración alcanza para desarrollar y presentar.
+- GraphHopper solo agregaría valor con su optimizador VRP pago o integrando `jsprit`, que es más de lo que piden
+  estas historias: un vehículo por ruta, sin ventanas horarias.
+
+No se usó `/trip` de OSRM, por dos motivos:
+
+- con recorrido abierto (`roundtrip=false`) exige fijar el destino final;
+- su resultado es aproximado sin decirlo.
+
+Con la matriz y un optimizador propio sabemos **cuándo el orden es exacto y cuándo es heurístico**, y lo informamos
+(sección 14).
+
+Fuentes consultadas en noviembre de 2026. Las condiciones comerciales pueden cambiar.
+
+---
+
+## 14. Arquitectura final de optimización de rutas
+
+```
+App (preventista / distribuidor) ── POST …/ordenar {lat, lon} ──▶ ServicioRuta.ordenarRuta
+   1. Pendientes de SU ruta de hoy (por el usuario del token)
+   2. MotorRecorridos.matriz([ubicación, p1…pn])  ── ServicioMapas (OSRM /table/v1/driving?annotations=duration)
+         └─ si OSRM no responde, devuelve un tramo sin ruta o hay > 100 puntos → MatrizRecorrido.lineaRecta (Haversine)
+   3. OptimizadorRecorrido.optimizar(matriz)
+         ├─ ≤ 12 paradas: Held-Karp (programación dinámica) → orden ÓPTIMO para esa matriz
+         └─ > 12 paradas: vecino más cercano + mejora 2-opt → orden APROXIMADO (no garantiza el óptimo)
+   4. Guarda el orden y Ruta.criterioOrden (por ejemplo: "Orden óptimo (búsqueda exacta Held-Karp) por tiempo de
+      manejo estimado por calles (OSRM)")
+   5. MotorRecorridos.trazar(ubicación + pendientes en orden) ── OSRM /route → geometría, km y minutos
+```
+
+- **Mismo algoritmo para los dos roles.** El preventista ordena desde "Reordenar desde acá". El distribuidor lo hace
+  al armar o actualizar su ruta de entregas.
+- **Recorrido abierto.** Termina en el último comercio y no vuelve al inicio.
+- **Matriz asimétrica.** Se respetan las calles de una mano; el 2-opt recalcula el costo completo de cada candidato.
+- **Siguiente punto.** Es el primer pendiente del orden guardado, el que decidió el optimizador.
+- **Honestidad.** "Óptimo" significa óptimo **para los tiempos estimados por OSRM**, sin tránsito real, horarios de
+  los comercios ni capacidad del vehículo. La app muestra siempre `criterioOrden` y la fuente del trazado (por calles
+  o línea recta, con línea punteada). Si administración agrega o quita paradas, `criterioOrden` vuelve a `null` y la
+  app indica que todavía no se optimizó.
+- **Sin dependencia del proveedor.** `MotorRecorridos` es una interfaz. Para cambiar a GraphHopper alcanza con otra
+  implementación.
+
+---
+
+## 15. Configuración del motor de rutas
+
+| Propiedad / variable | Por defecto | Uso |
+|---|---|---|
+| `app.mapas.osrm-url` / `OSRM_URL` | `https://router.project-osrm.org` (demo) | `/table` (matriz) y `/route` (trazado). Para producción, una instancia propia. |
+| `app.mapas.nominatim-url` / `NOMINATIM_URL` | `https://nominatim.openstreetmap.org` | Geocodificación directa e inversa. |
+| `app.mapas.user-agent` / `MAPAS_USER_AGENT` | `DulceMayor/1.0 (… completar-correo)` | **Completar con el correo del equipo**: lo exige la política de Nominatim. |
+| `OptimizadorRecorrido.LIMITE_EXACTO` | 12 | Hasta cuántas paradas se busca el óptimo exacto. Con 12 son unas 600 mil operaciones; con 20 serían unos 400 millones. |
+| Tiempos de espera | 4 s de conexión y 8 s de lectura | Si OSRM no responde, se ordena en línea recta y se informa. |
+
+Instancia propia de OSRM, en Docker con el extracto de Argentina de Geofabrik:
+
+```bash
+docker run -t -v "${PWD}:/data" ghcr.io/project-osrm/osrm-backend osrm-extract -p /opt/car.lua /data/argentina-latest.osm.pbf
+docker run -t -v "${PWD}:/data" ghcr.io/project-osrm/osrm-backend osrm-partition /data/argentina-latest.osrm
+docker run -t -v "${PWD}:/data" ghcr.io/project-osrm/osrm-backend osrm-customize /data/argentina-latest.osrm
+docker run -t -i -p 5000:5000 -v "${PWD}:/data" ghcr.io/project-osrm/osrm-backend osrm-routed --algorithm mld /data/argentina-latest.osrm
+# luego OSRM_URL=http://localhost:5000
+```
+
+---
+
+## 16. Endpoints nuevos o modificados
+
+### API (backend)
+
+| Método y ruta | Rol | Nota |
+|---|---|---|
+| `POST /api/auth/renovar` | Autenticado | Nuevo. Renueva el token hasta la sesión máxima. |
+| `PUT /api/auth/clave` | Autenticado | Sin cambios; ahora también lo usa el cliente con clave inicial. |
+| `POST /api/clientes/campo` | PREVENTISTA | **Modificado**: sin clave, con DNI y fecha obligatorios; crea la cuenta con clave inicial. |
+| `POST /api/auth/registro` | Público | **Modificado**: DNI y fecha obligatorios. |
+| `PUT /api/clientes/{id}`, `PUT /api/empleados/{id}` | ADMINISTRATIVO / JEFE | **Modificados**: rechazan un DNI distinto del registrado (400). |
+| `POST/PUT /api/empleados` | JEFE | **Modificado**: sin `zona`. |
+| `DELETE /api/productos/{id}` | ADMINISTRATIVO | **Modificado**: 400 si el producto está en pedidos abiertos. |
+| `GET /api/estadisticas/pedidos-por-preventista?mes=` | JEFE | Nuevo (barras). |
+| `GET /api/estadisticas/stock-por-categoria` | ADMINISTRATIVO | Nuevo (torta). |
+| `GET /api/facturas/clientes`, `GET /api/facturas/clientes/{id}`, `GET /api/facturas/clientes/{id}/pdf` | ADMINISTRATIVO | Nuevos. |
+| `GET /api/facturas/mis-facturas`, `GET /api/facturas/mis-facturas/{id}`, `GET /api/facturas/mis-facturas/{id}/pdf` | CLIENTE | Nuevos. Solo las propias (si no, 404). |
+| `GET/POST /api/facturas/proveedores`, `GET/PUT /api/facturas/proveedores/{id}`, `GET /api/facturas/proveedores/proveedor/{idProveedor}`, `GET /api/facturas/proveedores/{id}/pdf` | ADMINISTRATIVO | Nuevos. Sin baja (405). |
+| `GET/POST /api/proveedores`, `GET/PUT/DELETE /api/proveedores/{id}`, `GET /api/proveedores/cuit/{cuit}` | ADMINISTRATIVO | Nuevos. |
+| `POST /api/pedidos/mis-pedidos/{id}/confirmar` | CLIENTE | **Modificado**: emite la factura en la misma transacción. |
+| `PedidoResponseDTO` | — | **Modificado**: suma `idFactura`, `numeroFactura` y `totalFacturado`. |
+| `RutaResponseDTO` | — | **Modificado**: suma `criterioOrden`. |
+| `POST /api/rutas/mia/ordenar`, `POST /api/pedidos/entregas/ruta` | PREVENTISTA / DISTRIBUIDOR | **Modificados**: el orden sale del optimizador (sección 14). |
+
+El JEFE hereda los permisos de ADMINISTRATIVO.
+
+### admin-web (8081)
+
+- `/productos`, `/productos/nuevo`, `/productos/{id}/editar`, `/productos/{id}/precio`, `/productos/{id}/stock`,
+  `/productos/{id}/baja`.
+- `/facturas?tipo=clientes|proveedores`, `/facturas/clientes/{id}/pdf`, `/facturas/proveedores/{id}/pdf`,
+  `/facturas/proveedores/nueva`.
+- `/proveedores`, `/proveedores/nuevo`, `/proveedores/{id}/editar`, `/proveedores/{id}/baja`.
+- `/` con gráficos y `/estadisticas/stock` (JSON).
+
+### institucional-web (8082)
+
+- `/cambiar-clave` (GET y POST).
+- `/mis-facturas` y `/mis-facturas/{id}/pdf`.
+
+---
+
+## 17. Variables de entorno
+
+Sin cambios respecto de la etapa anterior: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, OAuth, `NOMINATIM_URL`,
+`OSRM_URL`, `MAPAS_USER_AGENT` y `CORS_ALLOWED_ORIGINS`. Las nuevas o documentadas ahora son estas:
+
+| Variable | Aplicación | Por defecto | Uso |
 |---|---|---|---|
-| **HU-15** Catálogo público | Implementada (etapa de Catálogo; se mantiene) | institucional-web `/catalogo`, `GET /api/catalogo` | Foto, descripción, presentación y precio vigente; filtro por categoría y buscador; los productos sin stock o sin precio vigente no se muestran. |
-| **HU-16** Catálogo móvil | Implementada | App preventista → Catálogo y Tomar pedido | Buscador (con espera de 350 ms mientras se escribe), chips de categoría, precio vigente y stock disponible en bultos. Reutiliza `GET /api/catalogo` y `GET /api/categorias`. |
-| **HU-17** Alta de punto de venta | Implementada según el backlog (sección 3) | App preventista → “+” en Ruta del día | |
-| **HU-18** Armar ruta | Implementada | admin-web `/rutas/nueva`, `POST /api/rutas` | El administrativo elige preventista, fecha y puntos. Una ruta por preventista por día y por tipo; no se arma para fechas pasadas; el empleado tiene que ser preventista. El orden lo calcula la app desde la ubicación del preventista (“admin asigna, app ordena”). |
-| **HU-19** Ver ruta en el mapa | Implementada | App preventista → Mi ruta | Mapa con pines numerados por orden y coloreados por estado, lista con el estado de cada punto y trazado del recorrido. El componente `MapaRuta` está en `movil/comun` y lo usa también la app del distribuidor. |
-| **HU-20** Siguiente punto | Implementada | App preventista | Al cargar un pedido, el punto queda visitado (CON_PEDIDO) en la misma transacción y se sugiere el **no visitado más cercano** (Haversine) con su distancia y el trazado hasta él; se puede elegir otro. También se puede pasar al siguiente **sin pedido**, con motivo. |
-| **HU-21** Cargar pedido | Implementada | App preventista → Tomar pedido → Resumen | Punto de venta, productos y cantidades; subtotales y total con precio vigente (lo calcula el backend); no permite superar el stock disponible (control en la app y en el backend); queda **CARGADO** con fecha y hora. |
+| `JWT_EXPIRATION_MS` | backend | `28800000` (8 h) | Vida de cada token. |
+| `JWT_SESION_MAXIMA_MS` | backend | `86400000` (24 h) | Máximo de una sesión renovada desde el ingreso. |
+| `FACTURACION_ALICUOTA_IVA` | backend | `0.21` | IVA discriminado en las facturas. |
+| `SESSION_TIMEOUT` | admin-web e institucional-web | `60m` | Inactividad de la sesión web. |
+| `SESSION_COOKIE_MAX_AGE` | admin-web e institucional-web | `8h` | Duración de la cookie de sesión. |
+| `COOKIE_SECURE` | admin-web e institucional-web | `false` | Ponerla en `true` con HTTPS. |
 
----
+Ver `backend/.env.example`. **El ZIP no incluye ningún `.env`, contraseña, token ni secreto.** El `backend/.env` que
+circulaba en el equipo tenía secretos reales: conviene regenerar `JWT_SECRET` y los secretos de OAuth.
 
-## 3. HU-17 según el backlog
+Sobre la base de datos: `JPA_DDL_AUTO=update` agrega las tablas y columnas nuevas sin borrar datos:
 
-> “Como preventista, quiero dar de alta un punto de venta con su ubicación en el mapa… Datos del comercio (nombre
-> de fantasía, razón social, CUIT, condición de IVA) y del responsable; Ubicación marcada en el mapa (latitud y
-> longitud); CUIT único.”
+- tablas `facturas`, `facturas_clientes`, `facturas_proveedores`, `detalles_factura` y `proveedores`;
+- columna `rutas.criterio_orden`.
 
-Implementación (pantallas en dos pasos, como sugiere el prototipo adaptado):
+La columna `zona` de `empleados` **no se borra sola**: queda en desuso. Si se quiere quitar, hay que hacerlo a mano
+después de un respaldo:
 
-1. **Responsable** (`NuevoCliente.jsx`): se busca el correo con `GET /api/clientes/buscar`. Si ya tiene cuenta, se
-   le asocia el comercio; si no, el propio cliente escribe nombre, apellido, documento (opcional) y **su contraseña**
-   en el celular del preventista (`POST /api/clientes/campo`). La cuenta queda con rol CLIENTE; no hay campo de rol.
-2. **Comercio** (`NuevoPuntoVenta.jsx`): nombre de fantasía, razón social, CUIT, condición de IVA
-   (`RESPONSABLE_INSCRIPTO`, `MONOTRIBUTISTA`, `EXENTO`, `CONSUMIDOR_FINAL`), dirección (calle, número,
-   departamento y localidad de Mendoza, barrio, referencia) y **ubicación en el mapa**.
-
-Validaciones en `ServicioPuntoVenta` (backend):
-
-- **CUIT válido** (11 dígitos y dígito verificador módulo 11) y **único** entre los puntos de venta activos. Se guarda solo con dígitos.
-- Nombre de fantasía (≤ 120), razón social (≤ 150) y condición de IVA obligatorios; cliente activo.
-- **Latitud y longitud obligatorias y en rango**: sin ubicación no se guarda. No hay coordenadas por defecto.
-- La dirección del comercio es propia (no se reutiliza la dirección particular del cliente).
-
----
-
-## 4. Módulos de Rutas y Pedidos
-
-### Clases del diagrama implementadas (backend `model/`)
-
-| Clase | Tabla | Detalle |
-|---|---|---|
-| `PuntoVenta` | `puntos_venta` | nombreFantasia, razonSocial, cuit, condicionIva; `Direccion` 1 (propia, con lat/lon); `Cliente` (un cliente 1..* puntos de venta). |
-| `Ruta` | `rutas` | fecha, tipoRuta (`VISITA`/`ENTREGA`), empleado (preventista o distribuidor), puntos (composición). |
-| `PuntoRuta` | `ruta_puntos` | `@Embeddable` dentro de la ruta: orden, fechaHoraVisita, punto de venta **+ resultado y motivo** (ver abajo). |
-| `Pedido` | `pedidos` | numeroPedido (único, desde 1001), fechaHoraCarga, fechaFacturacion, fechaDespacho, fechaEntrega, subtotal, descuento, total, estado, punto de venta, preventista, distribuidor (0..1), detalles (composición). |
-| `DetallePedido` | `detalles_pedido` | cantidad, precioUnitario (el vigente al cargar), subtotal, producto. |
-
-Enumeraciones nuevas: `CondicionIva`, `TipoRuta`, `EstadoPedido` (`CARGADO`, `PENDIENTE_DE_ENTREGA`, `ENTREGADO`,
-`ANULADO`) y `ResultadoVisita`.
-
-### Cambios respecto del diagrama (para actualizarlo)
-
-- **`PuntoRuta.visitado` se reemplazó por `resultado` + `motivo`.** El diagrama no tenía dónde registrar una
-  visita sin pedido ni una entrega fallida. `resultado` toma `PENDIENTE`, `CON_PEDIDO`, `SIN_PEDIDO` (rutas de
-  visita) o `ENTREGADO`, `NO_ENTREGADO` (rutas de entrega); `motivo` (≤ 255) es obligatorio para `NO_ENTREGADO`.
-  “Visitado” se deriva: `resultado != PENDIENTE` (`PuntoRuta.isVisitado()`).
-- **“Confirmado” no es un estado**: se registra con `fechaFacturacion` (la API la expone como `fechaConfirmacion`).
-  Como todavía no hay pagos (sección 14), al confirmar el pedido pasa directo a `PENDIENTE_DE_ENTREGA` (cobro contra entrega).
-- Notas del diagrama que quedaron desactualizadas: “solo pedidos LISTO_PARA_DESPACHO” → ahora se asignan pedidos
-  `PENDIENTE_DE_ENTREGA`; “se descuenta al facturar” → el stock **se reserva al cargar** el pedido.
-- `Promocion` (0..1 en `Pedido`) no se implementó en esta ola: `descuento` queda en 0.
-
-### Estados del pedido
-
-```
-            cliente confirma (fechaFacturacion)            distribuidor: Entregado
-CARGADO ───────────────────────────────────► PENDIENTE_DE_ENTREGA ───────────────────► ENTREGADO
-   │                                              │   ▲
-   │ cliente anula (stock vuelve)                 │   └── No se pudo entregar: sigue pendiente y vuelve
-   ▼                                              │       en la ruta del día siguiente
-ANULADO                                           └── administración asigna distribuidor (fechaDespacho)
+```sql
+ALTER TABLE empleados DROP COLUMN zona;
 ```
 
-### Servicios nuevos
+---
 
-`ServicioPuntoVenta`, `ServicioRuta`, `ServicioPedido` (los tres con `BaseService`), `ServicioMapas` (integración
-externa, sin entidad) y `CalculoDistancia` (Haversine). Se ampliaron `ServicioCliente` (alta en campo, búsqueda por
-correo) y `ServicioEmpleado` (empleado por correo). En admin-web: `ServicioRutas`, `ServicioEntregas`,
-`ControladorRutas`, `ControladorEntregas`. En institucional-web: `ServicioPedidos`, `ControladorPedidos`.
+## 18. Mejoras responsive para tablets
+
+### Apps React (`movil/comun/src/estilos.css`)
+
+- **Desde 768 px** (tablet vertical):
+  - la app usa hasta 1180 px de ancho, en lugar de 560 px;
+  - el catálogo, "Mis pedidos" y "Pendientes" se ven en **dos columnas** de tarjetas;
+  - los formularios se centran con un ancho cómodo de leer;
+  - los botones tienen 48 px de alto mínimo, pensando en el tacto;
+  - las hojas inferiores se ven como diálogos centrados.
+- **Desde 960 px** (tablet horizontal): en "Ruta del día" y "Mis entregas", **el mapa y la lista quedan lado a lado**.
+  El mapa queda fijo al desplazarse y es más alto.
+- **Desde 1100 px:** tres columnas en los listados.
+
+### admin-web e institucional-web
+
+- Entre 768 y 1199 px, las tablas ocultan las columnas secundarias (`col-secundaria`) y se desplazan dentro de su
+  tarjeta, sin mover la página.
+- Los formularios de producto y de factura usan grillas de dos columnas.
+- Los gráficos se adaptan al ancho.
+
+Las capturas están en `docs/capturas/ola3/`, tomadas con datos de ejemplo:
+
+- ruta, catálogo, alta de cliente y entregas en 768×1024 y 1180×820;
+- facturas en tablet;
+- los PDF generados.
 
 ---
 
-## 5. Integración con OpenStreetMap
-
-| Uso | Servicio | Desde dónde |
-|---|---|---|
-| Mapa (teselas) | `https://tile.openstreetmap.org` con **Leaflet** / **react-leaflet** | Navegador (apps React) |
-| Buscar una dirección → coordenadas | **Nominatim** | Backend (`ServicioMapas`), expuesto en `GET /api/mapas/geocodificar` |
-| Coordenadas tocadas → dirección | **Nominatim** (inversa) | Backend, `GET /api/mapas/geocodificacion-inversa` |
-| Trazado por calles | **OSRM** (`/route/v1/driving`) | Backend (`ServicioMapas.trazar`) |
-
-Nominatim y OSRM se llaman desde el **backend** y no desde el navegador para: respetar el límite de Nominatim
-(1 consulta por segundo, con espera sincronizada y caché de 300 consultas), enviar un `User-Agent` identificable
-como exige su política, tener tiempo de espera (4 s de conexión, 8 s de lectura) y un único lugar para cambiar de
-proveedor. El mapa muestra siempre la atribución “© colaboradores de OpenStreetMap”.
-
-**Políticas de uso:** los servidores públicos de OSM son para uso moderado. Para producción hace falta una instancia
-propia o un proveedor contratado (Nominatim y OSRM se pueden instalar; se configuran con `NOMINATIM_URL` y `OSRM_URL`).
-El servidor de OSRM `router.project-osrm.org` es de demostración y no garantiza disponibilidad.
-
----
-
-## 6. Bibliotecas y servicios externos
-
-| Biblioteca / servicio | Versión | Para qué |
-|---|---|---|
-| React | 19.3 | Interfaz de las apps móviles (componentes, estados, efectos, hooks propios y contexto). |
-| React Router (`react-router`) | 8.5 | Rutas de pantalla, `Link`/`NavLink`, `useNavigate`, `useParams`, `useLocation`, rutas protegidas. |
-| **Axios** | 1.21 | Todas las llamadas a la API: instancia única con interceptores (token JWT, 401 → sesión vencida, 403 + `X-Accion-Requerida` → cambio de clave). |
-| Leaflet + react-leaflet | 1.9.4 / 5.0 | Mapa, pines numerados (`divIcon`), recorrido (`Polyline`), selección de ubicación. |
-| Vite | 8.3 | Servidor de desarrollo y compilación. |
-| Nominatim, OSRM, teselas OSM | servicios | Sección 5. |
-| Spring `RestClient` | (Spring Boot) | Llamadas del backend a Nominatim y OSRM. |
-
-No se usaron servicios pagos ni claves de API.
-
----
-
-## 7. Ubicación del usuario
-
-Hook `movil/comun/src/hooks/useUbicacion.js` sobre la API de geolocalización del navegador:
-
-- `watchPosition` con alta precisión mientras la pantalla de la ruta está abierta (un solo `getCurrentPosition` en la
-  pantalla de pedido cargado).
-- Si el usuario no da permiso, el GPS falla o el dispositivo no informa ubicación, la pantalla lo explica y ofrece
-  **marcar el punto de partida tocando el mapa**. La ruta también se puede ver sin ubicación (con el orden guardado).
-- **Nunca se usa una coordenada inventada.** El único valor fijo es el centro con el que se abre un mapa vacío
-  (zona de Mendoza) para que el usuario toque su ubicación; ese valor no se envía ni se guarda.
-- La ubicación del preventista **no se almacena**: se envía solo para ordenar la ruta y calcular el siguiente punto.
-- La geolocalización exige **HTTPS** (o `localhost`). Para probar desde un celular real hay que servir las apps por
-  HTTPS (ver sección 19).
-
----
-
-## 8. Geocodificación
-
-- **Directa** (`GET /api/mapas/geocodificar?direccion=…`, 4 a 200 caracteres): la app arma “calle número, localidad,
-  departamento, Mendoza”, Nominatim devuelve hasta 5 resultados restringidos a Argentina (`countrycodes=ar`) y el
-  preventista elige el correcto. Si el resultado trae el departamento, se preselecciona.
-- **Inversa** (`GET /api/mapas/geocodificacion-inversa?lat=…&lon=…`): al tocar el mapa o usar el GPS se muestra la
-  dirección aproximada como ayuda; **se guardan las coordenadas tocadas**, no las de Nominatim.
-- Si Nominatim no responde, la API devuelve **503** con el mensaje “El servicio de búsqueda de direcciones no
-  respondió. Marcá la ubicación tocando el mapa.” y el alta sigue siendo posible tocando el mapa.
-
----
-
-## 9. Cálculo del recorrido
-
-Se dice con precisión qué se calcula:
-
-- **Orden de visita: heurística del vecino más cercano**, no una ruta óptima. Desde la ubicación actual se elige el
-  punto pendiente más cercano (distancia **Haversine**, en línea recta sobre la esfera), desde ese el siguiente más
-  cercano, y así. Los puntos ya visitados quedan primero, en el orden en que se visitaron. El orden se guarda en
-  `PuntoRuta.orden` (`POST /api/rutas/mia/ordenar`). No se resuelve el problema del viajante ni se consideran
-  tránsito, sentido de las calles ni horarios.
-- **Trazado en el mapa:** con los pendientes en ese orden se pide a **OSRM** un recorrido por calles; se muestra la
-  línea, los kilómetros y los minutos estimados que devuelve OSRM, y se informa la fuente.
-- **Si OSRM no responde**, se dibuja una **línea recta punteada** entre los puntos y el texto lo dice (“Línea recta
-  entre puntos (el servicio de recorridos por calles no respondió)”). Las distancias del “siguiente punto” son siempre
-  en línea recta (Haversine).
-
----
-
-## 10. Registro de visitas
-
-- Ruta de visitas del día: `GET /api/rutas/mia` (solo lectura) y `POST /api/rutas/mia/ordenar` (ordena desde la ubicación).
-- **Con pedido:** al cargar un pedido para un comercio de la ruta de hoy, `ServicioPedido.postAlta` marca la parada
-  `CON_PEDIDO` con fecha y hora, **en la misma transacción** que el pedido (si algo falla, no queda ni pedido ni visita).
-- **Sin pedido:** `POST /api/rutas/mia/puntos/{idPuntoVenta}/sin-pedido` con motivo opcional → `SIN_PEDIDO`. Si
-  después se carga un pedido para ese comercio el mismo día, la parada pasa a `CON_PEDIDO`.
-- Un pedido para un comercio fuera de la ruta se permite y no modifica la ruta.
-- Una parada ya registrada no se puede volver a registrar (salvo la mejora `SIN_PEDIDO` → `CON_PEDIDO`).
-- Administración ve el resultado y el motivo de cada parada en `/rutas` y puede dar de baja una ruta sin visitas.
-  La API también permite agregar o quitar puntos pendientes de una ruta ya armada
-  (`POST`/`DELETE /api/rutas/{id}/puntos/{idPuntoVenta}`); falta la pantalla en admin-web.
-
----
-
-## 11. Registro de pedidos
-
-`POST /api/pedidos/preventista` con `{ idPuntoVenta, detalles: [{ idProducto, cantidad }] }`:
-
-1. El preventista se toma del token (no del cuerpo).
-2. Las líneas del mismo producto se agrupan; las cantidades tienen que ser positivas.
-3. El precio unitario es el **vigente** (`ServicioCatalogo.consultarProductoDisponible`); si el producto no tiene stock
-   o precio vigente se rechaza con su nombre.
-4. Se valida que la cantidad no supere el **stock disponible** y se **reserva** (sección 13).
-5. Número de pedido correlativo (último + 1, desde 1001; columna única), estado `CARGADO`, `fechaHoraCarga`,
-   subtotal y total redondeados a centavos; descuento 0.
-6. Se marca la visita (sección 10).
-
-El preventista ve solo sus pedidos (`GET /api/pedidos/preventista`, filtros Todos/Hoy/Esta semana en la app).
-
----
-
-## 12. Confirmación y cancelación por el cliente
-
-institucional-web → **Mis pedidos** (`/mis-pedidos`, `/mis-pedidos/{id}`):
-
-- Muestra el estado en palabras (“Pendiente de tu confirmación”, “Confirmado, pendiente de entrega”, …), productos,
-  precios, total, preventista y fechas.
-- **Confirmar** y **Anular** son formularios **POST** (`/mis-pedidos/{id}/confirmar`, `/anular`) que llaman a
-  `POST /api/pedidos/mis-pedidos/{id}/confirmar|anular`. **Ninguna acción se ejecuta por GET.** Anular pide
-  confirmación en el navegador.
-- Los botones se muestran según `puedeConfirmarse`/`puedeAnularse`, que calcula el backend; aun así, el backend vuelve
-  a validar: solo se confirma o anula un pedido **CARGADO** y **propio**, con bloqueo pesimista de la fila para que
-  dos solicitudes simultáneas no lo procesen dos veces.
-- **Retorno al pedido después del ingreso:** si alguien abre `/mis-pedidos/{id}` sin sesión, el interceptor guarda esa
-  página (solo rutas internas: empieza con `/`, sin `//`, `\`, `:`, llaves ni caracteres de control) y después del
-  ingreso — con contraseña o con Google/Facebook — vuelve a ella. Esto deja listo el enlace que irá en el correo.
-- **Correos:** por decisión del equipo, esta ola **no envía correos** (ni al cargar ni al confirmar).
-
----
-
-## 13. Reserva y devolución de stock
-
-- **Al cargar el pedido** se descuenta el stock de cada renglón con `ServicioStock.descontarStock` (bloqueo pesimista
-  sobre el registro de stock). Si un renglón no alcanza, se revierte todo el pedido.
-- **Al anular** (solo en `CARGADO`) se repone con `ServicioStock.reponerStock`, una sola vez: el pedido se bloquea y
-  pasa a `ANULADO` en la misma transacción, por lo que una segunda anulación se rechaza.
-- Confirmar, asignar o entregar **no** mueven stock (ya estaba reservado).
-
----
-
-## 14. Inicio del proceso de pago
-
-**No implementado en esta ola**, por decisión del equipo. Lo que hay:
-
-- Al confirmar, el pedido pasa directo a `PENDIENTE_DE_ENTREGA` y se **cobra contra entrega**; la app del distribuidor
-  muestra el total a cobrar por parada.
-- `fechaFacturacion` queda registrada al confirmar, para que el módulo de facturación cree la `FacturaCliente`
-  (`PENDIENTE_PAGO`) y, con transferencia o billetera, el pedido pase a `PENDIENTE_DE_ENTREGA` recién cuando la
-  factura quede `PAGADA` (regla acordada; pendiente).
-
----
-
-## 15. Entregas
-
-1. **Asignación** (admin-web `/entregas` → `POST /api/pedidos/asignacion`): solo pedidos `PENDIENTE_DE_ENTREGA` y a
-   un empleado que sea distribuidor; registra `fechaDespacho`.
-2. **Ruta de entregas** (`POST /api/pedidos/entregas/ruta` con la ubicación opcional): crea la ruta `ENTREGA` del día
-   del distribuidor con los comercios de sus pedidos pendientes o agrega los que falten (sin volver a agregar los ya
-   atendidos hoy) y la ordena por cercanía. Sin pedidos asignados → 404 “No tenés entregas asignadas para hoy”.
-3. **Entregado** (`POST /api/pedidos/entregas/{idPuntoVenta}/entregado`): todos los pedidos pendientes del
-   distribuidor en ese comercio pasan a `ENTREGADO` con `fechaEntrega`; la parada queda `ENTREGADO`.
-4. **No se pudo entregar** (`POST …/no-entregado` con motivo **obligatorio**): la parada queda `NO_ENTREGADO`; los
-   pedidos **no cambian** (sección 16).
-
----
-
-## 16. Reprogramación de entregas
-
-No hay un proceso aparte: un pedido no entregado **sigue en `PENDIENTE_DE_ENTREGA` y asignado** al mismo distribuidor.
-Al día siguiente, cuando el distribuidor abre la app, `POST /api/pedidos/entregas/ruta` arma la ruta nueva con todos
-sus pedidos pendientes, incluidos los de días anteriores. La ruta del día en que falló conserva el motivo como
-historial. Si administración quiere que lo lleve otro distribuidor, lo reasigna desde `/entregas`.
-
----
-
-## 17. Alta de clientes y puntos de venta en campo
-
-Ver sección 3. Detalles adicionales:
-
-- La contraseña la escribe el cliente; viaja a la API por la conexión de la app y no se guarda en el teléfono.
-  Valen las mismas reglas que el registro web (8 a 72 caracteres, letras y números, correo único).
-- `POST /api/clientes/campo` lo pueden usar administrativos y preventistas; no acepta rol (siempre CLIENTE).
-- El preventista puede **dar de alta** puntos de venta, pero no editarlos ni darlos de baja (eso queda para administración).
-
----
-
-## 18. Endpoints nuevos y permisos
-
-Todos devuelven y reciben JSON (DTO). Los errores siguen el formato `ErrorDTO` (`estado`, `error`, `mensaje`, `fecha`);
-503 si un servicio de mapas no responde.
-
-| Método y ruta | Rol | Descripción |
-|---|---|---|
-| `POST /api/clientes/campo` | ADMINISTRATIVO, PREVENTISTA | Alta de cliente desde el celular del preventista. |
-| `GET /api/clientes/buscar?correo=` | ADMINISTRATIVO, PREVENTISTA | Cliente activo por correo. |
-| `GET /api/puntos-venta`, `/{id}`, `/cuit/{cuit}`, `/cliente/{idCliente}` | ADMINISTRATIVO, PREVENTISTA, DISTRIBUIDOR | Consultas. |
-| `POST /api/puntos-venta` | ADMINISTRATIVO, PREVENTISTA | Alta (HU-17). |
-| `PUT`, `DELETE /api/puntos-venta/{id}` | ADMINISTRATIVO | Modificación y baja lógica. |
-| `GET /api/mapas/geocodificar?direccion=` | ADMINISTRATIVO, PREVENTISTA, DISTRIBUIDOR | Nominatim directa. |
-| `GET /api/mapas/geocodificacion-inversa?lat=&lon=` | ídem | Nominatim inversa (404 si no hay resultado). |
-| `GET /api/rutas`, `/{id}`, `GET /api/rutas/fecha?fecha=` | ADMINISTRATIVO | Consultas de rutas. |
-| `POST /api/rutas`, `DELETE /api/rutas/{id}` | ADMINISTRATIVO | Armar (HU-18) y dar de baja (si no hay visitas). |
-| `POST`/`DELETE /api/rutas/{id}/puntos/{idPuntoVenta}` | ADMINISTRATIVO | Agregar/quitar un punto pendiente. |
-| `GET /api/rutas/mia?lat=&lon=` | PREVENTISTA | Ruta de visitas de hoy + siguiente sugerido + trazado. |
-| `POST /api/rutas/mia/ordenar` | PREVENTISTA | Ordena los pendientes desde `{latitud, longitud}`. |
-| `POST /api/rutas/mia/puntos/{idPuntoVenta}/sin-pedido` | PREVENTISTA | Visita sin pedido (`{motivo}` opcional). 204. |
-| `POST /api/pedidos/preventista` | PREVENTISTA | Cargar pedido (HU-21). 201. |
-| `GET /api/pedidos/preventista`, `/{id}` | PREVENTISTA | Sus pedidos. |
-| `GET /api/pedidos/mis-pedidos`, `/{id}` | CLIENTE | Sus pedidos. |
-| `POST /api/pedidos/mis-pedidos/{id}/confirmar` | CLIENTE | Confirmar (CARGADO → PENDIENTE_DE_ENTREGA). |
-| `POST /api/pedidos/mis-pedidos/{id}/anular` | CLIENTE | Anular (CARGADO → ANULADO, devuelve stock). |
-| `GET /api/pedidos`, `/{id}`, `GET /api/pedidos/estado/{estado}` | ADMINISTRATIVO | Consultas. |
-| `POST /api/pedidos/asignacion` | ADMINISTRATIVO | `{idDistribuidor, idsPedido}`. |
-| `GET /api/pedidos/entregas/pendientes` | DISTRIBUIDOR | Sus pedidos pendientes. |
-| `POST /api/pedidos/entregas/ruta` | DISTRIBUIDOR | Arma/actualiza y ordena su ruta de entregas de hoy. |
-| `GET /api/pedidos/entregas/ruta?lat=&lon=` | DISTRIBUIDOR | Consulta la ruta de entregas de hoy. |
-| `POST /api/pedidos/entregas/{idPuntoVenta}/entregado` | DISTRIBUIDOR | Registrar entrega. |
-| `POST /api/pedidos/entregas/{idPuntoVenta}/no-entregado` | DISTRIBUIDOR | Entrega no concretada (`{motivo}` obligatorio). 204. |
-| `GET /api/empleados/rol/{rol}` | ADMINISTRATIVO (antes solo JEFE) | Para elegir preventista o distribuidor. |
-
-Los pedidos no tienen `PUT` ni `DELETE`: no se modifican completos y no se dan de baja (se anulan).
-Con `JEFE` se accede a todo lo de `ADMINISTRATIVO` y `PREVENTISTA` por la jerarquía de roles de la etapa anterior.
-
----
-
-## 19. Aplicaciones React: cómo ejecutarlas
-
-Requisitos: Node.js 20.19+ o 22.12+ (lo exige Vite 8).
+## 19. Cómo ejecutar y probar el proyecto
 
 ```bat
-cd movil\preventista
-copy .env.example .env        &rem  VITE_API_URL=http://localhost:8080
-npm install
-npm run dev                   &rem  http://localhost:5173
-
-cd movil\distribuidor
-copy .env.example .env
-npm install
-npm run dev                   &rem  http://localhost:5174
-```
-
-- `npm run build` genera `dist/`; `npm run lint` revisa el código.
-- El código compartido está en `movil/comun/src` y se importa con el alias `@comun` (configurado en cada
-  `vite.config.js`, con `resolve.dedupe` para que React, el router, Axios y Leaflet se carguen una sola vez).
-- La sesión (token + datos del usuario) se guarda en `sessionStorage`: se pierde al cerrar la pestaña. Cada app
-  acepta solo su rol; la API vuelve a controlar el rol en cada endpoint.
-- **Desde un celular real:** el celular tiene que llegar al backend por la red (usar la IP del equipo en
-  `VITE_API_URL` y agregar el origen en `CORS_ALLOWED_ORIGINS`) y, para que funcione el GPS, la app tiene que
-  servirse por **HTTPS** (por ejemplo, un túnel HTTPS o un certificado local). Por HTTP el navegador niega la ubicación
-  y la app ofrece marcar el inicio en el mapa.
-
-Pantallas: `src/paginas/*` en cada app; componentes compartidos en `movil/comun/src/componentes`
-(`MapaRuta`, `SelectorUbicacion`, `Interfaz`, `FormularioMotivo`, `Icono`, `Logo`), páginas compartidas
-(`Ingresar`, `CambiarClave`, `Perfil`), `api/cliente.js` (Axios), `auth/AuthContext.jsx`, `auth/RequireAuth.jsx`.
-
----
-
-## 20. Backend y aplicaciones web: cómo ejecutar
-
-```bat
-cd backend           && copy .env.example .env && mvnw.cmd spring-boot:run
+cd backend           && copy .env.example .env && mvnw.cmd spring-boot:run   &rem completar .env antes
 cd admin-web         && mvnw.cmd spring-boot:run
 cd institucional-web && mvnw.cmd spring-boot:run
+cd movil\preventista  && copy .env.example .env && npm install && npm run dev
+cd movil\distribuidor && copy .env.example .env && npm install && npm run dev
 ```
 
-Pruebas: `mvnw.cmd test` en `backend`, `admin-web` e `institucional-web`.
+Pruebas: `mvnw.cmd test` en `backend`, `admin-web` e `institucional-web`, y `npm run lint` / `npm run build` en
+cada app React.
 
-Datos para probar el flujo completo: el jefe inicial (`JEFE_INICIAL_CORREO`, clave temporal `dulcemayor`) da de alta
-un administrativo, un preventista y un distribuidor en admin-web; carga productos con stock y precio; el preventista
-da de alta un cliente y su comercio desde la app; administración arma la ruta con ese comercio; el preventista carga
-el pedido; el cliente lo confirma en <http://localhost:8082/mis-pedidos>; administración lo asigna en `/entregas`;
-el distribuidor lo entrega desde su app.
+**Prueba manual del flujo de facturación:**
+
+1. El jefe (clave temporal `dulcemayor`) da de alta un preventista y carga productos en `/productos`, con precio y
+   stock.
+2. El preventista da de alta un cliente desde la app. Se le asigna la clave `dulcemayor`.
+3. El preventista carga el comercio, ubicado en el mapa, y toma un pedido.
+4. El cliente entra en <http://localhost:8082>. Se le pide cambiar la clave.
+5. El cliente confirma el pedido y descarga la factura en "Mis facturas".
+6. En admin-web, `/facturas` muestra la factura con el PDF; en `/proveedores` y en
+   `/facturas/proveedores/nueva` se cargan compras.
+
+### Pruebas incluidas en el proyecto
+
+| Prueba | Qué cubre |
+|---|---|
+| `service/facturacion/CreadorFacturaTest` | Factory Method: producto concreto, IVA, descuento, validaciones y alícuota. |
+| `service/rutas/OptimizadorRecorridoTest` | Held-Karp contra fuerza bruta (60 matrices, simétricas y asimétricas); la heurística no empeora al vecino más cercano; una trampa del vecino más cercano. |
+| `service/ServicioRutaTest` | Orden con la matriz del motor; respaldo en línea recta informado. |
+| `service/ValidacionesPersonaTest` | El DNI no se modifica, se conserva o se completa. |
+| `service/ServicioClienteTest` (ampliada) | DNI y fecha obligatorios; alta en campo con clave inicial; DNI inmodificable. |
+| `service/ServicioUsuarioTest` (ampliada) | Clave inicial hasheada y cambio obligatorio. |
+| `security/JwtServiceTest` | Renovación que conserva el inicio, límite de sesión y token adulterado. |
+| `integracion/FlujoFacturacionIntegrationTest` | De punta a punta con Spring Security y H2: factura al confirmar, sin duplicados, 404 con una factura ajena, PDF `application/pdf`, 403 sin cambiar la clave, proveedores, número repetido, baja de producto bloqueada, permisos de gráficos, DNI y `/renovar`. |
+| `integracion/FlujoPedidosIntegrationTest`, `FlujoSeguridadIntegrationTest` (actualizadas) | Sin zona, registro con DNI y clave, monto a cobrar con IVA. |
+
+### Qué se ejecutó realmente y qué no
+
+**Sí se ejecutó**, sin Maven, porque Maven Central no era accesible:
+
+- **Compilación** de `backend` (código y todas las pruebas), `admin-web` e `institucional-web` con `javac`, contra
+  implementaciones mínimas de Spring, JPA y Lombok.
+- **143 escenarios** con los **servicios reales** del backend y repositorios en memoria, con *rollback* emulado.
+  **143 OK, 0 fallas.** Cubren:
+  - todos los de la Ola 2;
+  - alta en campo (sin DNI, sin fecha, menor de edad, clave inicial hasheada y cambio);
+  - factura emitida al confirmar (N.º 1, subtotal 2000, IVA 420, total 2420), sin segunda factura, sin facturar
+    pedidos sin confirmar;
+  - propiedad: una factura o PDF ajeno da 404, y un empleado no tiene "mis facturas";
+  - proveedores (CUIT, dirección, duplicado);
+  - factura de proveedor: totales, número repetido, fecha futura, renglones, modificación, sin baja, no mueve stock;
+  - baja de producto bloqueada o permitida;
+  - datos de los dos gráficos;
+  - DNI inmodificable para cliente y empleado;
+  - orden óptimo con su `criterioOrden`.
+- Regresión de etapas anteriores con el mismo método: catálogo **45/45** y personas **83/83** (este último,
+  actualizado con el registro con DNI y sin zona).
+- **Pruebas unitarias sin dependencias de Mockito ni Spring**, ejecutadas con un JUnit mínimo: `CreadorFacturaTest`,
+  `OptimizadorRecorridoTest`, `ServicioRutaTest`, `ValidacionesPersonaTest`, `ServicioPuntoVentaTest` y
+  `GestorSesionTest` (institucional). **20 OK.**
+- **PDF real con JasperReports 6.20.6.** Las dos plantillas se compilaron y llenaron con datos de prueba, en Java 21,
+  contra **PostgreSQL 16** y contra **MariaDB 10.11** (compatible con MySQL, usando el conector MySQL 8.0.21).
+  Se revisaron visualmente: una página cada una, montos con formato argentino.
+- **Apps React:** `eslint` y `vite build` sin errores en las dos apps. Navegación en Chromium (Playwright) con la API
+  **simulada** en teléfono y en tablet vertical y horizontal.
+- **Plantillas Thymeleaf nuevas** (facturas y cambio de clave) renderizadas con datos de ejemplo y un motor
+  simplificado, sin desbordes en tablet ni en celular.
+
+**No se pudo ejecutar:**
+
+- `mvnw test`. Esto deja sin correr:
+  - `FlujoFacturacionIntegrationTest` y las demás pruebas de integración y de Mockito: `JwtServiceTest`,
+    `ServicioClienteTest`, `ServicioUsuarioTest` e `InterceptorAccesoTest`;
+  - el arranque real de Spring Boot.
+  - **Hay que correrlas antes de entregar.**
+- Las plantillas JRXML contra **H2**, que es la base de las pruebas de integración, y contra **MySQL 8 real**. Se
+  probaron en MariaDB y PostgreSQL.
+- JasperReports en **Java 25**: su compilador de expresiones (ECJ) se probó en Java 21. Si falla en 25, la
+  alternativa es precompilar las plantillas a `.jasper`.
+- Las llamadas reales a **OSRM** (`/table` y `/route`), **Nominatim** y **GraphHopper**: no había salida a esos
+  sitios. El respaldo en línea recta sí se ejecutó.
+- El GPS de un celular o una tablet real.
 
 ---
 
-## 21. Variables de entorno
+## 20. Funcionalidades pendientes
 
-Backend (`backend/.env`, ver `backend/.env.example`). Nuevas en esta ola:
+### Pagos (excluido por consigna)
 
-| Variable | Para qué | Por defecto |
-|---|---|---|
-| `NOMINATIM_URL` | Servidor de geocodificación | `https://nominatim.openstreetmap.org` |
-| `OSRM_URL` | Servidor de recorridos | `https://router.project-osrm.org` (demo) |
-| `MAPAS_USER_AGENT` | Identificación ante Nominatim (exige un contacto real) | `DulceMayor/1.0 (… contacto: completar-correo)` → **completar con el correo del equipo** |
-| `CORS_ALLOWED_ORIGINS` | Ya existía; incluye `http://localhost:5173` y `:5174` | — |
+- `FormaDePago` y `Pago`, y la transición `PENDIENTE_PAGO → PAGADA`. Ninguna operación marca una factura como
+  pagada.
+- Código QR de pago: `FacturaCliente.codigoQrPago` existe y está vacío.
+- "Forma de pago" y descuentos por medio de pago en el PDF: hoy figuran como "A definir" y $0.
+- Cobro registrado por el distribuidor en la entrega.
+- Anulación de facturas con nota de crédito (`ANULADA`).
 
-Las de la etapa anterior (base de datos, `JWT_SECRET`, OAuth, etc.) siguen igual: ver [`docs/README-etapa2.md`](docs/README-etapa2.md).
+### Otros pendientes
 
-Apps React (`movil/*/.env`, ver `.env.example`): `VITE_API_URL` (por defecto `http://localhost:8080`).
-
-**Secretos:** el ZIP no incluye ningún `.env`. El `backend/.env` que circulaba con el proyecto tenía la contraseña
-de la base, el `JWT_SECRET` y los secretos de Google y Facebook: **conviene regenerarlos** (nuevo `JWT_SECRET`,
-nuevos secretos de cliente en Google Cloud y Meta) porque ya se compartieron.
-
----
-
-## 22. Seguridad: propiedad de los recursos
-
-Todo se controla en el **backend**; las apps solo ocultan opciones por comodidad.
-
-- **Rol por endpoint** en `SecurityConfig` (tabla de la sección 18) y regla final `denyAll`.
-- **Propiedad por el token, no por la URL:** el cliente, el preventista y el distribuidor se obtienen del usuario
-  autenticado. Un pedido de otro cliente (`/api/pedidos/mis-pedidos/{id}`, también al confirmar o anular) o de otro
-  preventista (`/api/pedidos/preventista/{id}`) responde **404** (no se revela que existe). Registrar una visita o
-  una entrega en un comercio que no está en la ruta propia, o sin pedidos asignados al distribuidor, responde **400**
-  (“El punto de venta no está en tu ruta de hoy”, “No tenés pedidos pendientes para entregar en ese comercio”) y no
-  modifica nada.
-- Las rutas del preventista y del distribuidor se buscan por el usuario del token (`/mia`, `/entregas/…`): no reciben
-  identificador de empleado.
-- Confirmar, anular, entregar y registrar visitas son **POST**; ninguna acción de estado se hace por GET.
-- Los cambios de estado de un pedido usan **bloqueo pesimista** para evitar dobles confirmaciones o anulaciones.
-- La vuelta al pedido después del ingreso solo acepta rutas internas del sitio (sin redirecciones abiertas).
-- Las respuestas no incluyen claves, hashes ni tokens de terceros.
-
----
-
-## 23. Funcionalidades pendientes
-
-- **Pagos** y **facturación** (`FacturaCliente`, `PENDIENTE_PAGO`/`PAGADA`): no implementados por decisión del equipo (sección 14).
-- **Correos** (aviso al cliente con el enlace a su pedido): no implementados por decisión del equipo; el enlace
-  `/mis-pedidos/{id}` con retorno tras el ingreso ya funciona.
-- **Promociones** y descuentos en el pedido.
-- Edición de un pedido CARGADO por el preventista (hoy se anula y se carga de nuevo — la anulación es del cliente).
-- Numeración de pedidos bajo alta concurrencia: es “último + 1” con columna única; si dos preventistas cargan en el
-  mismo instante, uno recibe un error de restricción y tiene que reintentar. Una secuencia de base de datos lo resolvería.
-- Ruta óptima real (problema del viajante) o un proveedor de optimización: hoy es vecino más cercano.
-- Instancias propias de Nominatim/OSRM para producción.
-- Funcionamiento sin conexión de las apps móviles.
-- Pantallas de administración para editar puntos de venta y para agregar/quitar puntos de una ruta ya armada (la API lo permite; faltan las vistas).
-
----
-
-## 24. Qué se verificó y qué no
-
-### Lo que **sí** se ejecutó
-
-- **Compilación** de `backend` (código y pruebas), `admin-web` e `institucional-web` con `javac` contra
-  implementaciones mínimas (stubs) de Spring/JPA/Lombok, porque Maven Central no era accesible.
-- **93 escenarios** del backend (Rutas y Pedidos) con los servicios reales y repositorios en memoria: alta de cliente
-  en campo; HU-17 (CUIT inválido/duplicado, sin coordenadas, sin cliente); HU-18 (fecha pasada, rol incorrecto, ruta
-  duplicada); orden por cercanía y trazado en línea recta sin OSRM; visita sin pedido; carga de pedido con precio
-  vigente, agrupación de líneas, reserva de stock, visita CON_PEDIDO y **reversión completa** si falta stock;
-  propiedad de pedidos (cliente y preventista ajenos → 404); anulación que devuelve el stock **una sola vez**;
-  confirmación sin tocar stock; asignación solo de pendientes; ruta de entregas solo con comercios asignados; entrega
-  fallida que mantiene el pedido pendiente y su reprogramación al día siguiente; entrega final. **93 OK.**
-- Regresión de las etapas anteriores con el mismo método: 45/45 (catálogo) y 81/81 (personas).
-- Pruebas unitarias nuevas ejecutadas con JUnit simulado: `ServicioPuntoVentaTest` (CUIT), `ServicioRutaTest`
-  (vecino más cercano y Haversine), `GestorSesionTest` (destinos internos). Todas OK.
-- **Apps React:** `npm install`, `vite build` y `eslint` sin errores en las dos apps y en `movil/comun`.
-- **Navegación de las apps React en Chromium (Playwright)** con la API **simulada** (respuestas de ejemplo fijas,
-  solo para la prueba): ingreso, ruta, detalle, tomar pedido, resumen, pedido cargado, visita sin pedido, mis
-  pedidos, alta de cliente y punto de venta, catálogo; ruta de entregas, detalle, no entregado y pendientes. Sirvió
-  para corregir dos errores (redirección al cargar el pedido y un asterisco mal ubicado).
-- Plantillas nuevas de admin-web e institucional-web renderizadas con datos de ejemplo y revisadas en escritorio y
-  celular (sin desbordes horizontales).
-
-### Lo que **no** se pudo ejecutar
-
-- `mvnw test` real (Spring, Hibernate, H2, Spring Security): incluye `FlujoPedidosIntegrationTest` (flujo completo
-  del preventista al distribuidor, anulación con devolución de stock y matriz de acceso por rol) y las pruebas de las
-  etapas anteriores. **Hay que correrlas antes de entregar.**
-- Arranque real con MySQL, las vistas Thymeleaf con el motor real y las apps React contra la API real.
-- Llamadas reales a Nominatim, OSRM y a las teselas de OpenStreetMap (sin salida a esos sitios desde el entorno; el
-  respaldo “línea recta” sí se probó).
-- GPS en un celular real.
-
-Las capturas de `docs/capturas/ola2/` usan **datos de ejemplo**; el mapa aparece gris porque las teselas no estaban
-accesibles al tomarlas.
+- **Factura A / B** según la condición de IVA del comercio. Hoy hay una sola letra genérica y el IVA siempre
+  discriminado.
+- **Numeración con secuencia de base de datos.** Hoy es último + 1 con restricción única: dos confirmaciones
+  simultáneas pueden hacer que una tenga que reintentar.
+- **Vincular la factura de proveedor con el ingreso de stock.**
+- **Contacto del proveedor**, que está en el diagrama.
+- **Optimización con ventanas horarias o capacidad del vehículo (VRP).** Habría que evaluar `jsprit` o un servicio
+  pago.
+- **Instancias propias de OSRM y Nominatim** para producción.
+- **Correos al cliente**, por ejemplo con la factura adjunta.
+- **Pantallas para editar puntos de venta.**
+- **Reducir consultas repetidas** en algunos listados de productos de admin-web.

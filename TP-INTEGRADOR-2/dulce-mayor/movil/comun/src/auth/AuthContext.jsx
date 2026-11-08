@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { api, mensajeDeError } from '../api/cliente.js'
-import { borrarSesion, guardarSesion, leerSesion } from '../api/sesionGuardada.js'
+import { borrarSesion, guardarSesion, leerSesion, vencimientoDelToken } from '../api/sesionGuardada.js'
+
+// Se pide un token nuevo cuando al actual le queda menos de esto (y mientras la app está abierta).
+const MARGEN_RENOVACION_MS = 60 * 60 * 1000
 
 const AuthContext = createContext(null)
 
@@ -47,6 +50,37 @@ export function AuthProvider({ rolesPermitidos, nombreApp, children }) {
   }, [aplicar])
 
   const salir = useCallback(() => aplicar(null), [aplicar])
+
+  // Renovación del token: al abrir o volver a la app, y antes de que venza, se pide uno nuevo a la API
+  // (POST /api/auth/renovar). El backend no renueva más allá de la duración máxima de la sesión.
+  const token = sesion?.token
+  useEffect(() => {
+    if (!token) return undefined
+    let cancelado = false
+    let temporizador
+    const renovarSiHaceFalta = async () => {
+      const vence = vencimientoDelToken(token)
+      if (!vence) return
+      if (vence - Date.now() > MARGEN_RENOVACION_MS) {
+        temporizador = setTimeout(renovarSiHaceFalta, Math.min(vence - Date.now() - MARGEN_RENOVACION_MS, 2 ** 31 - 1))
+        return
+      }
+      try {
+        const { data } = await api.post('/api/auth/renovar')
+        if (!cancelado && rolesPermitidos.includes(data.usuario?.rol)) aplicar(data)
+      } catch {
+        // 401: el interceptor avisa "sesión vencida". Sin conexión: se reintenta al volver a la app.
+      }
+    }
+    const alVolver = () => { if (document.visibilityState === 'visible') renovarSiHaceFalta() }
+    renovarSiHaceFalta()
+    document.addEventListener('visibilitychange', alVolver)
+    return () => {
+      cancelado = true
+      clearTimeout(temporizador)
+      document.removeEventListener('visibilitychange', alVolver)
+    }
+  }, [token, aplicar, rolesPermitidos])
 
   // Eventos que emite el cliente Axios ante 401 o cambio de clave obligatorio.
   useEffect(() => {
