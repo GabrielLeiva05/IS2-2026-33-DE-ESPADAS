@@ -1,0 +1,21 @@
+﻿
+==> Verificando requisitos
+    [ok] Java 25
+    [ok] Node v24.4.1 / npm 11.4.2
+    [ok] Docker disponible
+    [ok] API: .env presente
+    [ok] Panel: .env presente
+    [ok] Sitio: .env presente
+    [!]  App preventista sin .env: el proxy usa http://localhost:8080 y el cobro con tarjeta queda deshabilitado (falta VITE_MP_PUBLIC_KEY).
+    [!]  Ya hay un PostgreSQL escuchando en el puerto 5432: se usa ese y no se inicia el contenedor.
+    [!]  Sin Docker: se usa el PostgreSQL que ya esté escuchando en localhost:5432
+    [ok] Datos de demostración forzados: DATOS_DEMO_HABILITADO=true
+
+==> Iniciando servicios
+    [ok] API REST lanzado (PID 19728)
+    [ok] Panel administrativo lanzado (PID 21172)
+    [ok] Sitio institucional lanzado (PID 31524)
+    [ok] App del preventista lanzado (PID 30340)
+    [ok] App del distribuidor lanzado (PID 2020)
+
+==> Esperando a que los servicios respondan

@@ -126,7 +126,57 @@ docker compose ps
 
 Compose conserva los datos en el volumen `dulce-mayor_postgres-data`. Para eliminar la base y volver a empezar, ejecutar explícitamente `docker compose down -v` (borra los datos). Usuario/base/contraseña por defecto son únicamente para desarrollo local y pueden sustituirse con `POSTGRES_USER`, `POSTGRES_DB`, `POSTGRES_PASSWORD` y `POSTGRES_PORT` en el entorno.
 
-### Arranque (Windows)
+### Arranque con un solo comando (recomendado)
+
+`levantar.ps1` prepara el entorno y arranca PostgreSQL y las cinco aplicaciones de una vez:
+
+```bat
+levantar.cmd                 REM arranca todo
+reiniciar-todo.cmd           REM borra la base, la recrea y arranca con datos demo
+detener.cmd                  REM detiene todo (agregá -IncluirBase para parar Postgres)
+```
+
+Antes de arrancar verifica **Java 25**, **Node 20+** y **Docker**, y crea los `.env` que falten a partir de los
+`.env.example`. Espera a que cada servicio responda por HTTP e informa el estado:
+
+| Servicio | URL |
+|---|---|
+| API REST | <http://localhost:8080> |
+| Panel administrativo | <http://localhost:8081> |
+| Sitio institucional | <http://localhost:8082> |
+| App del preventista | <http://localhost:5173> |
+| App del distribuidor | <http://localhost:5174> |
+
+Opciones principales:
+
+| Opción | Para qué |
+|---|---|
+| `-LimpiarBase` | Borra el volumen de PostgreSQL y lo recrea vacío antes de arrancar |
+| `-ConDatosDemo` / `-SinDatosDemo` | Fuerza `DATOS_DEMO_HABILITADO` en esta ejecución |
+| `-Solo backend,admin-web` | Arranca solo los servicios indicados |
+| `-SinMoviles` | No arranca las dos apps React |
+| `-AbrirNavegador` | Abre las cuatro interfaces web |
+| `-Detener [-IncluirBase]` | Detiene lo levantado (y opcionalmente PostgreSQL) |
+| `-Verificar` | Solo comprueba requisitos y configuración, sin arrancar nada |
+| `-EsperaMaxima <seg>` | Segundos de espera por servicio (por defecto 300) |
+
+```bat
+powershell -ExecutionPolicy Bypass -File levantar.ps1 -LimpiarBase -ConDatosDemo -AbrirNavegador
+powershell -ExecutionPolicy Bypass -File levantar.ps1 -Solo backend,admin-web
+powershell -ExecutionPolicy Bypass -File levantar.ps1 -Verificar
+```
+
+Detalles de comportamiento:
+
+- Los procesos se lanzan **desacoplados**: siguen corriendo cuando el script termina. Los PIDs quedan en
+  `.run\pids.json` y los logs en `.run\logs`.
+- Si el puerto de un servicio ya está en uso, ese servicio se omite y se avisa.
+- Si ya hay un PostgreSQL escuchando en 5432 (instalación local), se usa ese y no se inicia el contenedor; en ese
+  caso `-LimpiarBase` avisa que no puede recrearlo automáticamente (habría que hacer
+  `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` a mano o detener el servicio externo).
+- `-Solo` acepta tanto `-Solo backend,admin-web` como `-Solo "backend,admin-web"`.
+
+### Arranque manual (Windows)
 
 ```bat
 cd backend           && mvnw.cmd spring-boot:run

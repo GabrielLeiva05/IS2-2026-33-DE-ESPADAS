@@ -23,3 +23,6 @@
 *.iml
 .DS_Store
 Thumbs.db
+
+# Logs y PIDs de levantar.ps1
+.run/
