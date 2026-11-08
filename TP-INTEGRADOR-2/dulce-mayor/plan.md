@@ -1,6 +1,6 @@
 # Plan de acción — Dulce Mayor
 
-**Estado:** Fases 4 a 7 implementadas y verificadas (promociones, rutas y entregas con la app del distribuidor, sitio institucional con sucursales/cotización/portal del cliente, y mapas con planificación de visitas en la app del preventista). Backend: `mvnw clean verify` → BUILD SUCCESS, **155 pruebas**. admin-web e institucional-web compilan con sus pruebas de plantillas; las apps del preventista y del distribuidor pasan `lint` y `build`.
+**Estado:** Fases 4 a 9 implementadas y verificadas. Backend: `mvnw clean verify` → BUILD SUCCESS, **158 pruebas**. admin-web: 13 pruebas (incluye render de cada pantalla nueva); institucional-web: 3 pruebas; ambas apps móviles con `lint` y `build` en verde. Quedan fuera de alcance, por decisión del usuario, el chatbot y el pipeline de Jenkins.
 
 ## 1. Propósito y alcance
 
@@ -232,7 +232,7 @@ IDs asignados para este plan a los requisitos del enunciado; son trazabilidad in
 
 **Cierre:** clientes geolocalizados aparecen en mapa; orden sugerido se entiende, es editable y queda guardado para la jornada.
 
-### Fase 8 — Correo, tareas programadas y chatbot
+### Fase 8 — Correo, tareas programadas y chatbot — **implementada salvo chatbot**
 1. Correo transaccional de alta/verificación, confirmación de pago/facturación, cancelación por vencimiento, próxima entrega y eventos acordados; plantillas, reintentos, idempotencia y registro de fallos.
 2. Newsletter programado el día 5 para opt-in; dar de baja con mecanismo sencillo, respetar baja en la misma ejecución, evitar duplicados y manejar zona horaria local.
 3. Definir y aprobar proveedor de chatbot comparando costo, privacidad, disponibilidad y límites antes de habilitar credenciales. Nunca adjuntar claves al frontend.
@@ -241,7 +241,7 @@ IDs asignados para este plan a los requisitos del enunciado; son trazabilidad in
 
 **Cierre:** correos repetidos no duplican efectos, baja del newsletter se respeta y chatbot no puede confirmar pedido ni inventar precio autoritativo.
 
-### Fase 9 — Dashboard, reportes y estadísticas
+### Fase 9 — Dashboard, reportes y estadísticas — **implementada**
 1. Gestión de sucursales, pedidos y promociones; vistas de excepciones, pagos por validar, reservas próximas a vencer, entregas fallidas y reprogramaciones.
 2. Reportes con filtros y autorización global: clientes, pedidos, estados de envío y montos facturados; descarga PDF.
 3. Exportación Excel histórica de ventas por departamento y preventor, en período especificado.
@@ -252,7 +252,7 @@ IDs asignados para este plan a los requisitos del enunciado; son trazabilidad in
 
 **Cierre:** filtros concuerdan con consultas; exportaciones reflejan datos comprobados y el usuario sin rol no accede.
 
-### Fase 10 — Endurecimiento e integración final
+### Fase 10 — Endurecimiento e integración final — **parcial: chatbot y Jenkins pendientes**
 1. Actualizar README con puertos, variables, perfiles, servicios, datos de prueba, pasos de arranque y recuperación; quitar afirmaciones obsoletas de estado.
 2. Componer servicios con Docker Compose local, readiness/healthchecks, almacenamiento persistente y datos no secretos en `.env.example`.
 3. Jenkins: etapas checkout/build/test frontend y backend, reportes de pruebas, fallar ante regresiones y mantener credenciales externas como secretos del sistema CI. No incluir deploy cloud.
@@ -429,3 +429,38 @@ Límites conocidos: Mercado Pago no se pudo probar contra el proveedor real (no 
 Verificación: backend `mvnw clean verify` → BUILD SUCCESS, **155 pruebas** (18 de integración end-to-end, incluidas promoción→pago→entrega con efectivo, intento fallido y reprogramación, portal del cliente, sucursales y plan de visitas). admin-web: BUILD SUCCESS con render de las pantallas nuevas. institucional-web: BUILD SUCCESS con prueba de render de la página pública. Apps móviles: `npm run lint` y `npm run build` sin errores.
 
 Límites conocidos: la cotización depende del BCRA (si no hay red se muestra el último valor con aviso), los mapas usan mosaicos de OpenStreetMap (requieren internet) y no hay geocodificación inversa ni ruteo por calles: la sugerencia es en línea recta, como indica el plan.
+
+### Registro de ejecución — Fases 8 y 9, configuración y datos (2026-11-07)
+
+**Fase 8 sin chatbot — correo, eventos y newsletter.** `ServicioCorreo` envía por SMTP cuando el `.env` define
+`MAIL_HOST` y, si no, registra el envío como `SIMULADO` en `envios_correo` y en el log, de modo que las
+notificaciones se pueden probar sin proveedor. Los servicios de pedido, pago y ruta publican `EventoPedido` y el
+observador `EscuchaEventosPedido` arma y entrega el correo (Observer con eventos de Spring, como proponía la
+sección 3). `ServicioNewsletter` implementa opt-in público, baja por token y envío mensual programado el día
+configurable (5 por defecto) vía `ProgramadorNewsletter`. Consulta y disparo manual en `/api/notificaciones/**`.
+
+**Fase 9 — reportes y estadísticas.** `ServicioReporte` agrega ventas por departamento, preventista, comercio o
+estado sobre el período inclusivo, con totales, desglose por estado, serie de pedidos por preventista y stock por
+producto. `ControladorReporte` expone JSON, exportación **CSV compatible con Excel** (UTF-8 con BOM) y las series.
+En admin-web se agregaron las pantallas de Reportes, Notificaciones y Puntos de venta, y el inicio dejó de mostrar
+módulos «en desarrollo»: ahora enlaza a cada sección operativa.
+
+**Configuración por `.env`.** El panel y el sitio incorporaron `spring.config.import` (carpeta propia y raíz del
+proyecto), así que toda la configuración —base de datos, JWT, OAuth2, Mercado Pago, correo, newsletter y datos
+demo— puede definirse en archivos `.env` sin variables de entorno del sistema. Se crearon los cinco
+`.env.example` (API, panel, sitio y ambas apps móviles).
+
+**OAuth2 del cliente por configuración.** `SeguridadOAuth2Config` dejó de depender de perfiles de Spring: se
+activa con `app.oauth2.habilitado` (`APP_OAUTH2_HABILITADO` en el `.env`) y construye los registros de Google y
+Facebook en código, incluyendo solo los proveedores con credenciales completas. Se eliminaron los dos
+`application-oauth-*.properties`, que quedaron obsoletos. El plan ya contemplaba este ingreso desde la Fase 1
+(REQ-07); ahora queda operativo y configurable sin tocar el sistema operativo.
+
+**Datos semilla ampliados.** El dataset demo pasó a 12 comercios con coordenadas en seis departamentos, 12
+productos, 12 pedidos repartidos entre confirmado, completado (transferencia acreditada), entregado y cancelado,
+una hoja de ruta con paradas mixtas y el plan de visitas del día. Con eso los mapas del preventista y del
+distribuidor muestran un recorrido realista y los reportes tienen volumen para agrupar.
+
+Verificación: backend `clean verify` → 158 pruebas; admin-web 13; institucional-web 3; apps móviles con lint y
+build. Se corrigieron además los constructores de dos pruebas unitarias afectados por la inyección del publicador
+de eventos y se hizo null-safe la notificación del comprobante.

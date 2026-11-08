@@ -93,11 +93,19 @@
             </ul>
         </div>
         <div>
-            <h4>Próximamente</h4>
+            <h4>Novedades</h4>
+            <p class="texto-chico">Recibí el catálogo y las ofertas del mes.</p>
+            <form th:action="@{/newsletter}" method="post" class="formulario">
+                <div class="campo">
+                    <label class="oculto-visual" for="newsletter-email">Correo electrónico</label>
+                    <input class="control" id="newsletter-email" type="email" name="email" required
+                           placeholder="tu@correo.com">
+                </div>
+                <button type="submit" class="btn btn-secundario btn-chico">Suscribirme</button>
+            </form>
             <ul>
-                <li>Pedidos online</li>
-                <li>Promociones por volumen</li>
-                <li>Seguimiento de entregas</li>
+                <li><a th:href="@{/sucursales}">Sucursales</a></li>
+                <li><a th:if="${sesion != null}" th:href="@{/mis-pedidos}">Mis pedidos</a></li>
             </ul>
         </div>
     </div>

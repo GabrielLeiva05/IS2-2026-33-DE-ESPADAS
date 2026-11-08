@@ -43,12 +43,14 @@ public class ServicioPedido {
     private final ServicioStock servicioStock;
     private final ServicioUsuario servicioUsuario;
     private final ServicioEmpleado servicioEmpleado;
+    private final org.springframework.context.ApplicationEventPublisher eventos;
 
     public ServicioPedido(RepositorioPedido repositorioPedido, RepositorioReservaStock repositorioReservaStock,
                           RepositorioPago repositorioPago, ServicioPuntoVenta servicioPuntoVenta,
                           ServicioPromocion servicioPromocion, ServicioProducto servicioProducto,
                           ServicioVigenciaPrecio servicioVigenciaPrecio, ServicioStock servicioStock,
-                          ServicioUsuario servicioUsuario, ServicioEmpleado servicioEmpleado) {
+                          ServicioUsuario servicioUsuario, ServicioEmpleado servicioEmpleado,
+                          org.springframework.context.ApplicationEventPublisher eventos) {
         this.repositorioPedido = repositorioPedido;
         this.repositorioReservaStock = repositorioReservaStock;
         this.repositorioPago = repositorioPago;
@@ -59,6 +61,7 @@ public class ServicioPedido {
         this.servicioStock = servicioStock;
         this.servicioUsuario = servicioUsuario;
         this.servicioEmpleado = servicioEmpleado;
+        this.eventos = eventos;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -145,7 +148,9 @@ public class ServicioPedido {
         }
         pedido.setEstado(EstadoPedido.CONFIRMADO);
         pedido.setFechaConfirmacion(LocalDateTime.now());
-        return convertir(repositorioPedido.save(pedido));
+        Pedido guardado = repositorioPedido.save(pedido);
+        publicar(guardado, com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoCorreo.PEDIDO_CONFIRMADO, null);
+        return convertir(guardado);
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -262,7 +267,9 @@ public class ServicioPedido {
         }
         pedido.setEstado(EstadoPedido.CANCELADO);
         pedido.setFechaCancelacion(LocalDateTime.now());
-        return convertir(repositorioPedido.save(pedido));
+        Pedido guardado = repositorioPedido.save(pedido);
+        publicar(guardado, com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoCorreo.PEDIDO_CANCELADO, null);
+        return convertir(guardado);
     }
 
     private void aplicarLineas(Pedido pedido, List<PedidoLineaRequestDTO> lineas) throws MiException {
@@ -388,5 +395,14 @@ public class ServicioPedido {
                 || dto.lineas() == null || dto.lineas().isEmpty()) {
             throw new MiException("Debe indicar punto de venta y al menos un producto");
         }
+    }
+
+    /** Publica el hecho para que el observador de correo lo notifique (no bloquea la transacción). */
+    private void publicar(Pedido pedido, com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoCorreo tipo,
+                          String detalle) {
+        String correo = pedido.getPuntoVenta() == null ? null : pedido.getPuntoVenta().getEmailContacto();
+        String comercio = pedido.getPuntoVenta() == null ? null : pedido.getPuntoVenta().getNombreComercial();
+        eventos.publishEvent(new com.ejercicioIntegrador.dulcemayor.eventos.EventoPedido(pedido.getId(), tipo, correo,
+                comercio, detalle));
     }
 }

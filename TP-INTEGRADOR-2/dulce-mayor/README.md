@@ -89,7 +89,7 @@ service/       ServicioUsuario, ServicioEmpleado, ServicioCliente, ServicioAuten
 
 ### Configuración del backend
 
-1. Copiar `backend/.env.example` como `backend/.env` y completarlo. **El `.env` no se sube al repositorio** (ya figura en `.gitignore`).
+1. Copiar `backend/.env.example` como `backend/.env` y completarlo. **El `.env` no se sube al repositorio** (ya figura en `.gitignore`). Ver la sección [Configuración con archivos `.env`](#configuración-con-archivos-env) para el detalle de todas las claves.
 2. Generar un secreto propio para el JWT (mínimo 32 caracteres), por ejemplo `openssl rand -base64 48`, y ponerlo en `JWT_SECRET`.
    Si no se define, en desarrollo se usa un valor de ejemplo y la API muestra una advertencia en el log; **con el perfil `prod` la API no arranca sin él**.
 
@@ -101,7 +101,7 @@ service/       ServicioUsuario, ServicioEmpleado, ServicioCliente, ServicioAuten
 | `JEFE_INICIAL_CORREO` | Correo del jefe que se crea al iniciar | `jefe@dulcemayor.com.ar` |
 | `CORS_ALLOWED_ORIGINS` | Orígenes permitidos | `http://localhost:5173,…:5174,…:8081,…:8082` |
 | `OAUTH2_REDIRECT_CLIENTE` | Página del sitio que recibe el código tras Google/Facebook | `http://localhost:8082/ingresar/oauth2` |
-| `SPRING_PROFILES_ACTIVE` | `oauth-google`, `oauth-facebook`, `prod` (combinables) | ninguno |
+| `APP_OAUTH2_HABILITADO` | Habilita el ingreso de clientes con Google/Facebook desde el `.env` | `false` |
 | `GOOGLE_CLIENT_ID/SECRET`, `FACEBOOK_CLIENT_ID/SECRET` | Credenciales de los proveedores | sin valor |
 
 ### Configuración de las aplicaciones web
@@ -146,15 +146,38 @@ departamentos con la localidad cabecera de cada uno, y el **jefe administrativo 
 
 Es idempotente: si los datos ya existen, no los duplica.
 
-### Datos de demostración (opcional)
+### Configuración con archivos `.env`
 
-Para probar el flujo completo sin cargar todo a mano, el backend incluye un dataset de ejemplo **apagado por
-defecto**. Se activa al arrancar:
+Toda la configuración vive en archivos `.env`: **no hace falta definir variables de entorno del sistema**.
+Cada aplicación trae su `.env.example`; se copia a `.env` (ignorado por git) y se edita:
+
+| Aplicación | Archivo a crear | Qué se configura |
+|---|---|---|
+| API | `backend/.env` | base de datos, `JWT_SECRET`, jefe inicial, OAuth2, Mercado Pago, correo, newsletter, datos demo |
+| Panel | `admin-web/.env` | puerto, URLs de la API y del sitio, cookies de sesión |
+| Sitio | `institucional-web/.env` | puerto, URLs de la API, botones sociales |
+| Apps móviles | `movil/*/.env` | solo si la API no está en `http://localhost:8080` |
 
 ```bat
-cd backend
-set DATOS_DEMO_HABILITADO=true
-mvnw.cmd spring-boot:run
+copy backend\.env.example backend\.env
+copy admin-web\.env.example admin-web\.env
+copy institucional-web\.env.example institucional-web\.env
+```
+
+El backend carga el `.env` con `spring.config.import`, el panel y el sitio hacen lo mismo desde su propia
+carpeta y desde la raíz del proyecto; las apps Vite leen `.env` de su carpeta.
+
+> `APP_OAUTH2_HABILITADO=true` + credenciales en `backend/.env` habilitan el ingreso de clientes con Google o
+> Facebook (sin perfiles de Spring). Para que el sitio muestre los botones hay que activar además
+> `OAUTH_GOOGLE_HABILITADO` / `OAUTH_FACEBOOK_HABILITADO` en `institucional-web/.env`.
+
+### Datos de demostración (opcional)
+
+Para probar el flujo completo sin cargar todo a mano, el backend incluye un dataset **apagado por defecto**.
+Se activa desde el `.env`:
+
+```properties
+DATOS_DEMO_HABILITADO=true
 ```
 
 `InicializadorDemo` es idempotente y crea todo con los mismos servicios que usa la API (mismas validaciones):
@@ -163,30 +186,16 @@ mvnw.cmd spring-boot:run
 |---|---|
 | Empleados | `admin@dulcemayor.test` (ADMINISTRATIVO), `preventista@dulcemayor.test`, `distribuidor@dulcemayor.test` |
 | Clave | `dulcemayor` (temporal: el primer ingreso obliga a cambiarla, igual que cualquier alta del panel) |
-| Catálogo | 2 categorías, 3 subcategorías y 6 productos `DEMO-001`…`DEMO-006` con precio vigente, stock e imagen |
-| Comercial | Promoción `DEMO10` (10 %, reutilizable) y sucursal «Casa Central» |
-| Preventista | Cartera con el comercio `Kiosco Demo` y un pedido **confirmado** (stock reservado) |
+| Catálogo | 2 categorías, 3 subcategorías y **12 productos** `DEMO-001`…`DEMO-012` con precio, stock e imagen |
+| Comercios | **12 puntos de venta** distribuidos en Capital, Godoy Cruz, Las Heras, Guaymallén, Luján y Maipú, todos con coordenadas para el mapa |
+| Pedidos | 12 pedidos: confirmados a la espera de pago, con transferencia acreditada, entregados por ruta y uno cancelado |
+| Rutas | Hoja de ruta del día con varias paradas (algunas entregadas) para el mapa del distribuidor |
+| Visitas | Plan del día con toda la cartera, para el mapa del preventista |
+| Comercial | Promoción `DEMO10` (10 %), dos sucursales y dos suscriptores de newsletter |
 
-Para ver ese pedido en el portal del cliente, registrate en <http://localhost:8082/registro> con el correo
-**`kiosco.demo@dulcemayor.test`**: el único vínculo cliente ↔ pedidos es el email de contacto del punto de venta.
-
-#### Recorrido de prueba de punta a punta
-
-1. **Admin (8081)** con el jefe inicial: cambiá la clave (obligatorio en el primer ingreso).
-2. Entrá con `admin@dulcemayor.test` / `dulcemayor` y cambiá también su clave temporal.
-3. **Pedidos** → el pedido de ejemplo está *Confirmado*: iniciá un cobro (transferencia o Mercado Pago) y
-   **Acreditá** la transferencia con un número de operación, o usá **Cobro en efectivo**.
-4. **Rutas** → asigná ese pedido al distribuidor «Diego Distribuidor».
-5. **App distribuidor (<http://localhost:5174>)** con `distribuidor@dulcemayor.test`: cambiá la clave primero
-   (en 8081), luego **Registrar entrega**. Si el pago era en efectivo, ahí mismo se acredita, se consume el
-   stock y se emite el comprobante.
-6. **App preventista (<http://localhost:5173>)** con `preventista@dulcemayor.test`: cartera, plan de visitas
-   con mapa, nuevo pedido aplicando `DEMO10`.
-7. **Institucional (8082)**: catálogo público, sucursales con cotización del BCRA y «Mis pedidos» con el
-   comprobante descargable.
-
-Ambas apps móviles tienen proxy `/api` → `http://localhost:8080` en su `vite.config.js`, así que `npm run dev`
-funciona sin configurar `VITE_API_URL`.
+El comercio `Kiosco Demo` usa el correo **`kiosco.demo@dulcemayor.test`**. Ese correo es el vínculo
+cliente ↔ pedidos: registrate con él en <http://localhost:8082/registro> y vas a ver sus pedidos en
+«Mis pedidos». Los demás comercios usan `comercioNN@dulcemayor.test`.
 
 ### Pruebas
 
@@ -519,49 +528,151 @@ En las de celular de página completa, la barra inferior aparece a mitad de la i
 
 ---
 
-## 11. Funcionalidades pendientes
+## 11. Fuera de alcance en esta etapa
 
-No se implementaron porque pertenecen a módulos que todavía no existen. No hay métodos vacíos ni respuestas
-simuladas: las rutas no existen y la API las deniega. En las vistas figuran como «Próximamente».
+El sistema está completo para el circuito comercial. Quedan explícitamente afuera, por decisión de alcance:
 
-| Pendiente | Por qué todavía no |
+| Pendiente | Motivo |
 |---|---|
-| Pedidos online desde el portal del cliente | En esta versión el cliente solo consulta; el pedido lo carga el preventista |
-| Cuenta del responsable con verificación de correo | El alta del preventista todavía no crea una cuenta utilizable |
-| Promociones | Módulo no desarrollado |
-| Rutas, hoja de ruta y entregas | Módulo de Logística no desarrollado |
-| Facturación fiscal (CAE, AFIP) | Fuera de alcance: el comprobante emitido es interno y no fiscal |
-| Registro de clientes por el preventista durante la visita | Depende de Puntos de venta |
-| Apps React del preventista y del distribuidor (`movil/`) | Fuera de alcance de esta etapa; hoy pueden ingresar a admin-web para cambiar su contraseña y (el preventista) consultar el catálogo |
-| Recuperación de contraseña por correo | Requiere un servidor de correo; hoy el jefe puede dar de baja y volver a dar de alta |
-| Reportes, contacto | Fuera de alcance |
-| Facebook en producción | Requiere crear la app en Meta y, para usuarios reales, su revisión; ver `CONFIGURACION-OAUTH.md` |
+| Chatbot público de presupuesto | Se incorpora en una etapa posterior, con proveedor aprobado |
+| Pipeline Jenkins | La etapa de CI/despliegue se retoma después de cerrar la funcionalidad |
+| Facturación fiscal (CAE/AFIP) | El comprobante emitido es **interno y no fiscal**, como se acordó |
+| Pedidos online desde el portal | El pedido lo carga el preventista en la visita; el cliente solo consulta |
+| Verificación de correo del responsable | El alta del preventista no crea cuenta utilizable todavía |
+| Recuperación de contraseña por correo | Hoy el jefe puede dar de baja y volver a dar de alta |
+| Facebook en producción | Requiere crear la app en Meta y su revisión; Google queda operativo con credenciales |
 
 ---
 
-## 12. Qué se verificó y qué no
+## 12. Qué se verificó
 
-### Lo que **sí** se ejecutó
+Todas las verificaciones se ejecutaron en esta máquina, con Maven Central y Node disponibles:
 
 | Verificación | Resultado |
 |---|---|
-| Compilación de **todo** el backend (código y pruebas) y de las dos apps web con `javac`, contra *stubs* de las APIs de Spring/Jakarta/jjwt escritos para esa verificación (Lombok emulado) | Sin errores |
-| **Arnés de escenarios de Personas y Autenticación**: los servicios reales (`ServicioUsuario`, `ServicioEmpleado`, `ServicioCliente`, `ServicioAutenticacion`, ubicación, `InicializadorDatos`, `CodigosCanjeOAuth2`) sobre repositorios en memoria, con *rollback* emulado | **81 / 81** escenarios correctos: datos iniciales, login, cambio obligatorio y sus validaciones, alta de cada rol, duplicados, edad, documento, patente, segundo JEFE, baja y deshabilitación, registro de cliente, rol inmutable, ingreso social (las 7 reglas), código de un solo uso |
-| Arnés del módulo **Catálogo y Stock** (regresión por el cambio en `BaseService`) | **45 / 45** |
-| Matriz de **navegación de admin-web** (`InterceptorAcceso` compilado, con pedidos simulados) | **21 / 21** |
-| **Vistas**: las 14 pantallas renderizadas con **datos de ejemplo** por un renderizador de prueba en Python que interpreta el subconjunto de Thymeleaf usado, y abiertas en Chromium a 1440 px y 390 px | Sin desbordes horizontales de página; capturas revisadas. Así se encontraron y corrigieron cuatro errores de estilo |
-| JavaScript en Chromium: campos según rol y selects en cascada (con respuestas `/ubicacion/…` interceptadas) | Correcto |
+| Backend `mvnw clean verify` | **BUILD SUCCESS — 158 pruebas**, 0 fallas/errores (unitarias, de seguridad e integración con Spring Security real, H2 y flyway de datos) |
+| admin-web `mvnw verify` | **BUILD SUCCESS — 13 pruebas**, incluidas las que renderizan con Thymeleaf real cada pantalla nueva (pedidos, rutas, promociones, reportes, notificaciones, puntos de venta) |
+| institucional-web `mvnw verify` | **BUILD SUCCESS — 3 pruebas**, con render de la página pública de sucursales |
+| App del preventista | `npm run lint` y `npm run build` sin errores |
+| App del distribuidor | `npm run lint` y `npm run build` sin errores |
+| Dataset de demostración | Prueba de integración que verifica 12 comercios, 12 productos, pedidos en cuatro estados, hoja de ruta con paradas y plan de visitas, y que la carga es **idempotente** |
 
-### Lo que **no** se pudo ejecutar (sin acceso a Maven Central)
+**No verificado (requiere infraestructura o credenciales externas):**
+- PostgreSQL real: las pruebas corren sobre H2 en memoria (el daemon de Docker no estaba disponible). El esquema se
+  genera con `ddl-auto=update`; no hay migraciones versionadas todavía.
+- Envío real de correo: sin `MAIL_HOST` los envíos quedan registrados como `SIMULADO`.
+- Mercado Pago: sin credenciales la API responde «no configurado», sin simular acreditaciones.
+- Google/Facebook: el flujo OAuth está implementado y es configurable por `.env`, pero no se ejecutó contra los
+  proveedores.
+- Comparación pixel a pixel en navegador: no se ejecutó Playwright; la consistencia visual se verificó por tokens
+  compartidos y estilos.
 
-- `mvnw` en cualquiera de los tres proyectos: **ni la compilación con las dependencias reales, ni las pruebas JUnit, ni el arranque de Spring Boot**.
-- Las pruebas escritas para esta etapa, que el equipo debe correr: `ServicioUsuarioTest`, `ServicioEmpleadoTest`, `ServicioClienteTest`, `ServicioAutenticacionTest`, `CodigosCanjeOAuth2Test`, `DetallesUsuarioServiceTest`, `FlujoSeguridadIntegrationTest` (Spring Boot + H2 + filtros de seguridad reales: 401/403, `X-Accion-Requerida`, hash BCrypt, jerarquía de roles, rol ignorado en el registro) y `InterceptorAccesoTest` (admin-web).
-- **La matriz de permisos con Spring Security real** (se revisó el orden de las reglas, pero solo `FlujoSeguridadIntegrationTest` la ejecuta).
-- **Thymeleaf real** y la conexión de las apps web con la API (`RestClient`, Jackson 3). El renderizador de prueba no reemplaza a Thymeleaf.
-- **MySQL** y el esquema generado por Hibernate.
-- **Google y Facebook**: requieren credenciales reales; no se probaron.
+---
 
-Lista mínima para el equipo antes de entregar: `mvnw test` en backend y admin-web; levantar las tres apps; ingresar
-como jefe, cambiar la clave, dar de alta un preventista, ingresar con él y cambiar su clave; registrar un cliente en
-el sitio; verificar en un celular real (o con las herramientas de desarrollador) las pantallas de ingreso, alta de
-empleado, registro y mi cuenta.
+## 13. Guía de prueba de punta a punta
+
+### Preparación (una sola vez)
+
+```bat
+docker compose up -d postgres
+
+copy backend\.env.example backend\.env
+copy admin-web\.env.example admin-web\.env
+copy institucional-web\.env.example institucional-web\.env
+```
+
+Editá `backend/.env`: `JWT_SECRET` con una clave de 32+ caracteres y **`DATOS_DEMO_HABILITADO=true`**.
+
+```bat
+cd backend           && mvnw.cmd spring-boot:run     REM API        → http://localhost:8080
+cd admin-web         && mvnw.cmd spring-boot:run     REM Panel      → http://localhost:8081
+cd institucional-web && mvnw.cmd spring-boot:run     REM Sitio      → http://localhost:8082
+cd movil\preventista  && npm run dev                 REM Preventista→ http://localhost:5173
+cd movil\distribuidor && npm run dev                 REM Distribuidor→ http://localhost:5174
+```
+
+### Credenciales
+
+| Rol | Correo | Clave |
+|---|---|---|
+| Jefe administrativo | `jefe@dulcemayor.com.ar` | `dulcemayor` (cambia en el primer ingreso) |
+| Administrativo | `admin@dulcemayor.test` | `dulcemayor` (cambia en el primer ingreso) |
+| Preventista | `preventista@dulcemayor.test` | `dulcemayor` (ídem) |
+| Distribuidor | `distribuidor@dulcemayor.test` | `dulcemayor` (ídem) |
+| Cliente | `kiosco.demo@dulcemayor.test` | la elegís al registrarte en el sitio |
+
+### Recorrido completo (30–40 minutos)
+
+**1. Alta y seguridad (panel, 8081)**
+1. Ingresá con el jefe y cambiá la clave: es obligatorio y hasta hacerlo todo responde 403.
+2. **Empleados** → verificá que estén los tres usuarios demo y creá uno nuevo si querés ver el alta.
+3. Entrá con `admin@dulcemayor.test`, `preventista@dulcemayor.test` y `distribuidor@dulcemayor.test`
+   (uno por vez) y cambiá la clave temporal de cada uno. **Sin este paso las apps móviles rechazan la cuenta.**
+
+**2. Catálogo y stock (panel)**
+4. **Catálogo y stock** → 12 productos `DEMO-001…012` con precio vigente, imagen y stock.
+5. Editá un producto, cargá stock a otro y comprobá que el catálogo público lo refleja.
+
+**3. Cartera y visita (app del preventista, 5173)**
+6. Ingresá con el preventista: **Cartera** muestra los 12 comercios.
+7. **Planificar ruta** → *Generar plan*: ordena la visita por cercanía y dibuja los 12 puntos en el mapa.
+   Reordená con las flechas y comprobá que el orden se guarda.
+8. **Nuevo comercio** → tocá el mapa para fijar el pin manual (latitud/longitud se completan solas) y guardá.
+
+**4. Pedido y cobro (app del preventista)**
+9. Cargá un pedido: comercio → productos y cantidades → código `DEMO10` → **Confirmar pedido**.
+   El total aparece con descuento y el stock queda **reservado** (no consumido).
+10. En **Pedidos** tocá **Cobrar** y elegí el medio: transferencia, Mercado Pago o efectivo.
+
+**5. Conciliación (panel)**
+11. **Pedidos** → abrí el pedido: iniciá el cobro si no lo hiciste y **Acreditá** la transferencia con un número
+    de operación. Al acreditar se **consume el stock** y se emite el comprobante.
+12. **Pedidos → Comprobante** descarga el comprobante interno (HTML imprimible).
+13. Probá **Cancelar**: libera la reserva y el stock vuelve a estar disponible.
+
+**6. Promociones (panel)**
+14. **Promociones** → creá un código porcentual y otro de monto fijo. Aplicá uno y verificá el tope y el uso único.
+
+**7. Ruta y entrega (panel + app del distribuidor)**
+15. **Rutas** → seleccioná pedidos *Confirmados* o *Completados*, asigná al distribuidor y creá la hoja.
+16. En la **app del distribuidor (5174)** ingresá con su cuenta: ves la hoja del día, el mapa con las paradas y la
+    **siguiente parada sugerida**.
+17. **Registrar entrega**: si el pago era en efectivo se acredita en ese momento, se consume el stock y se emite el
+    comprobante; el pedido pasa a `ENTREGADO`.
+18. En otra parada usá **intento fallido** con un motivo: el pedido sigue reservado y se puede reprogramar.
+
+**8. Portal del cliente (sitio, 8082)**
+19. **Registro** con el correo `kiosco.demo@dulcemayor.test` (el email de contacto del comercio es el vínculo).
+20. **Mis pedidos**: estado, detalle con descuento y descarga del comprobante cuando el pago está acreditado.
+21. **Catálogo** público, **Sucursales** con mapa y **cotización del BCRA** en el pie.
+
+**9. Newsletter y correo (sitio + panel)**
+22. Suscribite desde el pie del sitio con cualquier correo.
+23. Panel → **Notificaciones**: ves el registro de correos (`SIMULADO` si no configuraste SMTP) y los suscriptores;
+    **Enviar newsletter** dispara el envío mensual sin esperar al día 5.
+
+**10. Reportes (panel)**
+24. **Reportes** → filtrá por fechas y agrupá por departamento, preventista, comercio o estado.
+25. **Exportar CSV** abre el archivo en Excel con acentos correctos; abajo están la serie por preventista y el stock
+    por producto con los que están bajo mínimo.
+
+**11. Ingreso con Google (opcional)**
+26. Poné `APP_OAUTH2_HABILITADO=true`, `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en `backend/.env`, y
+    `OAUTH_GOOGLE_HABILITADO=true` en `institucional-web/.env`. Reiniciá API y sitio: en `/ingresar` aparece
+    «Continuar con Google» y el cliente entra con su cuenta existente (la API le crea la cuenta `CLIENTE` en el
+    primer ingreso).
+
+### Verificación rápida por consola (opcional)
+
+```bat
+REM Login y token
+curl -s -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" ^
+     -d "{\"correo\":\"jefe@dulcemayor.com.ar\",\"clave\":\"dulcemayor\"}"
+
+REM Catálogo público y cotización
+curl -s http://localhost:8080/api/catalogo
+curl -s http://localhost:8080/api/cotizacion-dolar
+
+REM Reporte de ventas del mes
+curl -s "http://localhost:8080/api/reportes/ventas?agrupacion=preventista" -H "Authorization: Bearer <TOKEN>"
+```

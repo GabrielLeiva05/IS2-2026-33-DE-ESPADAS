@@ -42,12 +42,14 @@
             <svg class="icono"><use href="#i-etiqueta"/></svg>Promociones</a></li>
         <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/rutas}" th:classappend="${#strings.startsWith(rutaActual, '/rutas')} ? 'activo'">
             <svg class="icono"><use href="#i-ruta"/></svg>Rutas</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/puntos-venta}" th:classappend="${#strings.startsWith(rutaActual, '/puntos-venta')} ? 'activo'">
+            <svg class="icono"><use href="#i-tienda"/></svg>Puntos de venta</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/reportes}" th:classappend="${#strings.startsWith(rutaActual, '/reportes')} ? 'activo'">
+            <svg class="icono"><use href="#i-factura"/></svg>Reportes</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/notificaciones}" th:classappend="${#strings.startsWith(rutaActual, '/notificaciones')} ? 'activo'">
+            <svg class="icono"><use href="#i-correo"/></svg>Notificaciones</a></li>
         <li><a th:href="@{/cambiar-clave}" th:classappend="${rutaActual == '/cambiar-clave'} ? 'activo'">
             <svg class="icono"><use href="#i-llave"/></svg>Mi contraseña</a></li>
-    </ul>
-    <p class="menu-titulo">Próximos módulos</p>
-    <ul class="menu" aria-label="Módulos todavía no disponibles">
-        <li><span class="menu-item pendiente"><svg class="icono"><use href="#i-factura"/></svg>Facturación<span class="insignia insignia-gris">Pronto</span></span></li>
     </ul>
     <div class="sidebar-pie">
         <form th:action="@{/salir}" method="post">

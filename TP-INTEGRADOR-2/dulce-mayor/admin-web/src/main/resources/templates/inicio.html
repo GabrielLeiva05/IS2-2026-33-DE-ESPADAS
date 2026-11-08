@@ -15,8 +15,8 @@
                 <h2 th:text="'Hola, ' + ${sesion.nombreCompleto}">Hola</h2>
                 <p th:if="${sesion.jefe}">Gestioná el personal, revisá el stock y el catálogo publicado.</p>
                 <p th:if="${sesion.administrativo and !sesion.jefe}">Revisá el catálogo publicado, las alertas de stock y los clientes registrados.</p>
-                <p th:if="${sesion.preventista}">Consultá el catálogo con precios y disponibilidad. La aplicación móvil para tus visitas está en desarrollo.</p>
-                <p th:if="${sesion.distribuidor}">Tu cuenta ya está activa. La aplicación móvil de entregas y rutas está en desarrollo.</p>
+                <p th:if="${sesion.preventista}">Usá la app del preventista para cartera, visitas, pedidos y cobros.</p>
+                <p th:if="${sesion.distribuidor}">Usá la app del distribuidor para ver tu hoja de ruta y registrar entregas.</p>
             </section>
 
             <!-- Indicadores calculados con datos reales de la API -->
@@ -92,15 +92,16 @@
                     </div>
                 </section>
 
-                <!-- Módulos que todavía no existen: se informan, sin datos simulados -->
+                <!-- Módulos operativos: accesos directos a cada sección del sistema -->
                 <section class="tarjeta">
-                    <div class="tarjeta-encabezado"><h2>Próximos módulos</h2></div>
+                    <div class="tarjeta-encabezado"><h2>Módulos del sistema</h2></div>
                     <ul class="lista-modulos">
-                        <li><svg class="icono"><use href="#i-pedido"/></svg>Pedidos de preventistas<span class="insignia insignia-gris">En desarrollo</span></li>
-                        <li><svg class="icono"><use href="#i-ruta"/></svg>Rutas y entregas<span class="insignia insignia-gris">En desarrollo</span></li>
-                        <li><svg class="icono"><use href="#i-etiqueta"/></svg>Promociones<span class="insignia insignia-gris">En desarrollo</span></li>
-                        <li><svg class="icono"><use href="#i-factura"/></svg>Facturación y pagos<span class="insignia insignia-gris">En desarrollo</span></li>
-                        <li><svg class="icono"><use href="#i-tienda"/></svg>Puntos de venta<span class="insignia insignia-gris">En desarrollo</span></li>
+                        <li><a th:href="@{/pedidos}"><svg class="icono"><use href="#i-pedido"/></svg>Pedidos y pagos<span class="insignia insignia-verde">Disponible</span></a></li>
+                        <li><a th:href="@{/rutas}"><svg class="icono"><use href="#i-ruta"/></svg>Rutas y entregas<span class="insignia insignia-verde">Disponible</span></a></li>
+                        <li><a th:href="@{/promociones}"><svg class="icono"><use href="#i-etiqueta"/></svg>Promociones<span class="insignia insignia-verde">Disponible</span></a></li>
+                        <li><a th:href="@{/puntos-venta}"><svg class="icono"><use href="#i-tienda"/></svg>Puntos de venta<span class="insignia insignia-verde">Disponible</span></a></li>
+                        <li><a th:href="@{/reportes}"><svg class="icono"><use href="#i-grafico"/></svg>Reportes y estadísticas<span class="insignia insignia-verde">Disponible</span></a></li>
+                        <li><a th:href="@{/notificaciones}"><svg class="icono"><use href="#i-correo"/></svg>Correo y newsletter<span class="insignia insignia-verde">Disponible</span></a></li>
                     </ul>
                 </section>
             </div>

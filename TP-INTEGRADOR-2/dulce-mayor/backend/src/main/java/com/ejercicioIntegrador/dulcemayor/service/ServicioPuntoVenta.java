@@ -78,6 +78,13 @@ public class ServicioPuntoVenta {
     }
 
     @Transactional(readOnly = true)
+    public List<PuntoVentaResponseDTO> listarTodos() {
+        return repositorioPuntoVenta.findByEliminadoFalse().stream()
+                .sorted(Comparator.comparing(PuntoVenta::getNombreComercial, String.CASE_INSENSITIVE_ORDER))
+                .map(this::convertir).toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<PuntoVentaResponseDTO> listarCartera(String correoPreventista) throws MiException {
         Preventista preventista = preventistaDeCuenta(correoPreventista);
         // El jefe no tiene cartera propia: consulta la de todos los preventistas.

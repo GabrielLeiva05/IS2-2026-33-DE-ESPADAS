@@ -47,10 +47,12 @@ public class ServicioRuta {
     private final ServicioUsuario servicioUsuario;
     private final ServicioEmpleado servicioEmpleado;
     private final ServicioPago servicioPago;
+    private final org.springframework.context.ApplicationEventPublisher eventos;
 
     public ServicioRuta(RepositorioRuta repositorioRuta, RepositorioParada repositorioParada,
                         RepositorioPedido repositorioPedido, RepositorioEmpleado repositorioEmpleado,
-                        ServicioUsuario servicioUsuario, ServicioEmpleado servicioEmpleado, ServicioPago servicioPago) {
+                        ServicioUsuario servicioUsuario, ServicioEmpleado servicioEmpleado, ServicioPago servicioPago,
+                        org.springframework.context.ApplicationEventPublisher eventos) {
         this.repositorioRuta = repositorioRuta;
         this.repositorioParada = repositorioParada;
         this.repositorioPedido = repositorioPedido;
@@ -58,6 +60,7 @@ public class ServicioRuta {
         this.servicioUsuario = servicioUsuario;
         this.servicioEmpleado = servicioEmpleado;
         this.servicioPago = servicioPago;
+        this.eventos = eventos;
     }
 
     // ------------------------------------------------------------------ administración
@@ -183,6 +186,7 @@ public class ServicioRuta {
         parada.setObservacion(dto == null ? null : recortar(dto.observacion()));
         parada.setFechaResolucion(LocalDateTime.now());
         repositorioParada.save(parada);
+        notificar(pedido, com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoCorreo.ENTREGA_REGISTRADA);
         actualizarEstadoRuta(parada.getRuta());
         return convertir(buscarRuta(parada.getRuta().getId()));
     }
@@ -327,5 +331,13 @@ public class ServicioRuta {
     private static String recortar(String valor) {
         String limpio = valor == null ? null : valor.trim();
         return limpio == null || limpio.isEmpty() ? null : limpio;
+    }
+
+    /** Avisa al comercio sobre el avance de su entrega (Observer de eventos del pedido). */
+    private void notificar(Pedido pedido, com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoCorreo tipo) {
+        String correo = pedido.getPuntoVenta() == null ? null : pedido.getPuntoVenta().getEmailContacto();
+        String comercio = pedido.getPuntoVenta() == null ? null : pedido.getPuntoVenta().getNombreComercial();
+        eventos.publishEvent(new com.ejercicioIntegrador.dulcemayor.eventos.EventoPedido(pedido.getId(), tipo, correo,
+                comercio, null));
     }
 }

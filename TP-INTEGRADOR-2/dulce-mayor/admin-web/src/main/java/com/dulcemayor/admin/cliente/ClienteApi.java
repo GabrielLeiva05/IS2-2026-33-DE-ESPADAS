@@ -103,6 +103,14 @@ public class ClienteApi {
                 .retrieve().body(String.class));
     }
 
+    /** GET de una exportación binaria (CSV, PDF u otro archivo descargable). */
+    public byte[] obtenerBytes(String token, String uri, Object... variables) {
+        return ejecutar(() -> restClient.get().uri(uri, variables)
+                .headers(h -> autorizar(h, token))
+                .accept(MediaType.ALL)
+                .retrieve().body(byte[].class));
+    }
+
     private void autorizar(HttpHeaders encabezados, String token) {
         if (token != null && !token.isBlank()) {
             encabezados.setBearerAuth(token);

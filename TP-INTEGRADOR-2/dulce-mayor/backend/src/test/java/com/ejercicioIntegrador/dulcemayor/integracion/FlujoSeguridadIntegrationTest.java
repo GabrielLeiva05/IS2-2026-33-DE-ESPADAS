@@ -7,7 +7,6 @@ import com.ejercicioIntegrador.dulcemayor.model.ReservaStock;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioEmpleado;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPago;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPedido;
-import com.ejercicioIntegrador.dulcemayor.repository.RepositorioPuntoVenta;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioReservaStock;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioStock;
 import com.ejercicioIntegrador.dulcemayor.repository.RepositorioUsuario;
@@ -29,7 +28,6 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,9 +56,6 @@ class FlujoSeguridadIntegrationTest {
 
     @Autowired
     private RepositorioUsuario repositorioUsuario;
-
-    @Autowired
-    private RepositorioPuntoVenta repositorioPuntoVenta;
 
     @Autowired
     private RepositorioPedido repositorioPedido;

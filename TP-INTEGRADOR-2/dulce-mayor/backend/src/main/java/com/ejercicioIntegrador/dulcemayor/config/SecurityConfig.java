@@ -87,6 +87,8 @@ public class SecurityConfig {
                                 "/api/categorias/**", "/api/subcategorias/**").permitAll()
                         // --- Público: sucursales activas y cotización informativa del dólar ---
                         .requestMatchers(HttpMethod.GET, "/api/sucursales", "/api/cotizacion-dolar").permitAll()
+                        // --- Público: newsletter con opt-in y baja por token ---
+                        .requestMatchers("/api/newsletter", "/api/newsletter/**").permitAll()
 
                         // --- Webhook de Mercado Pago: llega sin JWT, se autentica con la firma HMAC ---
                         .requestMatchers(HttpMethod.POST, "/api/pagos/mercadopago/notificacion").permitAll()
@@ -107,6 +109,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/sucursales/**").hasRole(ADMINISTRATIVO)
                         // --- Portal del cliente: solo sus pedidos y comprobantes ---
                         .requestMatchers("/api/cliente/**").hasRole(CLIENTE)
+                        // --- Notificaciones: registro de correos, newsletter y reportes ---
+                        .requestMatchers("/api/notificaciones/**").hasRole(ADMINISTRATIVO)
+                        .requestMatchers("/api/reportes/**").hasRole(ADMINISTRATIVO)
+                        .requestMatchers("/api/puntos-venta/**").hasRole(ADMINISTRATIVO)
                         // --- Pedidos: bandeja, pagos y cierre autorizado (consumo o liberación) ---
                         .requestMatchers("/api/pedidos/**").hasRole(ADMINISTRATIVO)
                         .requestMatchers(HttpMethod.GET, "/api/stock/producto/*/disponibilidad")

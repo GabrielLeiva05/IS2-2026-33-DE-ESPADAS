@@ -71,8 +71,11 @@
                 </section>
 
                 <section class="tarjeta">
-                    <div class="tarjeta-encabezado"><h2>Mis pedidos</h2><span class="insignia insignia-gris">Próximamente</span></div>
-                    <p class="texto-secundario mb-0">Pronto vas a poder hacer y seguir tus pedidos desde aquí.</p>
+                    <div class="tarjeta-encabezado"><h2>Mis pedidos</h2>
+                        <span class="insignia insignia-verde">Disponible</span></div>
+                    <p class="texto-secundario">Consultá el estado de tus pedidos y descargá el comprobante cuando el pago esté acreditado.</p>
+                    <a class="btn btn-secundario btn-chico" th:href="@{/mis-pedidos}">
+                        <svg class="icono icono-sm"><use href="#i-pedido"/></svg>Ver mis pedidos</a>
                 </section>
 
                 <form th:action="@{/salir}" method="post">

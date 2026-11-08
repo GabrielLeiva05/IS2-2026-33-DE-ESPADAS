@@ -72,7 +72,7 @@ class ServicioPedidoTest {
         servicioEmpleado = mock(ServicioEmpleado.class);
         servicio = new ServicioPedido(repositorioPedido, repositorioReservaStock, repositorioPago, servicioPuntoVenta,
                 mock(ServicioPromocion.class), servicioProducto, servicioVigenciaPrecio, servicioStock, servicioUsuario,
-                servicioEmpleado);
+                servicioEmpleado, mock(org.springframework.context.ApplicationEventPublisher.class));
 
         preventista = new Preventista();
         preventista.setId("prev-1");

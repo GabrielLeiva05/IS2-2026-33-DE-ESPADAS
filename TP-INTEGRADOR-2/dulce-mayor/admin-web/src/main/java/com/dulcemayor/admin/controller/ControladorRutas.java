@@ -1,7 +1,6 @@
 package com.dulcemayor.admin.controller;
 
 import com.dulcemayor.admin.seguridad.GestorSesion;
-import com.dulcemayor.admin.service.ServicioPedidosAdmin;
 import com.dulcemayor.admin.service.ServicioRutasAdmin;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
@@ -20,13 +19,10 @@ import java.util.List;
 public class ControladorRutas {
 
     private final ServicioRutasAdmin servicioRutas;
-    private final ServicioPedidosAdmin servicioPedidos;
     private final GestorSesion gestorSesion;
 
-    public ControladorRutas(ServicioRutasAdmin servicioRutas, ServicioPedidosAdmin servicioPedidos,
-                            GestorSesion gestorSesion) {
+    public ControladorRutas(ServicioRutasAdmin servicioRutas, GestorSesion gestorSesion) {
         this.servicioRutas = servicioRutas;
-        this.servicioPedidos = servicioPedidos;
         this.gestorSesion = gestorSesion;
     }
 

@@ -36,5 +36,13 @@ public interface RepositorioPedido extends BaseRepository<Pedido> {
     @EntityGraph(attributePaths = {"puntoVenta", "preventista", "lineas"})
     List<Pedido> findByPuntoVenta_EmailContactoIgnoreCaseAndEliminadoFalseOrderByFechaCreacionDesc(String email);
 
+    @EntityGraph(attributePaths = {"puntoVenta", "puntoVenta.direccion", "puntoVenta.direccion.localidad",
+            "preventista", "lineas"})
+    List<Pedido> findByEstadoInAndEliminadoFalse(Collection<EstadoPedido> estados);
+
+    @EntityGraph(attributePaths = {"puntoVenta", "puntoVenta.direccion", "puntoVenta.direccion.localidad",
+            "preventista", "lineas"})
+    List<Pedido> findByEliminadoFalse();
+
     List<Pedido> findByEstadoAndEliminadoFalse(EstadoPedido estado);
 }

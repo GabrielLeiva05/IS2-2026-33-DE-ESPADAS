@@ -40,13 +40,16 @@ public class ServicioPago {
     private final ResolvedorEstrategiaPago estrategias;
     private final ServicioPedido servicioPedido;
     private final ServicioComprobante servicioComprobante;
+    private final org.springframework.context.ApplicationEventPublisher eventos;
 
     public ServicioPago(RepositorioPago repositorioPago, ResolvedorEstrategiaPago estrategias,
-                        ServicioPedido servicioPedido, ServicioComprobante servicioComprobante) {
+                        ServicioPedido servicioPedido, ServicioComprobante servicioComprobante,
+                        org.springframework.context.ApplicationEventPublisher eventos) {
         this.repositorioPago = repositorioPago;
         this.estrategias = estrategias;
         this.servicioPedido = servicioPedido;
         this.servicioComprobante = servicioComprobante;
+        this.eventos = eventos;
     }
 
     // ------------------------------------------------------------------ alta del cobro
@@ -140,7 +143,8 @@ public class ServicioPago {
         repositorioPago.save(pago);
 
         servicioPedido.consumirReservasPorPago(pago.getPedido().getId());
-        servicioComprobante.emitir(pago);
+        var comprobante = servicioComprobante.emitir(pago);
+        notificarPagoAcreditado(pago, comprobante == null ? null : comprobante.getNumero());
         return convertir(pago, "Pago acreditado: se consumió el stock y se emitió el comprobante interno");
     }
 
@@ -269,5 +273,15 @@ public class ServicioPago {
         }
         String limpio = valor.trim();
         return limpio.isEmpty() ? null : limpio;
+    }
+
+    /** Avisa al cliente que el pago quedó acreditado y su comprobante está disponible. */
+    private void notificarPagoAcreditado(Pago pago, String numeroComprobante) {
+        var pedido = pago.getPedido();
+        String correo = pedido.getPuntoVenta() == null ? null : pedido.getPuntoVenta().getEmailContacto();
+        String comercio = pedido.getPuntoVenta() == null ? null : pedido.getPuntoVenta().getNombreComercial();
+        eventos.publishEvent(new com.ejercicioIntegrador.dulcemayor.eventos.EventoPedido(pedido.getId(),
+                com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoCorreo.PAGO_ACREDITADO, correo, comercio,
+                numeroComprobante == null ? null : "Comprobante interno: " + numeroComprobante));
     }
 }

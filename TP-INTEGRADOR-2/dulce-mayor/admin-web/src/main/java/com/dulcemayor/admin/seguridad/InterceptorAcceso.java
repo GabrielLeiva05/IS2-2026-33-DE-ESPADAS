@@ -73,6 +73,9 @@ public class InterceptorAcceso implements HandlerInterceptor {
         if (ruta.startsWith("/rutas")) {
             return SesionUsuario::isAdministrativo;
         }
+        if (ruta.startsWith("/reportes") || ruta.startsWith("/notificaciones") || ruta.startsWith("/puntos-venta")) {
+            return SesionUsuario::isAdministrativo;
+        }
         if (ruta.startsWith("/catalogo")) {
             return SesionUsuario::isPuedeVerCatalogo;
         }
