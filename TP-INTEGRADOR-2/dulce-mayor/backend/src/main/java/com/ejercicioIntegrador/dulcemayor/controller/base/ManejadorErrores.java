@@ -88,8 +88,11 @@ public class ManejadorErrores {
         if (e instanceof ErrorResponse errorResponse) {
             return responder(errorResponse.getStatusCode(), e.getMessage());
         }
-        LOG.error("Error no controlado", e);
-        return responder(HttpStatus.INTERNAL_SERVER_ERROR, "Error de sistema");
+        // Referencia corta para que el usuario pueda reportar el problema y encontrarlo en el log
+        String referencia = Long.toHexString(System.currentTimeMillis()).toUpperCase(java.util.Locale.ROOT);
+        LOG.error("Error no controlado (ref {})", referencia, e);
+        return responder(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Error de sistema. Referencia para soporte: " + referencia);
     }
 
     private ResponseEntity<ErrorDTO> responder(HttpStatusCode estado, String mensaje) {

@@ -287,9 +287,15 @@ if ($Verificar) {
 
 # ----------------------------------------------------------------------------- base de datos
 
-# Si ya hay un PostgreSQL escuchando (instalación local u otro contenedor) se reutiliza.
-if ($dockerDisponible -and (Puerto-Abierto 5432) -and -not $LimpiarBase) {
-    Escribir-Aviso 'Ya hay un PostgreSQL escuchando en el puerto 5432: se usa ese y no se inicia el contenedor.'
+# Si el contenedor del proyecto ya está corriendo, el puerto 5432 es suyo.
+$compose = Join-Path $raiz 'docker-compose.yml'
+$idContenedorBase = ''
+if ($dockerDisponible) {
+    $idContenedorBase = (& docker compose -f $compose ps -q postgres 2>&1 | Out-String).Trim()
+}
+# Si hay otro PostgreSQL escuchando (instalación local) se reutiliza ese.
+if ($dockerDisponible -and -not $idContenedorBase -and (Puerto-Abierto 5432) -and -not $LimpiarBase) {
+    Escribir-Aviso 'Ya hay un PostgreSQL escuchando en el puerto 5432 que no es el del proyecto: se usa ese.'
     $dockerDisponible = $false
 }
 if (-not $dockerDisponible -and $LimpiarBase) {
@@ -323,6 +329,27 @@ if ($dockerDisponible) {
     }
 } else {
     Escribir-Aviso 'Sin Docker propio: se usa el PostgreSQL que ya esté escuchando en localhost:5432'
+}
+
+# Si backend/.env apunta a otro usuario/base que el contenedor, -LimpiarBase no afecta los datos reales
+$envBackend = Join-Path $raiz 'backend\.env'
+if (Test-Path $envBackend) {
+    $usuarioApp = 'dulcemayor'
+    foreach ($linea in Get-Content $envBackend) {
+        if ($linea -match '^\s*DB_USERNAME\s*=\s*(.+)$') { $usuarioApp = $matches[1].Trim() }
+    }
+    $idContenedor = (& docker compose -f (Join-Path $raiz 'docker-compose.yml') ps -q postgres 2>&1 | Out-String).Trim()
+    if ($idContenedor) {
+        $variables = (& docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' $idContenedor 2>&1 | Out-String)
+        $usuarioContenedor = ''
+        foreach ($linea in ($variables -split "`n")) {
+            if ($linea -match '^POSTGRES_USER=(.+)$') { $usuarioContenedor = $matches[1].Trim() }
+        }
+        if ($usuarioContenedor -and $usuarioApp -ne $usuarioContenedor) {
+            Escribir-Aviso ('backend/.env usa DB_USERNAME={0} y el contenedor {1}: la API NO usa la base de Docker.' -f $usuarioApp, $usuarioContenedor)
+            Escribir-Aviso 'En ese caso -LimpiarBase borra el volumen de Docker pero no los datos que ve la API. Ajustá DB_USERNAME/DB_PASSWORD en backend/.env o detené el PostgreSQL externo.'
+        }
+    }
 }
 
 # ----------------------------------------------------------------------------- datos demo

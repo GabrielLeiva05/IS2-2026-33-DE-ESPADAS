@@ -87,10 +87,14 @@ public class ServicioCliente extends BaseService<Cliente, ClienteRequestDTO, Cli
 
     @Override
     public ClienteResponseDTO convertirAResponse(Cliente cliente) {
+        // Los comercios que da de alta el preventista crean un Cliente sin cuenta de acceso:
+        // el usuario es opcional y no debe romper el listado.
         Usuario usuario = cliente.getUsuario();
+        String correo = usuario == null ? null : usuario.getNombreUsuario();
+        ProveedorAutenticacion proveedor = usuario == null ? null : usuario.getProveedorAutenticacion();
         return new ClienteResponseDTO(cliente.getId(), cliente.getNombre(), cliente.getApellido(),
                 cliente.getFechaNacimiento(), cliente.getTipoDocumento(), cliente.getNumeroDocumento(),
-                usuario.getNombreUsuario(), usuario.getProveedorAutenticacion(), cliente.isEliminado());
+                correo, proveedor, cliente.isEliminado());
     }
 
     @Override

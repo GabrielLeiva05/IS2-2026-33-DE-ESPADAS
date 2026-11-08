@@ -716,6 +716,23 @@ class FlujoSeguridadIntegrationTest {
     }
 
     @Test
+    void elListadoDeClientesIncluyeComerciosSinCuentaDeAcceso() throws Exception {
+        String jefe = jefeHabilitado();
+        String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "clientes@dulcemayor.test", "30113001",
+                "FlujoSeguro2026");
+        String idLocalidad = idCiudadDeMendoza(jefe);
+
+        // El alta del preventista crea el cliente sin cuenta de acceso (no hay verificación de correo):
+        // el listado administrativo debe funcionar igual y mostrar el correo en null.
+        registrarPuntoVenta(preventista, idLocalidad, "42345678");
+
+        mvc.perform(get("/api/clientes").header("Authorization", jefe))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.numeroDocumento == '42345678')].nombre").exists())
+                .andExpect(jsonPath("$[?(@.numeroDocumento == '42345678')].correo").value(org.hamcrest.Matchers.contains((Object) null)));
+    }
+
+    @Test
     void mercadoPagoSinConfigurarNoSimulaAcreditacionYElWebhookExigeFirma() throws Exception {
         String jefe = jefeHabilitado();
         String preventista = empleadoHabilitado(jefe, "PREVENTISTA", "mp@dulcemayor.test", "30111998", "FlujoSeguro2026");
