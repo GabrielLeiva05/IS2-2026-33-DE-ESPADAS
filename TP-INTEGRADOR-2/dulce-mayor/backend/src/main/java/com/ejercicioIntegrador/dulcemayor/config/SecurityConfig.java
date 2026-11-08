@@ -125,6 +125,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/rutas/mia/**").hasRole(PREVENTISTA)
                         .requestMatchers("/api/rutas/**").hasRole(ADMINISTRATIVO)
 
+                        // --- Reportes administrativos y gerenciales: solo el jefe administrativo ---
+                        .requestMatchers("/api/reportes/**").hasRole(JEFE)
+
                         // --- Pedidos: cada rol en su sección; la propiedad la verifica ServicioPedido ---
                         .requestMatchers("/api/pedidos/mis-pedidos/**").hasRole(CLIENTE)
                         .requestMatchers("/api/pedidos/preventista/**").hasRole(PREVENTISTA)

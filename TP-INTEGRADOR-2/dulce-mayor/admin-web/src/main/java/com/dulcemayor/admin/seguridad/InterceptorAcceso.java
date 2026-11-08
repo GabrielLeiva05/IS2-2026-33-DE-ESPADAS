@@ -58,7 +58,7 @@ public class InterceptorAcceso implements HandlerInterceptor {
 
     /** Matriz de navegación por sección (coherente con la matriz de permisos de la API). */
     private static Predicate<SesionUsuario> rolHabilitado(String ruta) {
-        if (ruta.startsWith("/empleados") || ruta.startsWith("/ubicacion/")) {
+        if (ruta.startsWith("/empleados") || ruta.startsWith("/ubicacion/") || ruta.startsWith("/reportes")) {
             return SesionUsuario::isJefe;
         }
         if (ruta.startsWith("/clientes") || ruta.startsWith("/rutas") || ruta.startsWith("/entregas")) {

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,4 +34,12 @@ public interface RepositorioPedido extends BaseRepository<Pedido> {
 
     List<Pedido> findByDistribuidor_IdAndEstadoAndEliminadoFalseOrderByFechaHoraCargaAsc(String idDistribuidor,
                                                                                          EstadoPedido estado);
+
+    /** Pedidos cargados en el intervalo [desde, hasta) para los reportes administrativos. */
+    List<Pedido> findByEliminadoFalseAndFechaHoraCargaGreaterThanEqualAndFechaHoraCargaLessThanOrderByFechaHoraCargaAsc(
+            LocalDateTime desde, LocalDateTime hastaExclusivo);
+
+    /** Pedidos confirmados (facturados) en el intervalo [desde, hasta) para el histórico de ventas. */
+    List<Pedido> findByEliminadoFalseAndFechaFacturacionGreaterThanEqualAndFechaFacturacionLessThanOrderByFechaFacturacionAsc(
+            LocalDateTime desde, LocalDateTime hastaExclusivo);
 }

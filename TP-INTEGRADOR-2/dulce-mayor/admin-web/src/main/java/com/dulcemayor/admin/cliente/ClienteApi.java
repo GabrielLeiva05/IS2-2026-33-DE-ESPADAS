@@ -1,18 +1,23 @@
 package com.dulcemayor.admin.cliente;
 
+import com.dulcemayor.admin.dto.ArchivoDescargaDTO;
 import com.dulcemayor.admin.dto.ErrorApiDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.util.UriBuilder;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -64,6 +69,49 @@ public class ClienteApi {
                 .headers(h -> autorizar(h, token))
                 .retrieve().body(tipoArreglo));
         return arreglo == null ? List.of() : Arrays.asList(arreglo);
+    }
+
+    /** GET de un objeto JSON con parámetros de consulta opcionales (los vacíos no se envían). */
+    public <T> T obtenerConFiltros(String token, Class<T> tipo, String ruta, Map<String, String> filtros) {
+        Map<String, String> presentes = soloPresentes(filtros);
+        return ejecutar(() -> restClient.get()
+                .uri(conParametros(ruta, presentes))
+                .headers(h -> autorizar(h, token))
+                .retrieve().body(tipo));
+    }
+
+    /** GET de un archivo (PDF, Excel) con parámetros de consulta opcionales: devuelve los bytes sin interpretarlos. */
+    public ArchivoDescargaDTO descargar(String token, String ruta, Map<String, String> filtros) {
+        Map<String, String> presentes = soloPresentes(filtros);
+        ResponseEntity<byte[]> respuesta = ejecutar(() -> restClient.get()
+                .uri(conParametros(ruta, presentes))
+                .headers(h -> {
+                    h.setAccept(List.of(MediaType.ALL));
+                    autorizar(h, token);
+                })
+                .retrieve().toEntity(byte[].class));
+        String nombre = respuesta.getHeaders().getContentDisposition().getFilename();
+        MediaType tipo = respuesta.getHeaders().getContentType();
+        return new ArchivoDescargaDTO(nombre == null ? "reporte" : nombre,
+                tipo == null ? MediaType.APPLICATION_OCTET_STREAM_VALUE : tipo.toString(), respuesta.getBody());
+    }
+
+    private static Map<String, String> soloPresentes(Map<String, String> filtros) {
+        Map<String, String> presentes = new LinkedHashMap<>();
+        filtros.forEach((clave, valor) -> {
+            if (valor != null && !valor.isBlank()) {
+                presentes.put(clave, valor.trim());
+            }
+        });
+        return presentes;
+    }
+
+    private static Function<UriBuilder, URI> conParametros(String ruta, Map<String, String> presentes) {
+        return constructor -> {
+            constructor.path(ruta);
+            presentes.keySet().forEach(clave -> constructor.queryParam(clave, "{" + clave + "}"));
+            return constructor.build(presentes);
+        };
     }
 
     public <T> T enviar(String token, Object cuerpo, Class<T> tipo, String uri, Object... variables) {
