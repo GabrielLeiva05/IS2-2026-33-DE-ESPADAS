@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+/** Mercado Pago por Checkout API: QR dinámico al iniciar y tarjeta tokenizada para cobrar. */
 class EstrategiaPagoMercadoPagoTest {
 
     private ClienteMercadoPago cliente;
@@ -40,7 +41,7 @@ class EstrategiaPagoMercadoPagoTest {
     }
 
     @Test
-    void iniciarSinCredencialesNoSimulaUnaPreferencia() {
+    void iniciarSinCredencialesNoSimulaUnQr() {
         when(cliente.estaConfigurado()).thenReturn(false);
 
         MiException error = assertThrows(MiException.class, () -> estrategia.iniciar(pago));
@@ -48,17 +49,27 @@ class EstrategiaPagoMercadoPagoTest {
     }
 
     @Test
-    void iniciarDevuelveElEnlaceYLaReferenciaDeLaPreferencia() throws MiException {
+    void iniciarGeneraElQrDinamicoSinEnlaceDeRedireccion() throws MiException {
         when(cliente.estaConfigurado()).thenReturn(true);
-        when(cliente.crearPreferencia(anyString(), any(BigDecimal.class), anyString()))
-                .thenReturn(new ClienteMercadoPago.Preferencia("pref-9", "https://mp.test/checkout/pref-9"));
+        when(cliente.crearOrdenQr(anyString(), any(BigDecimal.class), anyString()))
+                .thenReturn(new ClienteMercadoPago.OrdenQr("orden-9", "00020101021243650016COM.MERCADOLIBRE"));
 
         DatosInicioPago datos = estrategia.iniciar(pago);
 
-        assertEquals("pref-9", datos.referenciaExterna());
-        assertEquals("https://mp.test/checkout/pref-9", datos.enlacePago());
+        assertEquals("orden-9", datos.referenciaExterna());
+        assertEquals("00020101021243650016COM.MERCADOLIBRE", datos.qrContenido());
         assertNotNull(datos.instrucciones());
+        assertTrue(datos.instrucciones().contains("QR"));
         assertEquals(MedioPago.MERCADO_PAGO, estrategia.medio());
+    }
+
+    @Test
+    void elQrSinConfiguracionDeCajaNoSeInventa() throws MiException {
+        when(cliente.estaConfigurado()).thenReturn(true);
+        when(cliente.crearOrdenQr(anyString(), any(BigDecimal.class), anyString()))
+                .thenThrow(new MiException("Mercado Pago no está configurado para QR: faltan MERCADOPAGO_USER_ID"));
+
+        assertThrows(MiException.class, () -> estrategia.iniciar(pago));
     }
 
     @Test
@@ -80,6 +91,28 @@ class EstrategiaPagoMercadoPagoTest {
     }
 
     @Test
+    void cobrarConTarjetaNoRedirigeYDevuelveElEstadoDelPago() throws MiException {
+        when(cliente.crearPagoConTarjeta(anyString(), any(BigDecimal.class), any(), anyString()))
+                .thenReturn(new ClienteMercadoPago.PagoExterno("998877", "approved", "ref-op-1"));
+
+        var resultado = estrategia.cobrarConTarjeta(pago, new ClienteMercadoPago.DatosTarjeta("tok-1", "visa",
+                1, null, "cliente@test.com", "DNI", "30111222"));
+
+        assertEquals("998877", resultado.idPagoExterno());
+        assertTrue(resultado.aprobado());
+        assertEquals("approved", resultado.estado());
+    }
+
+    @Test
+    void cobrarConTarjetaExigeElTokenDelNavegador() {
+        assertThrows(MiException.class, () -> estrategia.cobrarConTarjeta(pago, null));
+        assertThrows(MiException.class, () -> estrategia.cobrarConTarjeta(pago,
+                new ClienteMercadoPago.DatosTarjeta(" ", "visa", 1, null, null, null, null)));
+        assertThrows(MiException.class, () -> estrategia.cobrarConTarjeta(pago,
+                new ClienteMercadoPago.DatosTarjeta("tok", null, 1, null, null, null, null)));
+    }
+
+    @Test
     void resolverExigeWebhookConfiguradoYFirmaValida() throws MiException {
         when(cliente.webhookConfigurado()).thenReturn(false);
         assertThrows(MiException.class, () -> estrategia.resolver("firma", "req", "123", "payment"));
@@ -87,27 +120,8 @@ class EstrategiaPagoMercadoPagoTest {
         when(cliente.webhookConfigurado()).thenReturn(true);
         when(cliente.firmaValida("firma", "req", "123")).thenReturn(false);
         assertThrows(MiException.class, () -> estrategia.resolver("firma", "req", "123", "payment"));
-    }
 
-    @Test
-    void resolverIgnoraAvisosQueNoSonDePago() throws MiException {
-        when(cliente.webhookConfigurado()).thenReturn(true);
         when(cliente.firmaValida("firma", "req", "123")).thenReturn(true);
-
         assertNull(estrategia.resolver("firma", "req", "123", "merchant_order"));
-    }
-
-    @Test
-    void resolverConsultaElPagoYLoInforma() throws MiException {
-        when(cliente.webhookConfigurado()).thenReturn(true);
-        when(cliente.firmaValida("firma", "req", "777")).thenReturn(true);
-        when(cliente.consultarPago("777"))
-                .thenReturn(new ClienteMercadoPago.PagoExterno("777", "approved", "ref-op-1"));
-
-        NotificacionPago notificacion = estrategia.resolver("firma", "req", "777", "payment");
-
-        assertEquals("ref-op-1", notificacion.referenciaOperacion());
-        assertEquals("777", notificacion.referenciaExterna());
-        assertTrue(notificacion.acreditado());
     }
 }

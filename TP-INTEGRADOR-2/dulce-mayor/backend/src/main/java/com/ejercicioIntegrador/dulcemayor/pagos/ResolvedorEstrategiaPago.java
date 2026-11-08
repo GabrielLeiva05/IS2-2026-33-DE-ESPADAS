@@ -34,6 +34,15 @@ public class ResolvedorEstrategiaPago {
         return notificable;
     }
 
+    /** Capacidad de cobro con tarjeta (Checkout API) del medio indicado. */
+    public EstrategiaCobroTarjeta cobroConTarjeta(MedioPago medio) throws MiException {
+        EstrategiaPago estrategia = obtener(medio);
+        if (!(estrategia instanceof EstrategiaCobroTarjeta cobro)) {
+            throw new MiException("El medio de pago no admite cobro con tarjeta sin redirección");
+        }
+        return cobro;
+    }
+
     public boolean admiteNotificaciones(MedioPago medio) {
         EstrategiaPago estrategia = medio == null ? null : estrategias.get(medio);
         return estrategia instanceof EstrategiaNotificable;

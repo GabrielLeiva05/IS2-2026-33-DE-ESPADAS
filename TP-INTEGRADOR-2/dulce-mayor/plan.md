@@ -464,3 +464,23 @@ distribuidor muestran un recorrido realista y los reportes tienen volumen para a
 Verificación: backend `clean verify` → 158 pruebas; admin-web 13; institucional-web 3; apps móviles con lint y
 build. Se corrigieron además los constructores de dos pruebas unitarias afectados por la inyección del publicador
 de eventos y se hizo null-safe la notificación del comprobante.
+### Registro de ejecución — Mercado Pago con Checkout API y QR por correo (2026-11-07)
+
+La integración anterior era **Checkout Pro**: creaba una preferencia y devolvía `init_point`, y la app abría otra
+página para pagar. Se reemplazó por **Checkout API** (sin redirección):
+
+- `ClienteMercadoPago` ahora crea una **orden con QR dinámico** en la caja del vendedor
+  (`/instore/orders/qr/seller/collectors/{userId}/pos/{posId}/qrs`) y devuelve el contenido EMVCo; el cobro con
+  tarjeta se resuelve contra `/v1/payments` con el token que genera el navegador (Bricks). Ya no existen
+  preferencias ni `init_point`.
+- Al confirmar el pedido, el preventista puede indicar el medio. Si el cliente paga con Mercado Pago, en ese mismo
+  paso se genera el QR y se envía al cliente un **correo HTML con el QR incrustado** (ZXing + CID), además de quedar
+  disponible en la app y en el JSON del pago (`qrContenido`, `qrImagenBase64`).
+- Nuevo endpoint `POST /api/preventista/pedidos/{idPedido}/pagos/{idPago}/tarjeta` con autorización por ownership.
+- La app del preventista muestra el QR y un formulario de tarjeta que tokeniza con `@mercadopago/sdk-js`
+  (`VITE_MP_PUBLIC_KEY`); se eliminó el enlace «Abrir el pago de Mercado Pago».
+- Configuración nueva por `.env`: `MERCADOPAGO_USER_ID`, `MERCADOPAGO_POS_ID`, `MERCADOPAGO_RUTA_ORDENES_QR`.
+
+Verificación: backend `clean verify` → **159 pruebas**, 0 fallas; admin-web sin cambios funcionales (13 pruebas en
+verde); app del preventista con `lint` y `build` OK. Sin credenciales, la API sigue respondiendo «no configurado» y
+no simula acreditaciones; el envío de correo queda como `SIMULADO` si no hay SMTP.

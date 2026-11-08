@@ -9,29 +9,51 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * El cliente de Mercado Pago usa Checkout API: QR dinámico y pago con tarjeta tokenizada, sin
+ * preferencias ni redirección.
+ */
 class ClienteMercadoPagoTest {
 
     private static final String SECRETO = "secreto-de-pruebas";
 
     @Test
-    void sinAccessTokenLaIntegracionNoEstaConfiguradaYNoInventaPreferencias() {
-        ClienteMercadoPago cliente = cliente("", SECRETO);
+    void sinAccessTokenLaIntegracionNoEstaConfiguradaYNoInventaCobros() {
+        ClienteMercadoPago cliente = cliente("", SECRETO, "");
 
         assertFalse(cliente.estaConfigurado());
-        MiException error = assertThrows(MiException.class,
-                () -> cliente.crearPreferencia("ref-1", new BigDecimal("10.00"), "Pedido"));
-        assertTrue(error.getMessage().contains("no está configurado"));
+        assertFalse(cliente.qrConfigurado());
+        MiException qr = assertThrows(MiException.class,
+                () -> cliente.crearOrdenQr("ref-1", new BigDecimal("10.00"), "Pedido"));
+        assertTrue(qr.getMessage().contains("no está configurado"));
         assertThrows(MiException.class, () -> cliente.consultarPago("123"));
+        assertThrows(MiException.class, () -> cliente.crearPagoConTarjeta("ref-1", new BigDecimal("10.00"),
+                new ClienteMercadoPago.DatosTarjeta("tok", "visa", 1, null, "a@b.test", "DNI", "12345678"),
+                "Pedido"));
+    }
+
+    @Test
+    void elQrNecesitaAdemasElVendedorYLaCaja() {
+        ClienteMercadoPago conToken = cliente("token", SECRETO, "");
+        assertTrue(conToken.estaConfigurado());
+        assertFalse(conToken.qrConfigurado());
+        MiException error = assertThrows(MiException.class,
+                () -> conToken.crearOrdenQr("ref-1", new BigDecimal("10.00"), "Pedido"));
+        assertTrue(error.getMessage().contains("MERCADOPAGO_USER_ID"));
+
+        ClienteMercadoPago completo = cliente("token", SECRETO, "123456");
+        assertTrue(completo.qrConfigurado());
+        assertTrue(completo.webhookConfigurado());
+        assertTrue(completo.estaConfigurado());
     }
 
     @Test
     void laFirmaDelWebhookSeValidaConElManifiestoDocumentado() {
-        ClienteMercadoPago cliente = cliente("token", SECRETO);
+        ClienteMercadoPago cliente = cliente("token", SECRETO, "123456");
         String ts = "1704908010";
         String requestId = "req-abc";
         String dataId = "123456";
@@ -48,7 +70,7 @@ class ClienteMercadoPagoTest {
 
     @Test
     void sinSecretoDeWebhookNingunaFirmaEsValida() {
-        ClienteMercadoPago cliente = cliente("token", "");
+        ClienteMercadoPago cliente = cliente("token", "", "123456");
         String ts = "1704908010";
         String firma = "ts=" + ts + ",v1=" + hmac("id:1;request-id:r;ts:" + ts + ";");
 
@@ -56,18 +78,10 @@ class ClienteMercadoPagoTest {
         assertFalse(cliente.firmaValida(firma, "r", "1"));
     }
 
-    @Test
-    void losRequisitosDeConfiguracionSeReflejanEnLosGetters() {
-        ClienteMercadoPago cliente = cliente("token", SECRETO);
-
-        assertTrue(cliente.estaConfigurado());
-        assertTrue(cliente.webhookConfigurado());
-        assertEquals("https://dulcemayor.test/api/pagos/mercadopago/notificacion", cliente.getUrlNotificacion());
-    }
-
-    private ClienteMercadoPago cliente(String token, String secreto) {
+    private ClienteMercadoPago cliente(String token, String secreto, String userId) {
         return new ClienteMercadoPago("https://api.mercadopago.test", token, secreto,
-                "https://dulcemayor.test/api/pagos/mercadopago/notificacion", "/preferences", 2000);
+                "https://dulcemayor.test/api/pagos/mercadopago/notificacion", userId, "CAJA01",
+                "/v1/payments", "/instore/orders/qr/seller/collectors/{userId}/pos/{posId}/qrs", 2000);
     }
 
     private static String hmac(String mensaje) {

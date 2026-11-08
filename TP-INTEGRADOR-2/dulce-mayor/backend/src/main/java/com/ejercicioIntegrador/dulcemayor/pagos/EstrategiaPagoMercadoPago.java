@@ -9,11 +9,13 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 
 /**
- * Mercado Pago (Checkout Pro): crea la preferencia y expone el enlace/QR. La acreditación se
- * verifica siempre server-to-server; nunca se confía en el retorno del navegador.
+ * Mercado Pago con <b>Checkout API</b>: al iniciar el cobro se genera un QR dinámico en la caja del
+ * vendedor y se envía por correo al cliente; el pago con tarjeta se resuelve con el token del
+ * navegador. Nunca se redirige al comprador a otra página. La acreditación se verifica siempre
+ * server-to-server.
  */
 @Component
-public class EstrategiaPagoMercadoPago implements EstrategiaPago, EstrategiaNotificable {
+public class EstrategiaPagoMercadoPago implements EstrategiaPago, EstrategiaNotificable, EstrategiaCobroTarjeta {
 
     private final ClienteMercadoPago cliente;
     private final Duration vigencia;
@@ -34,11 +36,12 @@ public class EstrategiaPagoMercadoPago implements EstrategiaPago, EstrategiaNoti
         if (!cliente.estaConfigurado()) {
             throw new MiException("Mercado Pago no está configurado en el servidor: falta el access token");
         }
-        ClienteMercadoPago.Preferencia preferencia = cliente.crearPreferencia(pago.getReferenciaOperacion(),
+        ClienteMercadoPago.OrdenQr orden = cliente.crearOrdenQr(pago.getReferenciaOperacion(),
                 pago.getImporte(), "Pedido Dulce Mayor " + pago.getPedido().getId());
-        return new DatosInicioPago(
-                "Pagá el total con el enlace o el QR de Mercado Pago. La reserva se libera si no se acredita a las 24 horas.",
-                preferencia.enlacePago(), preferencia.id());
+        return DatosInicioPago.conQr(
+                "Escaneá el QR con la app de Mercado Pago para pagar el total. "
+                        + "La reserva se libera si el pago no se acredita a las 24 horas.",
+                orden.idOrden(), orden.qrContenido());
     }
 
     @Override
@@ -59,6 +62,20 @@ public class EstrategiaPagoMercadoPago implements EstrategiaPago, EstrategiaNoti
                 && !pago.getReferenciaOperacion().equals(externo.referenciaOperacion())) {
             throw new MiException("El pago de Mercado Pago no corresponde a este pedido");
         }
+    }
+
+    /** Cobro con tarjeta sin redirección: se crea el pago con el token del navegador. */
+    @Override
+    public ResultadoTarjeta cobrarConTarjeta(Pago pago, ClienteMercadoPago.DatosTarjeta tarjeta) throws MiException {
+        if (tarjeta == null || tarjeta.token() == null || tarjeta.token().isBlank()) {
+            throw new MiException("Faltan los datos de la tarjeta tokenizada");
+        }
+        if (tarjeta.paymentMethodId() == null || tarjeta.paymentMethodId().isBlank()) {
+            throw new MiException("Falta el medio de pago de la tarjeta");
+        }
+        ClienteMercadoPago.PagoExterno externo = cliente.crearPagoConTarjeta(pago.getReferenciaOperacion(),
+                pago.getImporte(), tarjeta, "Pedido Dulce Mayor " + pago.getPedido().getId());
+        return new ResultadoTarjeta(externo.id(), externo.estado(), externo.aprobado());
     }
 
     @Override

@@ -54,7 +54,9 @@ class ServicioPagoTest {
         estrategias = mock(ResolvedorEstrategiaPago.class);
         servicioPedido = mock(ServicioPedido.class);
         servicioComprobante = mock(ServicioComprobante.class);
-        servicio = new ServicioPago(repositorioPago, estrategias, servicioPedido, servicioComprobante, mock(org.springframework.context.ApplicationEventPublisher.class));
+        servicio = new ServicioPago(repositorioPago, estrategias, servicioPedido, servicioComprobante,
+                mock(com.ejercicioIntegrador.dulcemayor.pagos.ServicioQr.class), mock(ServicioCorreo.class),
+                mock(org.springframework.context.ApplicationEventPublisher.class));
 
         Preventista preventista = new Preventista();
         preventista.setId("prev-1");

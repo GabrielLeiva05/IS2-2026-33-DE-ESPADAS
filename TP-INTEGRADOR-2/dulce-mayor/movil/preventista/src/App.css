@@ -122,3 +122,9 @@ input::placeholder { color: var(--dm-texto-3); }
 .heading-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .row-actions { display: flex; gap: 6px; align-items: center; }
 .leaflet-container { font: inherit; }
+
+.qr-pago { display: grid; justify-items: center; gap: 8px; padding: 16px; margin: 12px 0; border: 1px dashed var(--dm-violeta); border-radius: var(--dm-radio); background: var(--dm-violeta-suave); }
+.qr-pago img { border-radius: var(--dm-radio-sm); background: #fff; }
+.qr-pago small { color: var(--dm-texto-2); font-size: var(--dm-t-xs); text-align: center; }
+.tarjeta-pago { display: grid; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--dm-borde); }
+.tarjeta-pago h3 { margin: 0; font-family: var(--dm-fuente-titulos); font-size: var(--dm-t-lg); }

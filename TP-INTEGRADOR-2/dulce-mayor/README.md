@@ -422,6 +422,7 @@ Todos responden JSON; los errores usan el `ErrorDTO` de siempre (`estado`, `erro
 | `POST /api/pedidos/{id}/pagos`, `POST /api/pedidos/{id}/pagos/efectivo` | Iniciar un cobro o registrar el cobro en efectivo al entregar |
 | `POST /api/pagos/{id}/acreditar`, `POST /api/pagos/{id}/rechazar` | Conciliación de transferencias y verificación de Mercado Pago |
 | `POST /api/pagos/mercadopago/notificacion` | Webhook de Mercado Pago (firma HMAC + consulta server-to-server) |
+| `POST /api/preventista/pedidos/{id}/pagos/{idPago}/tarjeta` | Cobro con tarjeta por Checkout API con el token que genera el navegador (sin redirección) |
 | `GET /api/pedidos/{id}/comprobante` | Comprobante interno no fiscal (HTML imprimible) |
 | `GET/POST /api/promociones`, `PUT/DELETE /{id}`, `POST /api/promociones/previsualizar` | Códigos promocionales: un solo código por pedido, sin acumulación |
 | `POST /api/preventista/pedidos/{id}/promocion`, `DELETE …/promocion` | Aplicar o quitar el código en un borrador (descuento calculado en el servidor) |
@@ -441,18 +442,22 @@ fiscal; la cancelación o el vencimiento liberan la reserva, en la misma transac
 | Medio | Cómo se acredita | Reserva |
 |---|---|---|
 | Transferencia | Conciliación manual del administrativo con el número de operación (obligatorio) | 24 h |
-| Mercado Pago | Webhook con firma HMAC + consulta server-to-server; nunca se confía en el retorno del navegador | 24 h |
+| Mercado Pago | **Checkout API**: QR dinámico enviado por correo y pago con tarjeta tokenizada (Bricks) en la misma pantalla, sin redirección. La acreditación se confirma por webhook firmado + consulta server-to-server | 24 h |
 | Efectivo | Registro manual al entregar (interino hasta la app del distribuidor) | 7 días |
 
-Configuración por variables de entorno (todas opcionales; sin credenciales Mercado Pago responde «no configurado»
-y **no** se simula ninguna acreditación):
+Configuración por `.env` (todas opcionales; sin credenciales Mercado Pago responde «no configurado» y **no** se
+simula ninguna acreditación). El paso a paso completo —cómo obtener cada credencial, crear la caja del QR y pagar o
+simular el cobro— está en **[CONFIGURACION-MERCADO-PAGO.md](./CONFIGURACION-MERCADO-PAGO.md)**:
 
 | Variable | Uso |
 |---|---|
-| `MERCADOPAGO_ACCESS_TOKEN` | Token de la cuenta; habilita crear preferencias y verificar pagos |
+| `MERCADOPAGO_ACCESS_TOKEN` | Token de la cuenta; habilita crear el QR y verificar pagos |
 | `MERCADOPAGO_WEBHOOK_SECRET` | Secreto para validar `x-signature`; sin él el webhook responde 401 |
-| `MERCADOPAGO_NOTIFICACION_URL` | URL pública del webhook que se registra en la preferencia |
-| `MERCADOPAGO_RUTA_PREFERENCIAS` | Ruta de creación de preferencias (por defecto `/preferences`) |
+| `MERCADOPAGO_NOTIFICACION_URL` | URL pública del webhook que se registra en la orden de cobro |
+| `MERCADOPAGO_USER_ID` | Identificador de la cuenta vendedora (collector) donde se genera el QR |
+| `MERCADOPAGO_POS_ID` | Caja/sucursal de Mercado Pago asociada al QR (por defecto `CAJA01`) |
+| `MERCADOPAGO_RUTA_ORDENES_QR` | Ruta de creación de la orden con QR dinámico |
+| `VITE_MP_PUBLIC_KEY` (app preventista) | Public key para tokenizar tarjetas con el SDK en el navegador |
 | `PAGOS_TRANSFERENCIA_VIGENCIA_HORAS`, `PAGOS_EFECTIVO_VIGENCIA_HORAS` | Ventanas de reserva (24 y 168) |
 | `PAGOS_EXPIRACION_INTERVALO_MS`, `PAGOS_EXPIRACION_RETRASO_INICIAL_MS` | Cadencia de la tarea que expira pagos |
 | `PAGOS_EXPIRACION_HABILITADA` | `false` desactiva la tarea (se usa en las pruebas) |
@@ -656,7 +661,9 @@ cd movil\distribuidor && npm run dev                 REM Distribuidor→ http://
 25. **Exportar CSV** abre el archivo en Excel con acentos correctos; abajo están la serie por preventista y el stock
     por producto con los que están bajo mínimo.
 
-**11. Ingreso con Google (opcional)**
+**11. Pago con Mercado Pago (opcional)** — requiere credenciales: seguí [CONFIGURACION-MERCADO-PAGO.md](./CONFIGURACION-MERCADO-PAGO.md). Resumen: confirmá un pedido eligiendo *Mercado Pago*; la app muestra el QR y el cliente lo recibe por correo. Pagalo con una cuenta de prueba o simulá el pago por API y verificá que el pedido pase a *Completado* con el comprobante emitido. El cobro con tarjeta se hace en la misma pantalla, sin redirección.
+
+**12. Ingreso con Google (opcional)**
 26. Poné `APP_OAUTH2_HABILITADO=true`, `GOOGLE_CLIENT_ID` y `GOOGLE_CLIENT_SECRET` en `backend/.env`, y
     `OAUTH_GOOGLE_HABILITADO=true` en `institucional-web/.env`. Reiniciá API y sitio: en `/ingresar` aparece
     «Continuar con Google» y el cliente entra con su cuenta existente (la API le crea la cuenta `CLIENTE` en el

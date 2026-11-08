@@ -1,6 +1,7 @@
 package com.ejercicioIntegrador.dulcemayor.pagos;
 
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,13 +22,23 @@ import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Adaptador HTTP de Mercado Pago (Checkout Pro). Sin access token configurado no simula nada:
- * informa que la integración no está configurada. El webhook se valida con la firma HMAC-SHA256
- * que envía el proveedor y luego se consulta el pago server-to-server.
+ * Adaptador HTTP de Mercado Pago usando <b>Checkout API</b> (antes "Checkout Transparente"):
+ * el comprador nunca sale de la aplicación.
+ *
+ * <ul>
+ *   <li><b>QR dinámico</b>: se crea una orden en la caja ({@code pos}) del vendedor y Mercado Pago
+ *       devuelve el contenido EMVCo ({@code qr_data}) que se dibuja como imagen en el correo.</li>
+ *   <li><b>Tarjeta</b>: se crea el pago contra {@code /v1/payments} con el token que genera el
+ *       formulario del navegador (Bricks). Sin redirección.</li>
+ *   <li><b>Acreditación</b>: siempre se verifica server-to-server con {@code GET /v1/payments/{id}}.</li>
+ * </ul>
+ *
+ * Sin access token configurado no simula nada: informa que la integración no está configurada.
  */
 @Component
 public class ClienteMercadoPago {
@@ -40,7 +51,10 @@ public class ClienteMercadoPago {
     private final String accessToken;
     private final String secretoWebhook;
     private final String urlNotificacion;
-    private final String rutaPreferencias;
+    private final String userId;
+    private final String posId;
+    private final String rutaPagos;
+    private final String rutaOrdenesQr;
     private final Duration timeout;
 
     public ClienteMercadoPago(
@@ -48,13 +62,20 @@ public class ClienteMercadoPago {
             @Value("${app.pagos.mercadopago.access-token:}") String accessToken,
             @Value("${app.pagos.mercadopago.webhook-secret:}") String secretoWebhook,
             @Value("${app.pagos.mercadopago.notificacion-url:}") String urlNotificacion,
-            @Value("${app.pagos.mercadopago.ruta-preferencias:/preferences}") String rutaPreferencias,
+            @Value("${app.pagos.mercadopago.user-id:}") String userId,
+            @Value("${app.pagos.mercadopago.pos-id:CAJA01}") String posId,            
+            @Value("${app.pagos.mercadopago.ruta-pagos:/v1/payments}") String rutaPagos,
+            @Value("${app.pagos.mercadopago.ruta-ordenes-qr:/instore/orders/qr/seller/collectors/{userId}/pos/{posId}/qrs}")
+            String rutaOrdenesQr,
             @Value("${app.pagos.mercadopago.timeout-ms:8000}") long timeoutMs) {
         this.urlBase = urlBase.endsWith("/") ? urlBase.substring(0, urlBase.length() - 1) : urlBase;
         this.accessToken = accessToken == null ? "" : accessToken.trim();
         this.secretoWebhook = secretoWebhook == null ? "" : secretoWebhook.trim();
         this.urlNotificacion = urlNotificacion == null ? "" : urlNotificacion.trim();
-        this.rutaPreferencias = rutaPreferencias.startsWith("/") ? rutaPreferencias : "/" + rutaPreferencias;
+        this.userId = userId == null ? "" : userId.trim();
+        this.posId = posId == null ? "" : posId.trim();
+        this.rutaPagos = conBarra(rutaPagos);
+        this.rutaOrdenesQr = rutaOrdenesQr;
         this.timeout = Duration.ofMillis(timeoutMs);
         this.http = HttpClient.newBuilder().connectTimeout(this.timeout).build();
     }
@@ -67,24 +88,52 @@ public class ClienteMercadoPago {
         return !secretoWebhook.isEmpty();
     }
 
-    public Preferencia crearPreferencia(String referenciaOperacion, BigDecimal importe, String descripcion)
-            throws MiException {
-        exigirConfiguracion();
-        Map<String, Object> item = new HashMap<>();
-        item.put("id", referenciaOperacion);
-        item.put("title", descripcion);
-        item.put("quantity", 1);
-        item.put("currency_id", "ARS");
-        item.put("unit_price", importe.doubleValue());
+    /** El QR dinámico necesita además el identificador de vendedor y la caja. */
+    public boolean qrConfigurado() {
+        return estaConfigurado() && !userId.isEmpty() && !posId.isEmpty();
+    }
 
-        Map<String, Object> cuerpo = new HashMap<>();
-        cuerpo.put("items", List.of(item));
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getUrlNotificacion() {
+        return urlNotificacion;
+    }
+
+    // ------------------------------------------------------------------ QR dinámico (Checkout API)
+
+    /**
+     * Crea la orden de cobro asociada a la caja y devuelve el contenido del QR que se envía al
+     * cliente. El importe y la referencia externa son los del pedido: Mercado Pago los usa para
+     * conciliar el pago cuando llega la notificación.
+     */
+    public OrdenQr crearOrdenQr(String referenciaOperacion, BigDecimal importe, String descripcion)
+            throws MiException {
+        exigirConfiguracionQr();
+
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("sku_number", referenciaOperacion);
+        item.put("category", "others");
+        item.put("title", descripcion);
+        item.put("description", "Pedido " + referenciaOperacion);
+        item.put("unit_price", importe.doubleValue());
+        item.put("quantity", 1);
+        item.put("unit_measure", "unit");
+        item.put("total_amount", importe.doubleValue());
+
+        Map<String, Object> cuerpo = new LinkedHashMap<>();
         cuerpo.put("external_reference", referenciaOperacion);
+        cuerpo.put("title", descripcion);
+        cuerpo.put("description", "Pedido " + referenciaOperacion);
         if (!urlNotificacion.isEmpty()) {
             cuerpo.put("notification_url", urlNotificacion);
         }
+        cuerpo.put("total_amount", importe.doubleValue());
+        cuerpo.put("items", List.of(item));
 
-        HttpRequest pedido = HttpRequest.newBuilder(URI.create(urlBase + rutaPreferencias))
+        HttpRequest pedido = HttpRequest.newBuilder(URI.create(urlBase + rutaOrdenesQr()
+                .replace("{userId}", userId).replace("{posId}", posId)))
                 .timeout(timeout)
                 .header("Authorization", "Bearer " + accessToken)
                 .header("Content-Type", "application/json")
@@ -92,13 +141,60 @@ public class ClienteMercadoPago {
                 .build();
 
         JsonNode respuesta = ejecutar(pedido);
-        String id = texto(respuesta, "id");
-        String enlace = texto(respuesta, "init_point");
-        if (id == null) {
-            throw new MiException("Mercado Pago no devolvió el identificador de la preferencia");
+        String qrData = texto(respuesta, "qr_data");
+        String idOrden = texto(respuesta, "in_store_order_id");
+        if (qrData == null) {
+            throw new MiException("Mercado Pago no devolvió el contenido del QR");
         }
-        return new Preferencia(id, enlace);
+        return new OrdenQr(idOrden, qrData);
     }
+
+    // ------------------------------------------------------------------ tarjeta (Checkout API)
+
+    /** Crea el pago con el token de tarjeta que genera el formulario del navegador. */
+    public PagoExterno crearPagoConTarjeta(String referenciaOperacion, BigDecimal importe,
+                                           DatosTarjeta tarjeta, String descripcion) throws MiException {
+        exigirConfiguracion();
+        Map<String, Object> pago = new LinkedHashMap<>();
+        pago.put("transaction_amount", importe.doubleValue());
+        pago.put("token", tarjeta.token());
+        pago.put("description", descripcion);
+        pago.put("installments", tarjeta.installments() == null ? 1 : tarjeta.installments());
+        pago.put("payment_method_id", tarjeta.paymentMethodId());
+        if (tarjeta.issuerId() != null && !tarjeta.issuerId().isBlank()) {
+            pago.put("issuer_id", tarjeta.issuerId());
+        }
+        pago.put("external_reference", referenciaOperacion);
+        if (!urlNotificacion.isEmpty()) {
+            pago.put("notification_url", urlNotificacion);
+        }
+        Map<String, Object> pagador = new LinkedHashMap<>();
+        if (tarjeta.email() != null && !tarjeta.email().isBlank()) {
+            pagador.put("email", tarjeta.email());
+        }
+        if (tarjeta.numeroDocumento() != null && !tarjeta.numeroDocumento().isBlank()) {
+            pagador.put("identification", Map.of(
+                    "type", tarjeta.tipoDocumento() == null ? "DNI" : tarjeta.tipoDocumento(),
+                    "number", tarjeta.numeroDocumento()));
+        }
+        if (!pagador.isEmpty()) {
+            pago.put("payer", pagador);
+        }
+
+        HttpRequest pedido = HttpRequest.newBuilder(URI.create(urlBase + rutaPagos))
+                .timeout(timeout)
+                .header("Authorization", "Bearer " + accessToken)
+                .header("Content-Type", "application/json")
+                .header("X-Idempotency-Key", referenciaOperacion)
+                .POST(HttpRequest.BodyPublishers.ofString(escribir(pago)))
+                .build();
+
+        JsonNode respuesta = ejecutar(pedido);
+        return new PagoExterno(texto(respuesta, "id"), texto(respuesta, "status"),
+                texto(respuesta, "external_reference"));
+    }
+
+    // ------------------------------------------------------------------ verificación
 
     public PagoExterno consultarPago(String idPago) throws MiException {
         exigirConfiguracion();
@@ -144,13 +240,30 @@ public class ClienteMercadoPago {
                 && MessageDigest.isEqual(calculada.getBytes(StandardCharsets.UTF_8), v1.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String getUrlNotificacion() {
-        return urlNotificacion;
+    // ------------------------------------------------------------------ auxiliares
+
+    private String rutaOrdenesQr() {
+        return rutaOrdenesQr;
+    }
+
+    private static String conBarra(String ruta) {
+        if (ruta == null || ruta.isBlank()) {
+            return "/v1/payments";
+        }
+        return ruta.startsWith("/") ? ruta : "/" + ruta;
     }
 
     private void exigirConfiguracion() throws MiException {
         if (!estaConfigurado()) {
             throw new MiException("Mercado Pago no está configurado en el servidor: falta el access token");
+        }
+    }
+
+    private void exigirConfiguracionQr() throws MiException {
+        exigirConfiguracion();
+        if (userId.isEmpty() || posId.isEmpty()) {
+            throw new MiException("Mercado Pago no está configurado para QR: faltan MERCADOPAGO_USER_ID "
+                    + "o MERCADOPAGO_POS_ID");
         }
     }
 
@@ -203,8 +316,18 @@ public class ClienteMercadoPago {
         return texto.length() <= 300 ? texto : texto.substring(0, 300);
     }
 
-    /** Preferencia creada en Mercado Pago. */
-    public record Preferencia(String id, String enlacePago) {
+    /** Orden de cobro creada en la caja: contenido del QR y su identificador. */
+    public record OrdenQr(String idOrden, String qrContenido) {
+    }
+
+    /** Datos de la tarjeta tokenizada en el navegador (nunca viaja el número completo). */
+    public record DatosTarjeta(@JsonProperty("token") String token,
+                               @JsonProperty("paymentMethodId") String paymentMethodId,
+                               @JsonProperty("installments") Integer installments,
+                               @JsonProperty("issuerId") String issuerId,
+                               @JsonProperty("email") String email,
+                               @JsonProperty("tipoDocumento") String tipoDocumento,
+                               @JsonProperty("numeroDocumento") String numeroDocumento) {
     }
 
     /** Estado del pago consultado en Mercado Pago. */

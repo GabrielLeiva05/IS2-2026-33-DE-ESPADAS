@@ -40,15 +40,21 @@ public class ServicioPago {
     private final ResolvedorEstrategiaPago estrategias;
     private final ServicioPedido servicioPedido;
     private final ServicioComprobante servicioComprobante;
+    private final com.ejercicioIntegrador.dulcemayor.pagos.ServicioQr servicioQr;
+    private final ServicioCorreo servicioCorreo;
     private final org.springframework.context.ApplicationEventPublisher eventos;
 
     public ServicioPago(RepositorioPago repositorioPago, ResolvedorEstrategiaPago estrategias,
                         ServicioPedido servicioPedido, ServicioComprobante servicioComprobante,
+                        com.ejercicioIntegrador.dulcemayor.pagos.ServicioQr servicioQr,
+                        ServicioCorreo servicioCorreo,
                         org.springframework.context.ApplicationEventPublisher eventos) {
         this.repositorioPago = repositorioPago;
         this.estrategias = estrategias;
         this.servicioPedido = servicioPedido;
         this.servicioComprobante = servicioComprobante;
+        this.servicioQr = servicioQr;
+        this.servicioCorreo = servicioCorreo;
         this.eventos = eventos;
     }
 
@@ -98,9 +104,13 @@ public class ServicioPago {
         pago.setReferenciaOperacion(UUID.randomUUID().toString());
         DatosInicioPago datos = estrategia.iniciar(pago);
         pago.setFechaVencimiento(LocalDateTime.now().plus(estrategia.vigenciaReserva()));
-        pago.setEnlacePago(datos.enlacePago());
+        pago.setQrContenido(datos.qrContenido());
         pago.setReferenciaExterna(datos.referenciaExterna());
-        return convertir(repositorioPago.save(pago), datos.instrucciones());
+        Pago guardado = repositorioPago.save(pago);
+        if (guardado.getQrContenido() != null) {
+            enviarQrAlCliente(guardado, datos.instrucciones());
+        }
+        return convertir(guardado, datos.instrucciones());
     }
 
     /** Cobro en efectivo registrado por administración (interino hasta la app del distribuidor). */
@@ -260,11 +270,95 @@ public class ServicioPago {
         return pago.getFechaVencimiento() != null && pago.getFechaVencimiento().isBefore(LocalDateTime.now());
     }
 
+    /** Cobro con tarjeta por Checkout API: sin redirección, con el token que generó el navegador. */
+    @Transactional(rollbackFor = Exception.class)
+    public PagoResponseDTO cobrarConTarjeta(String idPago, com.ejercicioIntegrador.dulcemayor.dto.PagoTarjetaRequestDTO dto)
+            throws MiException {
+        if (dto == null) {
+            throw new MiException("Faltan los datos de la tarjeta");
+        }
+        Pago pago = repositorioPago.buscarParaActualizar(idPago)
+                .orElseThrow(() -> new MiException("No existe el pago indicado"));
+        if (pago.getEstado() == EstadoPago.ACREDITADO) {
+            return convertir(pago, "El pago ya estaba acreditado");
+        }
+        if (pago.getEstado() != EstadoPago.PENDIENTE) {
+            throw new MiException("El pago está " + pago.getEstado() + " y no se puede cobrar");
+        }
+        if (estaVencido(pago)) {
+            expirar(pago);
+            throw new MiException("El pago venció: la reserva de stock fue liberada");
+        }
+        var resultado = estrategias.cobroConTarjeta(pago.getMedio()).cobrarConTarjeta(pago,
+                new com.ejercicioIntegrador.dulcemayor.pagos.ClienteMercadoPago.DatosTarjeta(dto.token(),
+                        dto.paymentMethodId(), dto.installments(), dto.issuerId(), dto.email(),
+                        dto.tipoDocumento(), dto.numeroDocumento()));
+        if (!resultado.aprobado()) {
+            pago.setObservacion("Cobro con tarjeta rechazado: " + resultado.estado());
+            repositorioPago.save(pago);
+            throw new MiException("Mercado Pago no aprobó el pago (estado " + resultado.estado() + ")");
+        }
+        return acreditar(pago.getId(),
+                new ConfirmarPagoRequestDTO(resultado.idPagoExterno(), "Cobro con tarjeta por Checkout API"));
+    }
+
+    /** Imagen del QR lista para mostrar en la aplicación (data URI) o null si el pago no lo tiene. */
+    private String imagenQr(Pago pago) {
+        if (pago.getQrContenido() == null || pago.getQrContenido().isBlank()) {
+            return null;
+        }
+        try {
+            return servicioQr.dataUri(pago.getQrContenido());
+        } catch (MiException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Envía al cliente el correo con el QR incrustado, apenas el preventista confirma que va a pagar
+     * con Mercado Pago. Si el envío falla, el cobro sigue vigente: el QR también está en la app.
+     */
+    private void enviarQrAlCliente(Pago pago, String instrucciones) {
+        var pedido = pago.getPedido();
+        String correo = pedido.getPuntoVenta() == null ? null : pedido.getPuntoVenta().getEmailContacto();
+        if (correo == null || correo.isBlank()) {
+            return;
+        }
+        String comercio = pedido.getPuntoVenta().getNombreComercial();
+        try {
+            byte[] imagen = servicioQr.generarPng(pago.getQrContenido());
+            String html = """
+                    <html><body style="font-family:Arial,sans-serif;color:#1f2937">
+                      <h2 style="color:#7a35e0">Pedido confirmado — %s</h2>
+                      <p>Hola:</p>
+                      <p>Confirmamos el pedido <strong>%s</strong> por un total de
+                         <strong>$ %s</strong> y reservamos el stock.</p>
+                      <p>Para pagar con Mercado Pago, escaneá este QR desde la app
+                         (o mostralo en el comercio):</p>
+                      <p><img src="cid:qr-pago" alt="QR de pago de Mercado Pago" width="320" height="320"></p>
+                      <p style="color:#5d5b70;font-size:13px">%s</p>
+                      <p>También podés pagar con tarjeta desde la app del preventista, sin salir de la pantalla.</p>
+                      <p>— Dulce Mayor</p>
+                    </body></html>
+                    """.formatted(escapar(comercio), pedido.getId(), pago.getImporte().toPlainString(),
+                    escapar(instrucciones == null ? "" : instrucciones));
+            servicioCorreo.enviarHtml(correo, "Pedido confirmado — pagá con Mercado Pago",
+                    html, com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoCorreo.PEDIDO_CONFIRMADO,
+                    java.util.Map.of("qr-pago", imagen));
+        } catch (RuntimeException | MiException e) {
+            LOG.warn("No se pudo enviar el QR por correo para el pago {}: {}", pago.getId(), e.getMessage());
+        }
+    }
+
+    private static String escapar(String texto) {
+        return texto == null ? "" : texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
     private PagoResponseDTO convertir(Pago pago, String instrucciones) {
         return new PagoResponseDTO(pago.getId(), pago.getPedido().getId(), pago.getMedio(), pago.getEstado(),
                 pago.getImporte(), pago.getReferenciaOperacion(), pago.getReferenciaExterna(), instrucciones,
-                pago.getEnlacePago(), pago.getFechaCreacion(), pago.getFechaVencimiento(), pago.getFechaAcreditacion(),
-                pago.getObservacion());
+                pago.getQrContenido(), imagenQr(pago), pago.getFechaCreacion(), pago.getFechaVencimiento(),
+                pago.getFechaAcreditacion(), pago.getObservacion());
     }
 
     private static String recortar(String valor) {

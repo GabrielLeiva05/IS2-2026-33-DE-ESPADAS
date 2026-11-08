@@ -52,11 +52,12 @@ public class Pago extends BaseEntity {
     @Column(nullable = false, unique = true, updatable = false, length = 40)
     private String referenciaOperacion;
 
-    @Column(length = 120)
+    @Column(length = 255)
     private String referenciaExterna;
 
-    @Column(length = 255)
-    private String enlacePago;
+    /** Contenido EMVCo del QR dinámico de Mercado Pago (Checkout API), enviado por correo. */
+    @Column(length = 1024)
+    private String qrContenido;
 
     @Column(length = 200)
     private String observacion;

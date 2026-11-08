@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import './App.css'
 
 const API = import.meta.env.VITE_API_URL || ''
+const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY || ''
 const SESSION_KEY = 'dulce-mayor-preventista-session'
 const PENDING_ORDER_KEY = `${SESSION_KEY}-pending-order`
 const money = (value) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(Number(value) || 0)
@@ -99,6 +100,7 @@ function App() {
   const [aviso, setAviso] = useState('')
   const [cobroPedido, setCobroPedido] = useState(null)
   const [pagosDelPedido, setPagosDelPedido] = useState([])
+  const [pagoTarjeta, setPagoTarjeta] = useState({ pagoId: '', titular: '', numero: '', vencimiento: '', codigo: '', cuotas: '1', documento: '', mensaje: '' })
   const [plan, setPlan] = useState({ fecha: '', visitas: [] })
   const [planCargando, setPlanCargando] = useState(false)
 
@@ -309,10 +311,53 @@ function App() {
     try {
       const pago = await api(`/api/preventista/pedidos/${cobroPedido.id}/pagos`, { token: session.token, method: 'POST', body: JSON.stringify({ medio }) })
       setPagosDelPedido((actuales) => [pago, ...actuales])
+      if (medio === 'MERCADO_PAGO') {
+        setPagoTarjeta((actual) => ({ ...actual, pagoId: pago.id, mensaje: '' }))
+      }
       setAviso(`${medioLegible(medio)}: cobro iniciado. El pedido se completa cuando administración acredita el pago.`)
     } catch (requestError) { setError(describeError(requestError)) } finally { setGuardando(false) }
   }
 
+/**
+   * Checkout API: tokeniza la tarjeta con el SDK de Mercado Pago (si hay public key configurada)
+   * y envía el token al backend, que crea el pago sin redirigir al comprador.
+   */
+  async function cobrarConTarjeta() {
+    if (!pagoTarjeta.pagoId) { setError('Iniciá primero el cobro con Mercado Pago.'); return }
+    setGuardando(true)
+    setError('')
+    try {
+      const { default: MercadoPago } = await import('@mercadopago/sdk-js')
+      const mp = new MercadoPago(MP_PUBLIC_KEY, { locale: 'es-AR' })
+      const [mes, anio] = pagoTarjeta.vencimiento.split('/')
+      const token = await mp.cardToken.create({
+        cardNumber: pagoTarjeta.numero.replace(/\s+/g, ''),
+        securityCode: pagoTarjeta.codigo,
+        expirationMonth: Number(mes),
+        expirationYear: Number(`20${anio}`),
+        cardholderName: pagoTarjeta.titular,
+        identification: { type: 'DNI', number: pagoTarjeta.documento },
+      })
+      const actualizado = await api(`/api/preventista/pedidos/${cobroPedido.id}/pagos/${pagoTarjeta.pagoId}/tarjeta`, {
+        token: session.token,
+        method: 'POST',
+        body: JSON.stringify({
+          token: token.id,
+          paymentMethodId: token.payment_method_id,
+          installments: Number(pagoTarjeta.cuotas),
+          email: session.usuario?.correo,
+          tipoDocumento: 'DNI',
+          numeroDocumento: pagoTarjeta.documento,
+        }),
+      })
+      setPagosDelPedido((actuales) => [actualizado, ...actuales.filter((pago) => pago.id !== actualizado.id)])
+      setAviso('Pago con tarjeta aprobado: se consumió el stock y se emitió el comprobante.')
+    } catch (requestError) {
+      setError(describeError(requestError))
+    } finally {
+      setGuardando(false)
+    }
+  }
   async function descargarComprobante(idPedido) {
     setError('')
     try {
@@ -392,7 +437,8 @@ function App() {
                       <section className="panel">
                         <div className="panel-heading"><div><h2>Intentos de cobro</h2><p>El pedido se completa cuando administración acredita el pago total.</p></div><span className="count-badge">{pagosDelPedido.length} intentos</span></div>
                         {pagosDelPedido.length === 0 ? <div className="empty-state"><h3>Sin cobros iniciados</h3><p>Elegí cómo paga el cliente para generar el cobro.</p></div> : <div className="table-wrap"><table><thead><tr><th>MEDIO</th><th>ESTADO</th><th className="align-right">IMPORTE</th><th>DETALLE</th></tr></thead><tbody>{pagosDelPedido.map((pago) => <tr key={pago.id}><td>{medioLegible(pago.medio)}</td><td><span className={`status status-${String(pago.estado).toLowerCase()}`}>{pago.estado}</span></td><td className="align-right">{money(pago.importe)}</td><td>{pago.referenciaExterna || pago.instrucciones || '—'}</td></tr>)}</tbody></table></div>}
-                        {pagosDelPedido.filter((pago) => pago.enlacePago).map((pago) => <p key={`enlace-${pago.id}`}><a href={pago.enlacePago} target="_blank" rel="noreferrer">Abrir el pago de Mercado Pago</a></p>)}
+                        {pagosDelPedido.filter((pago) => pago.qrImagenBase64).map((pago) => <div key={`qr-${pago.id}`} className="qr-pago"><img src={pago.qrImagenBase64} alt="QR de Mercado Pago" width="200" height="200" /><small>El cliente también recibió este QR por correo. Escanealo desde la app de Mercado Pago.</small></div>)}
+                        {pagoTarjeta.pagoId && <section className="tarjeta-pago"><h3>Pagar con tarjeta</h3><p className="muted">Checkout API de Mercado Pago: el cobro se resuelve acá, sin abrir otra página.</p>{!MP_PUBLIC_KEY && <p className="notice info">Falta VITE_MP_PUBLIC_KEY en el .env de la app para tokenizar tarjetas. El QR sigue disponible.</p>}{MP_PUBLIC_KEY && <div className="form-grid"><label>Titular<input value={pagoTarjeta.titular} onChange={(e) => setPagoTarjeta({ ...pagoTarjeta, titular: e.target.value })} /></label><label>Número de tarjeta<input inputMode="numeric" value={pagoTarjeta.numero} onChange={(e) => setPagoTarjeta({ ...pagoTarjeta, numero: e.target.value })} placeholder="4509 9535 6623 3704" /></label><label>Vencimiento (MM/AA)<input value={pagoTarjeta.vencimiento} onChange={(e) => setPagoTarjeta({ ...pagoTarjeta, vencimiento: e.target.value })} placeholder="11/30" /></label><label>Código de seguridad<input inputMode="numeric" value={pagoTarjeta.codigo} onChange={(e) => setPagoTarjeta({ ...pagoTarjeta, codigo: e.target.value })} /></label><label>Cuotas<select value={pagoTarjeta.cuotas} onChange={(e) => setPagoTarjeta({ ...pagoTarjeta, cuotas: e.target.value })}><option value="1">1 cuota</option><option value="3">3 cuotas</option><option value="6">6 cuotas</option></select></label><label>DNI del titular<input value={pagoTarjeta.documento} onChange={(e) => setPagoTarjeta({ ...pagoTarjeta, documento: e.target.value })} /></label></div>}{MP_PUBLIC_KEY && <button type="button" className="button primary full" disabled={guardando} onClick={cobrarConTarjeta}>{guardando ? 'Cobrando…' : 'Cobrar con tarjeta'}</button>}{pagoTarjeta.mensaje && <p className="notice info">{pagoTarjeta.mensaje}</p>}</section>}
                         {cobroPedido.estado === 'CONFIRMADO' && <div className="summary-line"><span>Iniciar cobro</span><div><button type="button" className="button secondary" disabled={guardando} onClick={() => iniciarCobro('TRANSFERENCIA')}>Transferencia</button> <button type="button" className="button secondary" disabled={guardando} onClick={() => iniciarCobro('MERCADO_PAGO')}>Mercado Pago</button> <button type="button" className="button secondary" disabled={guardando} onClick={() => iniciarCobro('EFECTIVO')}>Efectivo</button></div></div>}
                         {pagosDelPedido.some((pago) => pago.estado === 'ACREDITADO') && <button type="button" className="button primary full" onClick={() => descargarComprobante(cobroPedido.id)}>Descargar comprobante</button>}
                       </section>
