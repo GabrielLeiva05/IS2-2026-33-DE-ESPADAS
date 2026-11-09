@@ -64,7 +64,8 @@
             <artifactId>poi-ooxml</artifactId>
             <version>${poi.version}</version>
         </dependency>
-        <!-- Exportación a PDF del reporte de clientes y pedidos (plantilla JRXML) -->
+        <!-- Exportación a PDF del reporte de clientes y pedidos, y facturas (Ola 3): misma versión que
+             el mini proyecto de facturación y que la plantilla .jrxml -->
         <dependency>
             <groupId>net.sf.jasperreports</groupId>
             <artifactId>jasperreports</artifactId>
@@ -74,12 +75,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-        <!-- Facturas en PDF (Ola 3): misma versión que el mini proyecto de facturación y que la plantilla .jrxml -->
-        <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports</artifactId>
-            <version>6.20.6</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>

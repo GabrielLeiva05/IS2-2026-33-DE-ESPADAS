@@ -294,7 +294,7 @@ public class InicializadorDatosDemo implements ApplicationRunner {
         String[] a = DatosDemo.ADMINISTRATIVO.split("\\|");
         creados += buscarOCrearEmpleado(a[3], new EmpleadoRequestDTO(a[0], a[1], LocalDate.of(1984, 5, 12),
                 TipoDocumento.DNI, a[2], correo(a[0], a[1]), RolUsuario.ADMINISTRATIVO, a[3],
-                LocalDate.now().minusYears(3), direccion(a[4], a[5], a[6], localidades), null, null, null, null)).creado;
+                LocalDate.now().minusYears(3), direccion(a[4], a[5], a[6], localidades), null, null, null)).creado;
 
         List<EmpleadoResponseDTO> preventistas = new ArrayList<>();
         int i = 0;
@@ -303,7 +303,7 @@ public class InicializadorDatosDemo implements ApplicationRunner {
             Resultado<EmpleadoResponseDTO> r = buscarOCrearEmpleado(c[3], new EmpleadoRequestDTO(c[0], c[1],
                     LocalDate.of(1986 + i, 2 + i, 10 + i), TipoDocumento.DNI, c[2], correo(c[0], c[1]),
                     RolUsuario.PREVENTISTA, c[3], LocalDate.now().minusYears(2), direccion(c[5], c[6], c[7], localidades),
-                    c[4], null, null, null));
+                    null, null, null));
             preventistas.add(r.valor);
             creados += r.creado;
             i++;
@@ -316,7 +316,7 @@ public class InicializadorDatosDemo implements ApplicationRunner {
             Resultado<EmpleadoResponseDTO> r = buscarOCrearEmpleado(c[3], new EmpleadoRequestDTO(c[0], c[1],
                     LocalDate.of(1982 + i, 6 + i, 15 + i), TipoDocumento.DNI, c[2], correo(c[0], c[1]),
                     RolUsuario.DISTRIBUIDOR, c[3], LocalDate.now().minusYears(1), direccion(c[6], c[7], c[8], localidades),
-                    null, c[4], c[5], null));
+                    c[4], c[5], null));
             distribuidores.add(r.valor);
             creados += r.creado;
             i++;
