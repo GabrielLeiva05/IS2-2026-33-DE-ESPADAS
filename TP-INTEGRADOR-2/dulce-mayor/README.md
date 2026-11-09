@@ -37,6 +37,7 @@ Resumen de esta entrega:
 > - Ola 2: [`docs/README-ola2.md`](docs/README-ola2.md).
 > - Etapa 2: [`docs/README-etapa2.md`](docs/README-etapa2.md).
 > - OAuth: [`CONFIGURACION-OAUTH.md`](CONFIGURACION-OAUTH.md).
+> - Accesos y credenciales de prueba: [`docs/README-accesos.md`](docs/README-accesos.md).
 
 ## Índice
 
