@@ -1,0 +1,13 @@
+# Caddy obtiene y renueva los certificados HTTPS (Let's Encrypt) solo.
+# Requiere que los 3 nombres apunten por DNS a la IP del VPS.
+{$DOMINIO} {
+	reverse_proxy institucional-web:8082
+}
+
+admin.{$DOMINIO} {
+	reverse_proxy admin-web:8081
+}
+
+api.{$DOMINIO} {
+	reverse_proxy backend:8080
+}
