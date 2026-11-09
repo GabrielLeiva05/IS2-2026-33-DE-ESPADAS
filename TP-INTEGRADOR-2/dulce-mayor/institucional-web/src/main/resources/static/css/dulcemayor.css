@@ -534,3 +534,123 @@ select.control {
     .grilla-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .fila-campos.tres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---------- 10. Pago QR de demostración (institucional-web) ---------- */
+.tarjeta-pago-demo {
+    border: 1px solid rgba(122, 53, 224, .16);
+    background: linear-gradient(145deg, #fff 0%, #fcf9ff 100%);
+}
+.opcion-pago-demo {
+    display: flex;
+    align-items: center;
+    gap: var(--dm-e-3);
+    padding: var(--dm-e-3) var(--dm-e-4);
+    border: 1.5px solid var(--dm-violeta);
+    border-radius: var(--dm-radio);
+    background: var(--dm-violeta-suave);
+    cursor: pointer;
+}
+.opcion-pago-demo input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--dm-violeta);
+    flex: none;
+}
+.opcion-pago-demo-icono {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--dm-violeta);
+}
+.opcion-pago-demo strong,
+.opcion-pago-demo small { display: block; }
+.opcion-pago-demo small { color: var(--dm-texto-2); font-size: var(--dm-t-xs); margin-top: 2px; }
+
+.qr-pago-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr);
+    gap: var(--dm-e-4);
+    align-items: start;
+    margin-top: var(--dm-e-4);
+}
+.qr-pago-tarjeta {
+    padding: clamp(1.25rem, 3vw, 2rem);
+    text-align: center;
+    overflow: hidden;
+}
+.qr-pago-encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--dm-e-3);
+    text-align: left;
+    margin-bottom: var(--dm-e-5);
+}
+.qr-pago-encabezado h2 { margin-bottom: 3px; }
+.qr-pago-icono {
+    width: 48px;
+    height: 48px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    border-radius: 15px;
+    background: var(--dm-gradiente);
+}
+.qr-pago-imagen {
+    width: min(100%, 340px);
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    margin: 0 auto var(--dm-e-4);
+    padding: clamp(12px, 3vw, 22px);
+    border: 1px solid var(--dm-borde);
+    border-radius: var(--dm-radio-lg);
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(29, 27, 44, .08);
+}
+.qr-pago-imagen img {
+    display: block;
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    image-rendering: pixelated;
+}
+.qr-pago-destino {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    color: var(--dm-texto-2);
+    font-size: var(--dm-t-sm);
+    margin-bottom: var(--dm-e-4);
+}
+.qr-pago-punto {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dm-advertencia);
+}
+.qr-pago-resumen-fila {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: var(--dm-e-3) 0;
+    border-bottom: 1px solid var(--dm-borde);
+    font-size: var(--dm-t-sm);
+}
+.qr-pago-resumen-fila:last-of-type { margin-bottom: var(--dm-e-3); }
+.qr-pago-total {
+    color: var(--dm-violeta);
+    font-family: var(--dm-fuente-titulos);
+    font-size: var(--dm-t-2xl);
+}
+.qr-pago-aviso { margin: 0; }
+.qr-pago-aviso strong { display: block; margin-bottom: 3px; }
+@media (max-width: 767.98px) {
+    .qr-pago-layout { grid-template-columns: 1fr; }
+    .qr-pago-encabezado { justify-content: flex-start; }
+}

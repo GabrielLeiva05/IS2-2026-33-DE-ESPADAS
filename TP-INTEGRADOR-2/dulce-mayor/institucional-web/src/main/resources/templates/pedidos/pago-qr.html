@@ -1,0 +1,172 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:replace="~{fragments/base :: head(
+    'QR de prueba · Pedido N.º ' + ${pedido.numeroPedido}
+)}"></head>
+
+<body class="app-sitio">
+
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+
+<th:block th:replace="~{fragments/base :: cabecera}"></th:block>
+
+<main class="sitio-main">
+
+    <div class="contenedor seccion">
+
+        <p class="migas">
+            <a th:href="@{/mis-pedidos/{id}(id=${pedido.id})}">
+                <svg class="icono icono-sm">
+                    <use href="#i-volver"/>
+                </svg>
+                Volver al pedido
+            </a>
+        </p>
+
+        <div class="seccion-titulo">
+            <h1 class="mb-0">Pago con billetera virtual</h1>
+            <span class="insignia insignia-violeta">
+                Demostración
+            </span>
+        </div>
+
+        <div class="qr-pago-layout">
+
+            <!-- Código QR -->
+            <section class="tarjeta qr-pago-tarjeta">
+
+                <div class="qr-pago-encabezado">
+
+                    <span class="qr-pago-icono">
+                        <svg class="icono">
+                            <use href="#i-catalogo"/>
+                        </svg>
+                    </span>
+
+                    <div>
+                        <h2>Escaneá el código QR</h2>
+                        <p class="texto-secundario mb-0">
+                            Usá la cámara de tu celular para
+                            abrir el destino de prueba.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="qr-pago-imagen">
+
+                    <img
+                        th:src="${'data:image/png;base64,' + qrBase64}"
+                        alt="Código QR de demostración que dirige a YouTube"
+                        width="280"
+                        height="280">
+
+                </div>
+
+                <div class="qr-pago-destino">
+                    <span class="qr-pago-punto"></span>
+                    <span>Destino de demostración</span>
+                </div>
+
+                <a
+                    class="btn btn-primario btn-bloque"
+                    th:href="${urlDestinoDemo}"
+                    target="_blank"
+                    rel="noopener noreferrer">
+
+                    Abrir destino de prueba
+
+                </a>
+
+            </section>
+
+            <!-- Resumen del pedido -->
+            <aside class="pila">
+
+                <section class="tarjeta">
+
+                    <div class="tarjeta-encabezado">
+                        <h2>Resumen del pedido</h2>
+
+                        <span
+                            class="insignia insignia-azul"
+                            th:text="'N.º ' + ${pedido.numeroPedido}">
+                        </span>
+                    </div>
+
+                    <div class="qr-pago-resumen-fila">
+                        <span class="texto-secundario">Comercio</span>
+                        <strong th:text="${pedido.nombreFantasia}">
+                            Comercio
+                        </strong>
+                    </div>
+
+                    <div class="qr-pago-resumen-fila">
+                        <span class="texto-secundario">
+                            Importe de referencia
+                        </span>
+
+                        <strong
+                            class="qr-pago-total"
+                            th:text="'$ ' + ${#numbers.formatDecimal(
+                                pedido.totalFacturado != null
+                                ? pedido.totalFacturado
+                                : pedido.total,
+                                1, 'POINT', 2, 'COMMA'
+                            )}">
+                            $ 0,00
+                        </strong>
+                    </div>
+
+                    <p class="ayuda mb-0">
+                        El importe se muestra únicamente como
+                        referencia visual. No está asociado
+                        a una operación real.
+                    </p>
+
+                </section>
+
+                <section class="alerta alerta-info qr-pago-aviso"
+                         role="note">
+
+                    <svg class="icono">
+                        <use href="#i-info"/>
+                    </svg>
+
+                    <div>
+                        <strong>QR de prueba: no realiza cobros</strong>
+
+                        <p class="mb-0">
+                            Este código dirige a YouTube para
+                            comprobar su lectura. Todavía no
+                            está conectado con Mercado Pago
+                            ni confirma el pago del pedido.
+                        </p>
+                    </div>
+
+                </section>
+
+                <a
+                    class="btn btn-secundario btn-bloque"
+                    th:href="@{/mis-pedidos/{id}(id=${pedido.id})}">
+
+                    Volver al detalle del pedido
+
+                </a>
+
+            </aside>
+
+        </div>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/base :: pie}"></footer>
+
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+
+</body>
+</html>

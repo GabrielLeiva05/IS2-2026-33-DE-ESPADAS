@@ -73,9 +73,69 @@
                     </form>
                 </section>
 
+                <section class="tarjeta tarjeta-pago-demo"
+                        th:if="${pedido.puedeConfirmarse}">
+
+                    <div class="tarjeta-encabezado">
+                        <h2>Pago con billetera virtual</h2>
+                        <span class="insignia insignia-violeta">
+                            Vista previa
+                        </span>
+                    </div>
+
+                    <p class="texto-secundario">
+                        Estamos preparando los pagos online.
+                        Mientras tanto, podés visualizar cómo se verá
+                        el código QR que utilizaremos para iniciar
+                        el pago desde Mercado Pago.
+                    </p>
+
+                    <form
+                        th:action="@{/mis-pedidos/{id}/pago-demo(id=${pedido.id})}"
+                        method="post"
+                        data-envio-unico>
+
+                        <label class="opcion-pago-demo">
+
+                            <input
+                                type="radio"
+                                name="medioPago"
+                                value="BILLETERA_VIRTUAL"
+                                checked>
+
+                            <span class="opcion-pago-demo-icono">
+                                <svg class="icono">
+                                    <use href="#i-pedido"/>
+                                </svg>
+                            </span>
+
+                            <span>
+                                <strong>Billetera virtual</strong>
+                                <small>Generar un QR de demostración</small>
+                            </span>
+
+                        </label>
+
+                        <button
+                            type="submit"
+                            class="btn btn-secundario btn-bloque mt-4">
+
+                            Generar QR de prueba
+
+                        </button>
+
+                    </form>
+
+                    <p class="ayuda mt-4 mb-0">
+                        Esta prueba no confirma el pedido ni realiza
+                        o registra ningún pago.
+                    </p>
+
+                </section>
+
+
                 <section class="tarjeta" th:if="${pedido.idFactura != null}">
-                    <div class="tarjeta-encabezado"><h2 th:text="'Factura N.º ' + ${pedido.numeroFactura}">Factura</h2>
-</div>
+                    <div class="tarjeta-encabezado"><h2 th:text="'Factura N.º ' + ${pedido.numeroFactura}">Factura</h2></div>
                     <a class="btn btn-secundario btn-bloque" th:href="@{/mis-facturas/{id}/pdf(id=${pedido.idFactura})}">
                         <svg class="icono icono-sm"><use href="#i-descarga"/></svg>Descargar factura (PDF)</a>
                 </section>
