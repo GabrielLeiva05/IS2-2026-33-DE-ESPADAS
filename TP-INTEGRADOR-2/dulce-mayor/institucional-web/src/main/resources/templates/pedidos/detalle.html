@@ -61,7 +61,8 @@
 
                 <section class="tarjeta" th:if="${pedido.puedeConfirmarse or pedido.puedeAnularse}">
                     <div class="tarjeta-encabezado"><h2>¿Lo confirmás?</h2></div>
-                    <p class="texto-secundario">Al confirmarlo se emite la factura, sale a reparto y la pagás al recibirlo. Si lo anulás, la mercadería
+                    <p class="texto-secundario">Al confirmarlo se emite la factura y sale a reparto. Si elegís QR o transferencia, te enviamos las
+                        instrucciones de pago por correo; en efectivo se paga al recibirlo. Si lo anulás, la mercadería
                         reservada vuelve al depósito.</p>
                     <form th:if="${pedido.puedeConfirmarse}" th:action="@{/mis-pedidos/{id}/confirmar(id=${pedido.id})}" method="post"
                           data-envio-unico class="mb-4">
@@ -73,66 +74,20 @@
                     </form>
                 </section>
 
-                <section class="tarjeta tarjeta-pago-demo"
-                        th:if="${pedido.puedeConfirmarse}">
-
-                    <div class="tarjeta-encabezado">
-                        <h2>Pago con billetera virtual</h2>
-                        <span class="insignia insignia-violeta">
-                            Vista previa
-                        </span>
-                    </div>
-
-                    <p class="texto-secundario">
-                        Estamos preparando los pagos online.
-                        Mientras tanto, podés visualizar cómo se verá
-                        el código QR que utilizaremos para iniciar
-                        el pago desde Mercado Pago.
-                    </p>
-
-                    <form
-                        th:action="@{/mis-pedidos/{id}/pago-demo(id=${pedido.id})}"
-                        method="post"
-                        data-envio-unico>
-
-                        <label class="opcion-pago-demo">
-
-                            <input
-                                type="radio"
-                                name="medioPago"
-                                value="BILLETERA_VIRTUAL"
-                                checked>
-
-                            <span class="opcion-pago-demo-icono">
-                                <svg class="icono">
-                                    <use href="#i-pedido"/>
-                                </svg>
-                            </span>
-
-                            <span>
-                                <strong>Billetera virtual</strong>
-                                <small>Generar un QR de demostración</small>
-                            </span>
-
-                        </label>
-
-                        <button
-                            type="submit"
-                            class="btn btn-secundario btn-bloque mt-4">
-
-                            Generar QR de prueba
-
-                        </button>
-
-                    </form>
-
-                    <p class="ayuda mt-4 mb-0">
-                        Esta prueba no confirma el pedido ni realiza
-                        o registra ningún pago.
-                    </p>
-
+                <section class="tarjeta" th:if="${pedido.formaDePago != null}">
+                    <div class="tarjeta-encabezado"><h2>Forma de pago</h2></div>
+                    <p class="texto-chico" th:text="'Medio: ' + ${pedido.formaDePagoLegible}">Medio</p>
+                    <p class="texto-chico" th:text="'Estado del pago: ' + ${pedido.estadoPagoLegible}">Estado</p>
+                    <p class="ayuda mb-0">Cuando el preventista confirma el pedido, enviamos a tu correo el detalle, el total y las
+                        instrucciones de pago.</p>
                 </section>
 
+                <section class="tarjeta" th:if="${pedido.puedeConfirmarse and pedido.formaDePago == null}">
+                    <div class="tarjeta-encabezado"><h2>Pago</h2></div>
+                    <p class="texto-secundario mb-0">Podés confirmar el pedido desde aquí, o el preventista puede confirmarlo en persona
+                        y elegir tu medio de pago preferido (efectivo, transferencia o QR de Mercado Pago). En ambos
+                        casos vas a recibir por correo el detalle, el total y las instrucciones de pago.</p>
+                </section>
 
                 <section class="tarjeta" th:if="${pedido.idFactura != null}">
                     <div class="tarjeta-encabezado"><h2 th:text="'Factura N.º ' + ${pedido.numeroFactura}">Factura</h2></div>

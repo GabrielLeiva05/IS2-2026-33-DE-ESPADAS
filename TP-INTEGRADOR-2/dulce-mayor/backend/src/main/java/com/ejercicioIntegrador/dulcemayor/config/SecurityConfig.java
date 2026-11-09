@@ -82,6 +82,9 @@ public class SecurityConfig {
                                 "/api/auth/oauth2/canje").permitAll()
                         .requestMatchers("/api/auth/yo", "/api/auth/clave", "/api/auth/renovar").authenticated() // incluso con clave pendiente
 
+                        // --- Pagos: webhook público de Mercado Pago (el estado real se valida contra su API) ---
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/mercadopago/webhook").permitAll()
+
                         // --- Público: catálogo, imágenes de productos y clasificación ---
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/imagenes/*/contenido",
                                 "/api/categorias/**", "/api/subcategorias/**").permitAll()

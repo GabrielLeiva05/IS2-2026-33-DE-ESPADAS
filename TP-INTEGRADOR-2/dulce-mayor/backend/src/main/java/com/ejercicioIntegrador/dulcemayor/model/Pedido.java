@@ -1,6 +1,7 @@
 package com.ejercicioIntegrador.dulcemayor.model;
 
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.FormaDePago;
 import com.ejercicioIntegrador.dulcemayor.model.base.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -56,6 +57,11 @@ public class Pedido extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 25)
     private EstadoPedido estado;
+
+    /** Medio de pago preferido por el cliente, elegido por el preventista al confirmar (Ola de Pagos). */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private FormaDePago formaDePago;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "punto_venta_id", nullable = false)

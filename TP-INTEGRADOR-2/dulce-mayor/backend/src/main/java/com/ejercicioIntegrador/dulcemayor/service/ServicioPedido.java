@@ -11,6 +11,7 @@ import com.ejercicioIntegrador.dulcemayor.dto.ProductoCatalogoDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.RutaDelDiaDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.UbicacionDTO;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.FormaDePago;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.ResultadoVisita;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.TipoRuta;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
@@ -21,6 +22,7 @@ import com.ejercicioIntegrador.dulcemayor.model.DetallePedido;
 import com.ejercicioIntegrador.dulcemayor.model.Distribuidor;
 import com.ejercicioIntegrador.dulcemayor.model.Empleado;
 import com.ejercicioIntegrador.dulcemayor.model.FacturaCliente;
+import com.ejercicioIntegrador.dulcemayor.model.Pago;
 import com.ejercicioIntegrador.dulcemayor.model.Pedido;
 import com.ejercicioIntegrador.dulcemayor.model.Preventista;
 import com.ejercicioIntegrador.dulcemayor.model.Producto;
@@ -70,12 +72,13 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
     private final ServicioCatalogo servicioCatalogo;
     private final ServicioStock servicioStock;
     private final ServicioRuta servicioRuta;
+    private final ServicioPago servicioPago;
 
     public ServicioPedido(RepositorioPedido repositorioPedido, ServicioEmpleado servicioEmpleado,
                           ServicioCliente servicioCliente, ServicioPuntoVenta servicioPuntoVenta,
                           ServicioProducto servicioProducto, ServicioCatalogo servicioCatalogo,
                           ServicioStock servicioStock, ServicioRuta servicioRuta,
-                          ServicioFacturaCliente servicioFacturaCliente) {
+                          ServicioFacturaCliente servicioFacturaCliente, ServicioPago servicioPago) {
         super(repositorioPedido);
         this.repositorioPedido = repositorioPedido;
         this.servicioEmpleado = servicioEmpleado;
@@ -86,6 +89,7 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         this.servicioStock = servicioStock;
         this.servicioRuta = servicioRuta;
         this.servicioFacturaCliente = servicioFacturaCliente;
+        this.servicioPago = servicioPago;
     }
 
     // ------------------------------------------------------------------
@@ -169,18 +173,20 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
 
     @Override
     public PedidoResponseDTO convertirAResponse(Pedido pedido) {
-        return convertir(pedido, servicioFacturaCliente.facturaDelPedido(pedido.getId()).orElse(null));
+        return convertir(pedido, servicioFacturaCliente.facturaDelPedido(pedido.getId()).orElse(null),
+                servicioPago.pagoDelPedido(pedido.getId()).orElse(null));
     }
 
-    /** Listados: las facturas de todos los pedidos se buscan en una sola consulta. */
+    /** Listados: las facturas y los pagos de todos los pedidos se buscan en una sola consulta cada uno. */
     @Override
     protected List<PedidoResponseDTO> convertirAResponse(java.util.Collection<Pedido> pedidos) {
         Map<String, FacturaCliente> facturas = servicioFacturaCliente.facturasDePedidos(
                 pedidos.stream().map(Pedido::getId).toList());
-        return pedidos.stream().map(p -> convertir(p, facturas.get(p.getId()))).toList();
+        Map<String, Pago> pagos = servicioPago.pagosDePedidos(pedidos.stream().map(Pedido::getId).toList());
+        return pedidos.stream().map(p -> convertir(p, facturas.get(p.getId()), pagos.get(p.getId()))).toList();
     }
 
-    private PedidoResponseDTO convertir(Pedido pedido, FacturaCliente factura) {
+    private PedidoResponseDTO convertir(Pedido pedido, FacturaCliente factura, Pago pago) {
         PuntoVenta pv = pedido.getPuntoVenta();
         Cliente cliente = pv.getCliente();
         Preventista preventista = pedido.getPreventista();
@@ -203,7 +209,8 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
                 distribuidor == null ? null : distribuidor.getNombre() + " " + distribuidor.getApellido(),
                 detalles, pedido.isEliminado(),
                 factura == null ? null : factura.getId(), factura == null ? null : factura.getNumeroFactura(),
-                factura == null ? null : factura.getTotal());
+                factura == null ? null : factura.getTotal(),
+                pedido.getFormaDePago(), pago == null ? null : pago.getEstado());
     }
 
     @Override
@@ -244,10 +251,43 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         return convertirAResponse(pedido);
     }
 
+    /**
+     * Confirmación en forma presencial por el preventista, con el medio de pago preferido por el cliente.
+     * En UNA transacción (con el pedido bloqueado):
+     *  1. registra fechaFacturacion, el medio de pago y pasa el pedido a PENDIENTE_DE_ENTREGA;
+     *  2. emite la FacturaCliente en PENDIENTE_PAGO;
+     *  3. registra el Pago y envía al cliente el correo con el detalle y las instrucciones (QR, alias o efectivo).
+     * Si el pago con QR no se puede generar en Mercado Pago, se deshace todo y el pedido sigue CARGADO.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public PedidoResponseDTO confirmarPedidoPresencial(String correoPreventista, String id, FormaDePago formaDePago)
+            throws MiException {
+        if (formaDePago == null) {
+            throw new MiException("Debe indicar el medio de pago preferido del cliente");
+        }
+        Empleado empleado = servicioEmpleado.obtenerEmpleadoPorCorreo(correoPreventista);
+        if (!(empleado instanceof Preventista preventista)) {
+            throw new MiException("La cuenta no pertenece a un preventista");
+        }
+        Pedido pedido = bloquear(id);
+        if (!pedido.getPreventista().getId().equals(preventista.getId())) {
+            throw new RecursoNoEncontradoException("No existe el pedido con id " + id);
+        }
+        if (pedido.getEstado() != EstadoPedido.CARGADO || pedido.isConfirmado()) {
+            throw new MiException("El pedido N.º " + pedido.getNumeroPedido() + " ya no está pendiente de confirmación");
+        }
+        pedido.setFechaFacturacion(LocalDateTime.now());
+        pedido.setEstado(EstadoPedido.PENDIENTE_DE_ENTREGA);
+        pedido.setFormaDePago(formaDePago);
+        Pedido guardado = repositorioPedido.save(pedido);
+        FacturaCliente factura = servicioFacturaCliente.facturarPedido(guardado);
+        Pago pago = servicioPago.registrarPagoDePedido(guardado, factura, formaDePago);
+        return convertir(guardado, factura, pago);
+    }
+
     // ------------------------------------------------------------------
     // Cliente
     // ------------------------------------------------------------------
-
     /** listarPedidoPorCliente del diagrama, para el cliente autenticado. */
     @Transactional(readOnly = true)
     public List<PedidoResponseDTO> listarPedidosDelCliente(String correoCliente) throws MiException {
@@ -278,7 +318,7 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         pedido.setEstado(EstadoPedido.PENDIENTE_DE_ENTREGA);
         Pedido guardado = repositorioPedido.save(pedido);
         FacturaCliente factura = servicioFacturaCliente.facturarPedido(guardado);
-        return convertir(guardado, factura);
+        return convertir(guardado, factura, null);
     }
 
     /**

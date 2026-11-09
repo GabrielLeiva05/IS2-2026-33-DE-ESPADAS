@@ -44,7 +44,11 @@ Hallazgos que condicionaron el diseño:
 - **Servicios sin entidad propia** existen: `ServicioCatalogo` no hereda de `BaseService` y `ControladorCatalogo` no hereda de `BaseController`. Los reportes siguen ese mismo criterio.
 - **Seguridad:** `SecurityConfig` con JWT, `RoleHierarchy` (JEFE > ADMINISTRATIVO y PREVENTISTA) y `anyRequest().denyAll()` al final: un endpoint nuevo queda cerrado hasta que se le asigna un rol. En admin-web, `InterceptorAcceso` aplica una matriz de navegación por ruta.
 - **Modelo relevante:** `Pedido` → `PuntoVenta` (comercio, con `Direccion` → `Localidad` → `Departamento`) → `Cliente` (`Persona`; correo en `Usuario.nombreUsuario`); `Pedido` → `Preventista`; `Pedido` → `Distribuidor` (opcional). Estados: `CARGADO`, `PENDIENTE_DE_ENTREGA`, `ENTREGADO`, `ANULADO`.
-- **No existen módulos de facturación ni de pagos** (el menú los muestra como "Pronto"). El propio código documenta que `Pedido.fechaFacturacion` registra **la confirmación del cliente**. Por lo tanto *facturado* significa *confirmado*, y **no existe medio de pago** en el modelo.
+- **Estado de este documento.** Se escribió antes de las olas de Facturación (Ola 3) y de Pagos con QR
+  (Ola de Pagos). Hoy **sí existen** los módulos de Facturación (`FacturaCliente`/`FacturaProveedor`) y de Pagos
+  (`Pago`, `FormaDePago`, QR de Mercado Pago), descritos en el `README.md` principal. Cuando se redactó, el modelo
+  no tenía medio de pago y `Pedido.fechaFacturacion` registraba **la confirmación del cliente**; por eso *facturado*
+  significaba *confirmado*. Para el estado actual, ver el README principal.
 
 ## 3. Funcionalidades implementadas
 

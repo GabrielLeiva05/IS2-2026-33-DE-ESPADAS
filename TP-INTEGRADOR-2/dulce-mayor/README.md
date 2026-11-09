@@ -24,6 +24,9 @@ Resumen de esta entrega:
   - `FacturaCliente` se emite al confirmar el pedido y `FacturaProveedor` la carga administración.
   - Se aplica el patrón **Factory Method**.
   - El PDF se arma con **JasperReports** sobre la base real y cada cliente descarga solo sus facturas.
+- **Pagos (Mercado Pago, Checkout API).** El preventista confirma el pedido en forma presencial y elige el medio de
+  pago: efectivo, transferencia o QR de Mercado Pago. Se envía por correo el detalle, el total y las instrucciones;
+  al acreditarse el QR, la factura pasa a `PAGADA` y llega un correo de confirmación. Ver [sección 21](#21-pagos-con-mercado-pago-checkout-api).
 - **Tablets.** Las apps React y las web se adaptan a tablets, verticales y horizontales.
 
 > **Sobre la verificación:** el entorno de desarrollo no tenía acceso a Maven Central, así que `mvnw test` y el
@@ -57,6 +60,7 @@ Resumen de esta entrega:
 18. [Mejoras responsive para tablets](#18-mejoras-responsive-para-tablets)
 19. [Cómo ejecutar y probar el proyecto](#19-cómo-ejecutar-y-probar-el-proyecto)
 20. [Funcionalidades pendientes (Pagos y otras)](#20-funcionalidades-pendientes)
+21. [Pagos con Mercado Pago (Checkout API)](#21-pagos-con-mercado-pago-checkout-api)
 
 ```
 dulce-mayor/
@@ -702,14 +706,16 @@ cada app React.
 
 ## 20. Funcionalidades pendientes
 
-### Pagos (excluido por consigna)
+### Pagos (implementado; ver sección 21)
 
-- `FormaDePago` y `Pago`, y la transición `PENDIENTE_PAGO → PAGADA`. Ninguna operación marca una factura como
-  pagada.
-- Código QR de pago: `FacturaCliente.codigoQrPago` existe y está vacío.
-- "Forma de pago" y descuentos por medio de pago en el PDF: hoy figuran como "A definir" y $0.
-- Cobro registrado por el distribuidor en la entrega.
-- Anulación de facturas con nota de crédito (`ANULADA`).
+Ya están implementados: `FormaDePago`, `Pago`, la transición `PENDIENTE_PAGO → PAGADA` al acreditarse un QR,
+el QR de Mercado Pago (Checkout API, sin redirección) enviado por correo, el pago por transferencia con alias y
+el pago en efectivo al entregar. Falta:
+
+- **Cobro registrado por el distribuidor en la entrega** para el pago en efectivo (hoy el `Pago` queda PENDIENTE).
+- **"Forma de pago" y descuentos por medio de pago en el PDF**: hoy figuran como "A definir" y $0.
+- **Anulación de facturas con nota de crédito** (`ANULADA`).
+- **Confirmación automática de transferencias**: hoy el cliente envía el comprobante y no hay conciliación bancaria.
 
 ### Otros pendientes
 
@@ -725,3 +731,90 @@ cada app React.
 - **Correos al cliente**, por ejemplo con la factura adjunta.
 - **Pantallas para editar puntos de venta.**
 - **Reducir consultas repetidas** en algunos listados de productos de admin-web.
+
+---
+
+## 21. Pagos con Mercado Pago (Checkout API)
+
+### Flujo
+
+El preventista, al confirmar un pedido **en forma presencial**, elige el medio de pago preferido por el cliente:
+
+| Medio | Qué se envía por correo | Estado del pago |
+|---|---|---|
+| **Efectivo** | Detalle del pedido, monto total y aviso de que se paga en efectivo al recibirlo. | `PENDIENTE` (se cobra en la entrega) |
+| **Transferencia** | Detalle, monto total, alias y titular para transferir. | `PENDIENTE` |
+| **QR** | Detalle, monto total y el **QR de Mercado Pago** adjunto como imagen. | `PENDIENTE` → `APROBADO` |
+
+Cuando Mercado Pago acredita el pago del QR, su **webhook** consulta el estado real en la API, el `Pago` pasa a
+`APROBADO`, la `FacturaCliente` pasa a `PAGADA` y se envía **otro correo** al cliente confirmando el pago.
+Todo el circuito es **idempotente** (varias notificaciones no duplican estados ni correos).
+
+Se usa la **Checkout API con QR dinámico** (sin Checkout Pro y **sin redirigir** al cliente):
+`PUT /instore/orders/qr/seller/collectors/{user_id}/pos/{external_pos_id}/orders`, que devuelve `qr_data`
+(contenido que el backend dibuja como QR con ZXing) e `in_store_order_id`. La `external_reference` enviada es el
+**id del pedido**, con la que el webhook encuentra el pago.
+
+### Clases nuevas
+
+- `enumeraciones/FormaDePago` (`EFECTIVO`, `TRANSFERENCIA`, `QR`) y `enumeraciones/EstadoPago`
+  (`PENDIENTE`, `APROBADO`, `RECHAZADO`).
+- `model/Pago` (1 Pago ── 1 Pedido) y `repository/RepositorioPago`.
+- `service/ServicioPago` (registrar pago, procesar webhook, acreditar de forma idempotente).
+- `service/ServicioCorreo` (correos HTML con el detalle y las instrucciones; QR adjunto vía `cid:qrPago`).
+- `service/pagos/MercadoPagoQrCliente` (Checkout API QR) y `service/pagos/GeneradorQrPng` (ZXing).
+- `controller/ControladorPago` (webhook público) y `dto/ConfirmarPedidoRequestDTO`.
+- `ServicioPedido.confirmarPedidoPresencial(...)` y `ServicioFacturaCliente.marcarPagada(...)`.
+- `Pedido.formaDePago`, `Pago`, y en `PedidoResponseDTO`: `formaDePago` y `estadoPago`.
+- App del preventista: `DetallePedido.jsx` permite elegir el medio y confirmar; `servicios.js` agrega
+  `pedidos.confirmar(id, formaDePago)`.
+- Sitio institucional: muestra el medio y el estado del pago. Se retiró la demo de QR anterior.
+
+### Endpoints
+
+| Método | Ruta | Quién | Uso |
+|---|---|---|---|
+| `POST` | `/api/pedidos/preventista/{id}/confirmar` | `PREVENTISTA` | Confirma el pedido con `{ "formaDePago": "EFECTIVO\|TRANSFERENCIA\|QR" }` |
+| `POST` | `/api/pagos/mercadopago/webhook` | público | Notificaciones de Mercado Pago (valida el estado contra su API) |
+
+### Variables de entorno
+
+| Variable | Uso |
+|---|---|
+| `MP_ACCESS_TOKEN` | *Access token* de la aplicación de Mercado Pago. **Sin él, QR no está disponible.** |
+| `MP_USER_ID` | Id de usuario de Mercado Pago (collector) del punto de venta. |
+| `MP_EXTERNAL_POS_ID` | Identificador de la caja/punto de venta creado en Mercado Pago. |
+| `MP_NOTIFICATION_URL` | URL pública del webhook (en desarrollo, la de ngrok). |
+| `MP_BASE_URL` | Por defecto `https://api.mercadopago.com`. |
+| `ALIAS_TRANSFERENCIA` / `TITULAR_TRANSFERENCIA` | Datos del correo de transferencia. |
+| `CORREO_HABILITADO` | `true` para enviar correos; si es `false`, se registran en el log. |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_STARTTLS` | SMTP. |
+| `CORREO_REMITENTE`, `CORREO_NOMBRE_REMITENTE` | Remitente de los correos. |
+
+### Cómo probar la integración paso a paso
+
+1. **Crear la aplicación y el punto de venta en Mercado Pago**
+   1. Entrar a <https://www.mercadopago.com.ar/developers/panel/app> y crear una aplicación.
+   2. En *Credenciales de prueba* copiar el **Access Token** y el **User ID** (collector id).
+   3. En la cuenta de prueba, crear una **sucursal** y una **caja** (punto de venta) cuyo `external_id` será
+      `MP_EXTERNAL_POS_ID` (por defecto `DULCEMAYOR-POS`).
+2. **Configurar el correo**: usar Mailtrap (sandbox) o una cuenta con clave de aplicación. Completar
+   `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` y `CORREO_HABILITADO=true`.
+3. **Exponer el backend para el webhook**: `ngrok http 8080` y copiar la URL HTTPS en `MP_NOTIFICATION_URL`
+   agregando `/api/pagos/mercadopago/webhook`.
+4. **Completar `backend/.env`** con las variables de la tabla y arrancar el backend (`mvnw.cmd spring-boot:run`).
+5. **Preparar el pedido**: ingresar a la app del preventista, tomar un pedido de un comercio y quedar en el
+   detalle del pedido (`/pedidos/{id}`).
+6. **Confirmar con QR**: elegir *QR de Mercado Pago* y confirmar. Verificar:
+   - el pedido pasa a `PENDIENTE_DE_ENTREGA` y aparece el medio/estado del pago;
+   - en Mailtrap (o el correo real) llega el correo con el detalle, el total y el QR adjunto.
+7. **Pagar el QR**: escanearlo con la app de Mercado Pago usando un **usuario de prueba** (comprador) y pagar.
+8. **Verificar la acreditación**: en los logs del backend debe procesarse el webhook; el `Pago` pasa a `APROBADO`,
+   la factura a `PAGADA` y llega el **segundo correo** confirmando el pago.
+9. **Probar transferencia y efectivo**: repetir la confirmación con esos medios y verificar el contenido del correo
+   (alias/titular o aviso de pago en efectivo).
+10. **Probar sin credenciales de MP**: con `MP_ACCESS_TOKEN` vacío, elegir QR debe devolver un error claro y **no**
+    confirmar el pedido (la transacción se revierte).
+
+> **Nota:** en este entorno no se ejecutaron las pruebas de integración (por indicación expresa). Este instructivo
+> es el procedimiento para validarlas contra el sandbox de Mercado Pago.

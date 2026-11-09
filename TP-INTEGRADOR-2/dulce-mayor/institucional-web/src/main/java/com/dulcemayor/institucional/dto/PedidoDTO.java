@@ -30,6 +30,9 @@ public class PedidoDTO {
     private String idFactura;
     private Long numeroFactura;
     private Double totalFacturado;
+    /** Pagos (Checkout API): medio elegido por el preventista y estado del pago. */
+    private String formaDePago;
+    private String estadoPago;
     private boolean confirmado;
     private boolean puedeConfirmarse;
     private boolean puedeAnularse;
@@ -50,8 +53,7 @@ public class PedidoDTO {
         return legible(fechaEntrega);
     }
 
-    public String getEstadoLegible() {
-        if (estado == null) {
+    public String getEstadoLegible() {        if (estado == null) {
             return "";
         }
         return switch (estado) {
@@ -73,6 +75,30 @@ public class PedidoDTO {
             case "PENDIENTE_DE_ENTREGA" -> "insignia-azul";
             case "ENTREGADO" -> "insignia-verde";
             default -> "insignia-gris";
+        };
+    }
+
+    public String getFormaDePagoLegible() {
+        if (formaDePago == null) {
+            return null;
+        }
+        return switch (formaDePago) {
+            case "EFECTIVO" -> "Efectivo (al entregar)";
+            case "TRANSFERENCIA" -> "Transferencia";
+            case "QR" -> "QR de Mercado Pago";
+            default -> formaDePago;
+        };
+    }
+
+    public String getEstadoPagoLegible() {
+        if (estadoPago == null) {
+            return "Pendiente";
+        }
+        return switch (estadoPago) {
+            case "PENDIENTE" -> "Pendiente";
+            case "APROBADO" -> "Pagado";
+            case "RECHAZADO" -> "Rechazado";
+            default -> estadoPago;
         };
     }
 

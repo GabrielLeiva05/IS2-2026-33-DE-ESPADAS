@@ -409,6 +409,10 @@ En las de celular de página completa, la barra inferior aparece a mitad de la i
 
 ## 11. Funcionalidades pendientes
 
+> **Nota de actualización.** Esta lista corresponde a la Etapa 2. Varias de estas funcionalidades ya se
+> implementaron en olas posteriores (Pedidos, Rutas, Entregas, Facturación y Pagos con QR). Para el estado actual,
+> ver el [`README.md`](../README.md) principal.
+
 No se implementaron porque pertenecen a módulos que todavía no existen. No hay métodos vacíos ni respuestas
 simuladas: las rutas no existen y la API las deniega. En las vistas figuran como «Próximamente».
 

@@ -3,6 +3,7 @@ package com.ejercicioIntegrador.dulcemayor.controller;
 import com.ejercicioIntegrador.dulcemayor.controller.base.BaseController;
 import com.ejercicioIntegrador.dulcemayor.controller.base.BaseUseCaseController;
 import com.ejercicioIntegrador.dulcemayor.dto.AsignacionPedidosDTO;
+import com.ejercicioIntegrador.dulcemayor.dto.ConfirmarPedidoRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoAltaDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoResponseDTO;
@@ -82,6 +83,15 @@ public class ControladorPedido extends BaseController<PedidoAltaDTO, PedidoRespo
     public ResponseEntity<PedidoResponseDTO> pedidoDelPreventista(Authentication autenticacion, @PathVariable String id)
             throws MiException {
         return ResponseEntity.ok(servicioPedido.consultarPedidoDelPreventista(autenticacion.getName(), id));
+    }
+
+    /** Confirmación presencial: el preventista elige el medio de pago preferido por el cliente. */
+    @PostMapping("/preventista/{id}/confirmar")
+    public ResponseEntity<PedidoResponseDTO> confirmarPresencial(Authentication autenticacion, @PathVariable String id,
+                                                                 @RequestBody ConfirmarPedidoRequestDTO confirmacion)
+            throws MiException {
+        return ResponseEntity.ok(servicioPedido.confirmarPedidoPresencial(autenticacion.getName(), id,
+                confirmacion == null ? null : confirmacion.formaDePago()));
     }
 
     // ---------------- Cliente ----------------

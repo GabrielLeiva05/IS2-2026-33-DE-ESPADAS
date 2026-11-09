@@ -23,6 +23,10 @@ export const pedidos = {
   cargar: (idPuntoVenta, detalles) => api.post('/api/pedidos/preventista', { idPuntoVenta, detalles }).then((r) => r.data),
   mios: () => api.get('/api/pedidos/preventista').then((r) => r.data),
   uno: (id) => api.get(`/api/pedidos/preventista/${encodeURIComponent(id)}`).then((r) => r.data),
+  /** Confirma el pedido en forma presencial con el medio de pago preferido por el cliente. */
+  confirmar: (id, formaDePago) => api
+    .post(`/api/pedidos/preventista/${encodeURIComponent(id)}/confirmar`, { formaDePago })
+    .then((r) => r.data),
 }
 
 export const clientes = {

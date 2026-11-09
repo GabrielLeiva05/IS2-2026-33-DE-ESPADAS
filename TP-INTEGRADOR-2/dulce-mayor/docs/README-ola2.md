@@ -496,6 +496,9 @@ Todo se controla en el **backend**; las apps solo ocultan opciones por comodidad
 
 ## 23. Funcionalidades pendientes
 
+> **Nota de actualización.** Esta lista corresponde a la Ola 2. Luego se implementaron Facturación (Ola 3) y Pagos
+> con QR de Mercado Pago. Para el estado actual, ver el [`README.md`](../README.md) principal.
+
 - **Pagos** y **facturación** (`FacturaCliente`, `PENDIENTE_PAGO`/`PAGADA`): no implementados por decisión del equipo (sección 14).
 - **Correos** (aviso al cliente con el enlace a su pedido): no implementados por decisión del equipo; el enlace
   `/mis-pedidos/{id}` con retorno tras el ingreso ya funciona.

@@ -2,6 +2,7 @@ package com.ejercicioIntegrador.dulcemayor.service;
 
 import com.ejercicioIntegrador.dulcemayor.dto.FacturaResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.SolicitudFacturaClienteDTO;
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoFactura;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.OperacionNoPermitidaException;
@@ -165,6 +166,22 @@ public class ServicioFacturaCliente extends BaseService<FacturaCliente, Solicitu
     @Transactional(readOnly = true)
     public Optional<FacturaCliente> facturaDelPedido(String idPedido) {
         return repositorioFacturaCliente.findFirstByPedido_IdAndEliminadoFalse(idPedido);
+    }
+
+    /**
+     * Marca como PAGADA la factura del pedido cuyo pago se acreditó (lo llama ServicioPago al aprobarse un QR).
+     * Es idempotente: si ya estaba pagada no vuelve a escribir.
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public Optional<FacturaCliente> marcarPagada(String idPedido) {
+        Optional<FacturaCliente> factura = repositorioFacturaCliente.findFirstByPedido_IdAndEliminadoFalse(idPedido);
+        factura.ifPresent(f -> {
+            if (f.getEstado() != EstadoFactura.PAGADA) {
+                f.setEstado(EstadoFactura.PAGADA);
+                repositorioFacturaCliente.save(f);
+            }
+        });
+        return factura;
     }
 
     private FacturaCliente facturaDelCliente(String correo, String idFactura) throws MiException {
