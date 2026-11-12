@@ -367,6 +367,13 @@ public class ServicioRuta extends BaseService<Ruta, RutaRequestDTO, RutaResponse
                 .findFirst();
     }
 
+    /** Próxima parada pendiente en el orden guardado: la que el distribuidor visitará a continuación. */
+    public Optional<PuntoRuta> proximaParadaPendiente(Ruta ruta) {
+        return ruta.getPuntos().stream()
+                .filter(p -> !p.isVisitado())
+                .min(Comparator.comparingInt(PuntoRuta::getOrden));
+    }
+
     // ------------------------------------------------------------------
     // Auxiliares
     // ------------------------------------------------------------------

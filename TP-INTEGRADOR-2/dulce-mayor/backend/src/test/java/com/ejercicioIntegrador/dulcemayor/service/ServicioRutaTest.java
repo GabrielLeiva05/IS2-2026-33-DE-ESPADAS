@@ -1,13 +1,17 @@
 package com.ejercicioIntegrador.dulcemayor.service;
 
 import com.ejercicioIntegrador.dulcemayor.dto.TrayectoDTO;
+import com.ejercicioIntegrador.dulcemayor.enumeraciones.ResultadoVisita;
 import com.ejercicioIntegrador.dulcemayor.model.Direccion;
 import com.ejercicioIntegrador.dulcemayor.model.PuntoRuta;
 import com.ejercicioIntegrador.dulcemayor.model.PuntoVenta;
+import com.ejercicioIntegrador.dulcemayor.model.Ruta;
 import com.ejercicioIntegrador.dulcemayor.service.rutas.MatrizRecorrido;
 import com.ejercicioIntegrador.dulcemayor.service.rutas.MotorRecorridos;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -86,5 +90,32 @@ class ServicioRutaTest {
         // Un grado de latitud son unos 111 km
         double km = CalculoDistancia.kilometros(-32.0, -68.0, -33.0, -68.0);
         assertTrue(km > 110 && km < 112);
+    }
+
+    @Test
+    void laProximaParadaEsLaPrimeraPendienteSegunElOrdenGuardado() {
+        PuntoRuta primera = parada("primera", -32.88, -68.84);
+        PuntoRuta segunda = parada("segunda", -32.90, -68.84);
+        PuntoRuta tercera = parada("tercera", -32.92, -68.84);
+        primera.setOrden(1);
+        segunda.setOrden(3);
+        tercera.setOrden(2);
+        primera.marcarVisitado(ResultadoVisita.ENTREGADO, null, LocalDateTime.now());
+        Ruta ruta = new Ruta();
+        ruta.setPuntos(new ArrayList<>(List.of(primera, segunda, tercera)));
+        ServicioRuta servicio = new ServicioRuta(null, null, null, SIN_OSRM);
+
+        assertEquals(tercera, servicio.proximaParadaPendiente(ruta).orElseThrow());
+    }
+
+    @Test
+    void sinParadasPendientesNoHayProximaVisita() {
+        PuntoRuta unica = parada("unica", -32.88, -68.84);
+        unica.setOrden(1);
+        unica.marcarVisitado(ResultadoVisita.ENTREGADO, null, LocalDateTime.now());
+        Ruta ruta = new Ruta();
+        ruta.setPuntos(new ArrayList<>(List.of(unica)));
+
+        assertTrue(new ServicioRuta(null, null, null, SIN_OSRM).proximaParadaPendiente(ruta).isEmpty());
     }
 }

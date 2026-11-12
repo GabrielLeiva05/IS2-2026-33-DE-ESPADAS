@@ -4,6 +4,7 @@ import com.ejercicioIntegrador.dulcemayor.enumeraciones.FormaDePago;
 import com.ejercicioIntegrador.dulcemayor.model.DetallePedido;
 import com.ejercicioIntegrador.dulcemayor.model.FacturaCliente;
 import com.ejercicioIntegrador.dulcemayor.model.Pedido;
+import com.ejercicioIntegrador.dulcemayor.model.PuntoVenta;
 import com.ejercicioIntegrador.dulcemayor.model.Usuario;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ import java.util.Locale;
  *  - TRANSFERENCIA: detalle, total y el alias (con titular) para transferir.
  *  - QR: detalle, total y el QR de Mercado Pago adjunto como imagen.
  * Además, cuando Mercado Pago acredita el pago del QR, se envía un correo de confirmación.
+ * Y cuando el distribuidor entrega en un comercio, se avisa al comercio que sigue en la ruta que será el
+ * próximo visitado.
  *
  * Si el correo no está configurado (app.correo.habilitado=false o sin spring.mail.host) no falla la
  * confirmación del pedido: se registra en el log y se continúa.
@@ -68,12 +71,24 @@ public class ServicioCorreo {
         enviar(pedido, asunto, cuerpoPagoAprobado(pedido, factura), null);
     }
 
+    /**
+     * Aviso al comercio que el distribuidor visitará a continuación, apenas entrega en la parada anterior.
+     * Es solo informativo: no requiere que el comercio tenga un pedido cargado.
+     */
+    public void enviarAvisoProximaVisita(PuntoVenta puntoVenta, String nombreDistribuidor) {
+        String asunto = "Tu pedido está por llegar · Dulce Mayor";
+        enviarA(correoDe(puntoVenta), asunto, cuerpoProximaVisita(puntoVenta, nombreDistribuidor), null);
+    }
+
     // ------------------------------------------------------------------
     // Envío
     // ------------------------------------------------------------------
 
     private void enviar(Pedido pedido, String asunto, String html, byte[] qrPng) {
-        String destino = correoCliente(pedido);
+        enviarA(correoCliente(pedido), asunto, html, qrPng);
+    }
+
+    private void enviarA(String destino, String asunto, String html, byte[] qrPng) {
         if (!habilitado) {
             log.info("Correo deshabilitado: no se envía «{}» a {} (activar CORREO_HABILITADO y MAIL_*)",
                     asunto, destino);
@@ -96,13 +111,17 @@ public class ServicioCorreo {
             }
             sender.send(mensaje);
         } catch (Exception e) {
-            // El correo no debe tirar abajo la confirmación del pedido.
+            // Un correo fallido no debe tirar abajo la operación que lo dispara (pedido o entrega).
             log.warn("No se pudo enviar «{}» a {}: {}", asunto, destino, e.getMessage());
         }
     }
 
     private static String correoCliente(Pedido pedido) {
-        Usuario usuario = pedido.getPuntoVenta().getCliente().getUsuario();
+        return correoDe(pedido.getPuntoVenta());
+    }
+
+    private static String correoDe(PuntoVenta puntoVenta) {
+        Usuario usuario = puntoVenta.getCliente().getUsuario();
         return usuario == null ? null : usuario.getNombreUsuario();
     }
 
@@ -131,6 +150,21 @@ public class ServicioCorreo {
                 .append(pedido.getNumeroPedido()).append("</strong>.</p>");
         html.append("<p>Monto abonado: <strong>").append(pesos(factura.getTotal())).append("</strong>.</p>");
         html.append("<p>Ya estamos preparando el despacho. Te avisaremos cuando salga a reparto.</p>");
+        html.append(pieHtml());
+        return html.toString();
+    }
+
+    private String cuerpoProximaVisita(PuntoVenta puntoVenta, String nombreDistribuidor) {
+        String nombre = nombreResponsable(puntoVenta);
+        StringBuilder html = new StringBuilder();
+        html.append(encabezadoHtml("Tu pedido está por llegar"));
+        html.append("<p>").append(nombre.isEmpty() ? "Hola" : "Hola " + escapar(nombre)).append(",</p>");
+        html.append("<p>En los próximos minutos estaremos visitando <strong>")
+                .append(escapar(puntoVenta.getNombreFantasia()))
+                .append("</strong> para entregar tu pedido de Dulce Mayor. ¡Estate atento!</p>");
+        if (nombreDistribuidor != null && !nombreDistribuidor.isBlank()) {
+            html.append("<p>Te va a atender <strong>").append(escapar(nombreDistribuidor)).append("</strong>.</p>");
+        }
         html.append(pieHtml());
         return html.toString();
     }
@@ -200,7 +234,14 @@ public class ServicioCorreo {
     }
 
     private static String nombreCliente(Pedido pedido) {
-        var cliente = pedido.getPuntoVenta().getCliente();
+        return nombreResponsable(pedido.getPuntoVenta());
+    }
+
+    private static String nombreResponsable(PuntoVenta puntoVenta) {
+        var cliente = puntoVenta.getCliente();
+        if (cliente == null) {
+            return "";
+        }
         return (cliente.getNombre() + " " + cliente.getApellido()).trim();
     }
 

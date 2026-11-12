@@ -762,7 +762,8 @@ Se usa la **Checkout API con QR dinámico** (sin Checkout Pro y **sin redirigir*
   (`PENDIENTE`, `APROBADO`, `RECHAZADO`).
 - `model/Pago` (1 Pago ── 1 Pedido) y `repository/RepositorioPago`.
 - `service/ServicioPago` (registrar pago, procesar webhook, acreditar de forma idempotente).
-- `service/ServicioCorreo` (correos HTML con el detalle y las instrucciones; QR adjunto vía `cid:qrPago`).
+- `service/ServicioCorreo` (correos HTML con el detalle y las instrucciones; QR adjunto vía `cid:qrPago`; aviso
+  al comercio que el distribuidor visitará a continuación).
 - `service/pagos/MercadoPagoQrCliente` (Checkout API QR) y `service/pagos/GeneradorQrPng` (ZXing).
 - `controller/ControladorPago` (webhook público) y `dto/ConfirmarPedidoRequestDTO`.
 - `ServicioPedido.confirmarPedidoPresencial(...)` y `ServicioFacturaCliente.marcarPagada(...)`.
@@ -819,3 +820,25 @@ Se usa la **Checkout API con QR dinámico** (sin Checkout Pro y **sin redirigir*
 
 > **Nota:** en este entorno no se ejecutaron las pruebas de integración (por indicación expresa). Este instructivo
 > es el procedimiento para validarlas contra el sandbox de Mercado Pago.
+
+### Aviso al próximo comercio de la ruta de entregas
+
+Cuando el distribuidor registra una entrega (`POST /api/pedidos/entregas/{idPuntoVenta}/entregado`), el backend
+avisa **por correo al comercio que sigue** en la ruta de ese día. El texto es un mensaje corto ("en los próximos
+minutos estaremos visitando tu comercio para entregar tu pedido") y no incluye datos del pedido.
+
+- Destinatario: el usuario (correo) del cliente dueño del comercio, igual que los demás correos.
+- El aviso se calcula con `ServicioRuta.proximaParadaPendiente(ruta)`: la parada pendiente con menor `orden`.
+  Si no quedan paradas pendientes no se envía nada.
+- Cada parada se avisa una sola vez, porque el aviso sale después de marcarla como atendida y una parada no
+  puede marcarse dos veces en el día.
+- Si el correo falla, la entrega se registra igual (mismo criterio que el resto: `ServicioCorreo` absorbe el error).
+
+**Cómo probarlo con Mailtrap:**
+
+1. Configurar el SMTP como en el paso 2 y arrancar el backend y la app del distribuidor (`movil/distribuidor`, 5174).
+2. Ingresar con `raul.benitez@demo.dulcemayor.com.ar` / `dulcemayor` y generar la ruta de entregas del día
+   (necesita al menos dos comercios con pedidos pendientes asignados a ese distribuidor).
+3. En la primera parada tocar **Entregado**. En Mailtrap debe llegar el aviso al cliente de la **segunda** parada,
+   con asunto `Tu pedido está por llegar · Dulce Mayor`.
+4. Registrar la entrega de la segunda parada: ahora el aviso llega al cliente de la tercera, y así hasta la última.

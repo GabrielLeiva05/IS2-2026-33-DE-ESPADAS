@@ -73,12 +73,14 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
     private final ServicioStock servicioStock;
     private final ServicioRuta servicioRuta;
     private final ServicioPago servicioPago;
+    private final ServicioCorreo servicioCorreo;
 
     public ServicioPedido(RepositorioPedido repositorioPedido, ServicioEmpleado servicioEmpleado,
                           ServicioCliente servicioCliente, ServicioPuntoVenta servicioPuntoVenta,
                           ServicioProducto servicioProducto, ServicioCatalogo servicioCatalogo,
                           ServicioStock servicioStock, ServicioRuta servicioRuta,
-                          ServicioFacturaCliente servicioFacturaCliente, ServicioPago servicioPago) {
+                          ServicioFacturaCliente servicioFacturaCliente, ServicioPago servicioPago,
+                          ServicioCorreo servicioCorreo) {
         super(repositorioPedido);
         this.repositorioPedido = repositorioPedido;
         this.servicioEmpleado = servicioEmpleado;
@@ -90,6 +92,7 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         this.servicioRuta = servicioRuta;
         this.servicioFacturaCliente = servicioFacturaCliente;
         this.servicioPago = servicioPago;
+        this.servicioCorreo = servicioCorreo;
     }
 
     // ------------------------------------------------------------------
@@ -456,7 +459,19 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
             bloqueado.setFechaEntrega(ahora);
             entregados.add(convertirAResponse(repositorioPedido.save(bloqueado)));
         }
+        avisarProximoComercio(ruta, distribuidor);
         return entregados;
+    }
+
+    /**
+     * Avisa por correo al comercio que el distribuidor visitará a continuación. Un fallo de correo no afecta
+     * la entrega: ServicioCorreo registra el problema y sigue.
+     */
+    private void avisarProximoComercio(Ruta ruta, Distribuidor distribuidor) {
+        String nombreDistribuidor = (distribuidor.getNombre() + " " + distribuidor.getApellido()).trim();
+        servicioRuta.proximaParadaPendiente(ruta)
+                .ifPresent(parada -> servicioCorreo.enviarAvisoProximaVisita(
+                        parada.getPuntoVenta(), nombreDistribuidor));
     }
 
     /**
