@@ -429,6 +429,13 @@ select.control {
 .hero h1 { color: #fff; font-size: 1.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: .01em; max-width: 18ch; margin: 0; }
 .hero p { opacity: .95; max-width: 46ch; margin: 0; }
 .hero .grupo-botones { justify-content: center; }
+.hero-coleccion { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--dm-e-3); width: 100%; max-width: 420px; padding-top: var(--dm-e-2); }
+.hero-ilustracion { display: block; width: 100%; height: auto; aspect-ratio: 5 / 4; border-radius: 16px; border: 3px solid rgba(255, 255, 255, .92); box-shadow: 0 10px 22px rgba(10, 20, 80, .35); background: #fff; transform: rotate(-3deg); transition: transform var(--dm-transicion); }
+.hero-ilustracion:nth-child(even) { transform: rotate(3deg) translateY(10px); }
+.hero-ilustracion:hover { transform: rotate(0) scale(1.04); }
+.linea-producto { display: flex; align-items: center; gap: var(--dm-e-3); }
+.linea-foto { width: 48px; height: 48px; flex: none; border-radius: 10px; object-fit: cover; background: var(--dm-superficie-2); padding: 0; }
+svg.linea-foto { padding: 10px; color: var(--dm-magenta, #d6336c); }
 .categorias { display: grid; grid-auto-flow: column; grid-auto-columns: 84px; gap: var(--dm-e-3); overflow-x: auto; scrollbar-width: none; padding: var(--dm-e-1) 2px var(--dm-e-2); -webkit-overflow-scrolling: touch; }
 .categorias::-webkit-scrollbar { display: none; }
 .categoria { display: grid; justify-items: center; gap: var(--dm-e-2); text-align: center; color: var(--dm-texto); font-weight: 600; font-size: var(--dm-t-xs); text-decoration: none !important; }
@@ -485,6 +492,10 @@ select.control {
     .pie-sitio { padding-bottom: var(--dm-e-6); }
     .hero-interior { padding: var(--dm-e-7) var(--dm-e-5); }
     .hero h1 { font-size: 2.6rem; }
+    .hero-interior { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); column-gap: var(--dm-e-6); align-items: center; justify-items: start; text-align: left; }
+    .hero-interior > :not(.hero-coleccion) { grid-column: 1; }
+    .hero .grupo-botones { justify-content: flex-start; }
+    .hero-coleccion { grid-column: 2; grid-row: 1 / span 3; max-width: 520px; justify-self: end; gap: var(--dm-e-4); }
     .categorias { grid-auto-flow: row; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); overflow: visible; justify-items: center; }
     .categoria .burbuja { width: 76px; height: 76px; }
     .grilla-productos { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--dm-e-4); }
