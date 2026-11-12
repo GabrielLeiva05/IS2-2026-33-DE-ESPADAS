@@ -793,30 +793,210 @@ Se usa la **Checkout API con QR dinámico** (sin Checkout Pro y **sin redirigir*
 | `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SMTP_AUTH`, `MAIL_STARTTLS` | SMTP. |
 | `CORREO_REMITENTE`, `CORREO_NOMBRE_REMITENTE` | Remitente de los correos. |
 
+> Los nombres deben coincidir exactamente con los que lee `application.properties` (`app.pagos.mercadopago.*`).
+> Si el `.env` usa otros nombres (por ejemplo `MERCADOPAGO_ACCESS_TOKEN`), el QR queda "no configurado".
+
+### Sintaxis: cómo se completan los valores entre llaves
+
+En los ejemplos de este README y en la documentación de Mercado Pago los valores variables se escriben entre
+llaves, por ejemplo `{MP_ACCESS_TOKEN}`. **Las llaves no se escriben nunca**: son solo la marca de "acá va un
+valor". Si se copian tal cual, el servidor recibe el texto literal y responde `401 invalid_token`.
+
+| Dónde aparece | Qué es | Qué hacer |
+|---|---|---|
+| `{MP_ACCESS_TOKEN}` en un `curl` | Marca de posición | Reemplazarlo por el valor real, sin llaves |
+| `{MP_USER_ID}`, `{STORE_ID}` en una URL | Marca de posición | Reemplazarlo por el número real |
+| `${MP_ACCESS_TOKEN:}` en `application.properties` | Variable de Spring con valor por defecto vacío | No tocarlo: Spring la resuelve desde `.env` o del entorno |
+| `{userId}` / `{posId}` dentro de una ruta | Plantilla de URI de Spring | No se tocan: las completa el código (`RestClient.uri(...)`) |
+
+En una terminal Linux (bash) las variables del shell llevan `$` adelante; sin el `$`, las llaves quedan literales:
+
+```bash
+-H 'Authorization: Bearer {MP_ACCESS_TOKEN}'   # ❌ manda las llaves literales
+-H 'Authorization: Bearer APP_USR-6739...'     # ✅ valor pegado, comillas simples
+-H "Authorization: Bearer $MP_ACCESS_TOKEN"    # ✅ recomendado: comillas dobles expanden
+```
+
+- Comillas simples `'...'`: **no** expanden `$VAR`.
+- Comillas dobles `"..."`: **sí** expanden `$VAR` (también `${VAR}`, útil cuando hay texto pegado detrás).
+- En el archivo `.env` el formato es sin llaves, sin comillas y sin espacios: `MP_ACCESS_TOKEN=APP_USR-...`.
+
+Para usar el `.env` en los `curl` de la terminal:
+
+```bash
+set -a; source backend/.env; set +a
+echo "$MP_ACCESS_TOKEN"          # verifica que se cargó
+curl -s https://api.mercadopago.com/users/me -H "Authorization: Bearer $MP_ACCESS_TOKEN"
+```
+
 ### Cómo probar la integración paso a paso
 
-1. **Crear la aplicación y el punto de venta en Mercado Pago**
-   1. Entrar a <https://www.mercadopago.com.ar/developers/panel/app> y crear una aplicación.
-   2. En *Credenciales de prueba* copiar el **Access Token** y el **User ID** (collector id).
-   3. En la cuenta de prueba, crear una **sucursal** y una **caja** (punto de venta) cuyo `external_id` será
-      `MP_EXTERNAL_POS_ID` (por defecto `DULCEMAYOR-POS`).
-2. **Configurar el correo**: usar Mailtrap (sandbox) o una cuenta con clave de aplicación. Completar
-   `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` y `CORREO_HABILITADO=true`.
-3. **Exponer el backend para el webhook**: `ngrok http 8080` y copiar la URL HTTPS en `MP_NOTIFICATION_URL`
-   agregando `/api/pagos/mercadopago/webhook`.
-4. **Completar `backend/.env`** con las variables de la tabla y arrancar el backend (`mvnw.cmd spring-boot:run`).
-5. **Preparar el pedido**: ingresar a la app del preventista, tomar un pedido de un comercio y quedar en el
-   detalle del pedido (`/pedidos/{id}`).
-6. **Confirmar con QR**: elegir *QR de Mercado Pago* y confirmar. Verificar:
-   - el pedido pasa a `PENDIENTE_DE_ENTREGA` y aparece el medio/estado del pago;
-   - en Mailtrap (o el correo real) llega el correo con el detalle, el total y el QR adjunto.
-7. **Pagar el QR**: escanearlo con la app de Mercado Pago usando un **usuario de prueba** (comprador) y pagar.
-8. **Verificar la acreditación**: en los logs del backend debe procesarse el webhook; el `Pago` pasa a `APROBADO`,
-   la factura a `PAGADA` y llega el **segundo correo** confirmando el pago.
-9. **Probar transferencia y efectivo**: repetir la confirmación con esos medios y verificar el contenido del correo
-   (alias/titular o aviso de pago en efectivo).
-10. **Probar sin credenciales de MP**: con `MP_ACCESS_TOKEN` vacío, elegir QR debe devolver un error claro y **no**
-    confirmar el pedido (la transacción se revierte).
+**Paso 1 — Crear la aplicación y obtener las credenciales de prueba**
+
+1. Entrar a <https://www.mercadopago.com.ar/developers/panel/app> con la cuenta real (solo administra la
+   aplicación; los cobros los hace la cuenta de prueba).
+2. *Crear aplicación* → nombre (por ejemplo `Dulce Mayor`) → solución orientada a **cobros presenciales / QR**.
+3. Dentro de la aplicación: **Credenciales** → pestaña **Prueba**. De ahí salen:
+   - **Access Token** de prueba (`APP_USR-...`) → `MP_ACCESS_TOKEN`. No se expone en el frontend ni se sube al repo.
+   - Sección **Cuenta de prueba**: el **User ID** de la cuenta de prueba vendedora → `MP_USER_ID`.
+
+> El *access token* de prueba pertenece a una **cuenta de prueba vendedora (collector)** que Mercado Pago crea
+> junto con la aplicación. La sucursal y la caja se crean con **ese mismo token**, así quedan en el collector que
+> después usa la orden. Si se crean con otro usuario, la orden falla.
+
+**Paso 2 — Crear la sucursal (obligatoria)**
+
+La caja es **obligatoria** (sin ella no se puede crear la orden) y toda caja debe pertenecer a una sucursal, así
+que hay que crear las dos. **No se crean desde un formulario del panel de desarrolladores**: se crean por API con
+el Access Token de prueba, una sola vez. El panel se usa solo para credenciales, cuentas de prueba y webhooks.
+
+```bash
+curl -X POST "https://api.mercadopago.com/users/$MP_USER_ID/stores" \
+  -H "Authorization: Bearer $MP_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Sucursal Dulce Mayor",
+    "external_id": "DULCEMAYOR",
+    "business_hours": {
+      "monday": [{ "open": "08:00", "close": "18:00" }],
+      "tuesday": [{ "open": "08:00", "close": "18:00" }]
+    },
+    "location": {
+      "street_number": "123",
+      "street_name": "San Martin",
+      "city_name": "San Miguel de Tucuman",
+      "state_name": "Tucuman",
+      "latitude": -26.8241,
+      "longitude": -65.2226,
+      "reference": "Local de prueba"
+    }
+  }'
+```
+
+- `external_id`: alfanumérico, único, hasta 60 caracteres.
+- `location` es obligatorio y debe ser coherente: `state_name` y `city_name` tienen que coincidir con el catálogo
+  de Mercado Libre (`https://api.mercadolibre.com/countries/AR`) y `latitude`/`longitude` van en decimal simple.
+  Datos mal puestos generan errores de impuestos y facturación.
+- La respuesta devuelve `"id": <store_id>`, que se usa en el paso siguiente.
+
+**Paso 3 — Crear la caja (punto de venta)**
+
+```bash
+curl -X POST "https://api.mercadopago.com/v2/pos" \
+  -H "Authorization: Bearer $MP_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "X-Idempotency-Key: dulcemayor-pos-001" \
+  -d '{
+    "name": "Caja Dulce Mayor",
+    "store_id": "{STORE_ID}",
+    "external_id": "CAJA01",
+    "fixed_amount": false,
+    "config": { "qr": { "operating_mode": "pdv" } }
+  }'
+```
+
+- `{STORE_ID}` se reemplaza por el `id` devuelto en el paso 2 (sin llaves).
+- `external_id` debe ser **solo alfanumérico, sin guiones, espacios ni símbolos**; ese valor es
+  `MP_EXTERNAL_POS_ID`. Un `external_id` como `DULCEMAYOR-POS` devuelve `400 INVALID_EXTERNAL_ID`.
+- `operating_mode: "pdv"` = caja atendida con monto por orden (la que usa este proyecto). `standalone` es el QR
+  estático y no sirve para este flujo.
+- `fixed_amount: false` porque el monto viaja en cada orden (`total_amount`).
+- El `qr_response` que devuelve la respuesta es el QR **estático** de la caja: este proyecto no lo usa, el QR se
+  arma con el `qr_data` de cada orden.
+- `X-Idempotency-Key` evita duplicar la caja si se reintenta el `curl`.
+
+**Paso 4 — Verificar que quedaron creadas**
+
+```bash
+curl -s "https://api.mercadopago.com/users/$MP_USER_ID/stores" -H "Authorization: Bearer $MP_ACCESS_TOKEN"
+curl -s "https://api.mercadopago.com/pos" -H "Authorization: Bearer $MP_ACCESS_TOKEN"
+```
+
+Ambas deben devolver la sucursal y la caja con `"status": "active"` y el mismo `user_id` del token. Este chequeo
+es el que evita la mayoría de los errores al generar el QR.
+
+**Paso 5 — Completar `backend/.env`**
+
+Copiar [`.env.example`](backend/.env.example) a `backend/.env` y completar, respetando los nombres exactos de la
+tabla de variables (deben coincidir con `application.properties`):
+
+```properties
+MP_BASE_URL=https://api.mercadopago.com
+MP_ACCESS_TOKEN=APP_USR-...
+MP_USER_ID=3729681128
+MP_EXTERNAL_POS_ID=CAJA01
+MP_NOTIFICATION_URL=https://<subdominio>.ngrok-free.app/api/pagos/mercadopago/webhook
+```
+
+**Paso 6 — Exponer el backend para el webhook**
+
+`ngrok http 8080` y copiar la URL HTTPS **con el path completo** en `MP_NOTIFICATION_URL`. El proyecto envía
+`notification_url` dentro de cada orden (topic `merchant_order`), así que con ngrok alcanza; opcionalmente se puede
+declarar además el webhook en la sección *Webhooks* de la aplicación.
+
+**Paso 7 — Probar el circuito completo**
+
+1. **Configurar el correo**: Mailtrap (sandbox) o una cuenta con clave de aplicación. Completar `MAIL_HOST`,
+   `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD` y `CORREO_HABILITADO=true`.
+2. **Arrancar el backend** (`mvnw.cmd spring-boot:run`) y la app del preventista.
+3. **Preparar el pedido**: tomar un pedido de un comercio y quedar en el detalle (`/pedidos/{id}`).
+4. **Confirmar con QR**: elegir *QR de Mercado Pago*. Verificar que el pedido pasa a `PENDIENTE_DE_ENTREGA` y que
+   llega el correo con el detalle, el total y el QR adjunto. Si no se configuró el correo, el `qr_data` queda
+   guardado en `Pago.qrData` y se puede generar el QR desde la base.
+5. **Pagar el QR**: escanearlo con la app de Mercado Pago usando la **cuenta de prueba compradora**.
+6. **Verificar la acreditación**: en los logs se procesa el webhook; el `Pago` pasa a `APROBADO`, la factura a
+   `PAGADA` y llega el **segundo correo**.
+7. **Probar transferencia y efectivo**: repetir la confirmación con esos medios y verificar el correo (alias y
+   titular, o aviso de pago en efectivo).
+8. **Probar sin credenciales de MP**: con `MP_ACCESS_TOKEN` vacío, elegir QR debe devolver un error claro y **no**
+   confirmar el pedido (la transacción se revierte).
+
+### Cuentas de prueba para escanear el QR
+
+Usar siempre la cuenta de prueba **compradora**: la app no permite pagarle a uno mismo (la cuenta vendedora es la
+dueña del token y de la caja).
+
+- **Dónde verlas**: <https://www.mercadopago.com.ar/developers/panel/app> → tarjeta de la aplicación →
+  **Credenciales** → entorno **Prueba** → sección **Cuenta de prueba** (User ID, usuario, contraseña y código de
+  verificación de 6 dígitos). Para el selector comprador/vendedor y para crear más: menú lateral
+  **Cuentas de prueba** (también *Credenciales → Cuenta de prueba → Gestionar cuentas de prueba*).
+- **Cómo crear más**: *Cuentas de prueba → Crear cuenta de prueba* → país (**AR**, no se puede cambiar después),
+  una identificación reconocible, tipo de cuenta, saldo ficticio y aceptar los términos. Máximo **15 cuentas** por
+  aplicación; Mercado Pago ya genera una automáticamente al crear la aplicación.
+- **Cómo iniciar sesión en la app**: instalar la app de Mercado Pago en el celular, ingresar con el **usuario y la
+  contraseña de la cuenta de prueba compradora** y, si pide validación por correo, usar el **código de
+  verificación** de la sección anterior (no llega un correo real).
+- **Tarjetas de prueba** (las cuentas creadas automáticamente con la aplicación ya las tienen disponibles):
+
+| Tipo | Marca | Número | CVV | Venc. | Resultado |
+|---|---|---|---|---|---|
+| Crédito | Mastercard | `5031 7557 3453 0604` | `123` | `11/30` | Pago aprobado |
+| Crédito | Visa | `4509 9535 6623 3704` | `123` | `11/30` | Pago aprobado |
+| Débito | Mastercard Débito | `5287 3388 1025 3304` | `123` | `11/30` | Pago rechazado |
+| Crédito | Mastercard | `5502 7557 4471 4602` | `123` | `4/44` | Aprobado sin pedir CVV |
+
+Con un DNI cualquiera (por ejemplo `12345678`) ya alcanza. Permiten probar tres escenarios: **aprobado** (webhook,
+`Pago` `APROBADO` y factura `PAGADA`), **rechazado** (la orden sigue abierta y se puede reintentar sin re-escanear)
+y **en espera**.
+
+### Errores típicos y qué revisar
+
+| Síntoma | Causa habitual |
+|---|---|
+| `401 invalid_token` en un `curl` | Se copiaron las llaves `{...}` literales, o sobra un espacio/`...` en el token |
+| `400 INVALID_EXTERNAL_ID` al crear la caja | `external_id` con guion, espacio o símbolo → usar `CAJA01` |
+| `500 in_store_order_creation_error` al generar el QR | La caja no existe o pertenece a otro `user_id`: correr la verificación del paso 4 |
+| La app dice "QR inválido" | El `qr_data` se dibujó alterado, o el QR ya expiró |
+| No llega el webhook | `MP_NOTIFICATION_URL` con `localhost`/`http`, ngrok caído o falta el path `/api/pagos/mercadopago/webhook` |
+| No llega el correo con el QR | `CORREO_HABILITADO=false` o SMTP sin configurar (el pago se registra igual) |
+| Se cobra dinero real en pruebas | Se usaron credenciales de **producción**; en pruebas el token es el de la pestaña *Prueba* y `live_mode` debe ser `false` |
+| La API responde "no configurado" | `MP_ACCESS_TOKEN` o `MP_USER_ID` vacíos, o el `.env` usa otros nombres de variable |
+
+> **Nota sobre versiones de la API:** este proyecto usa el endpoint legacy de QR dinámico
+> `PUT /instore/orders/qr/seller/collectors/{user_id}/pos/{external_pos_id}/orders`, que sigue documentado en
+> *qr-code-legacy* y es el que devuelve `qr_data` + `in_store_order_id`. Mercado Pago ya publica la versión nueva
+> con `POST /v1/orders`; si el legacy se retira, el único archivo a tocar es `MercadoPagoQrCliente` (el resto del
+> flujo —correo, webhook y estados— no cambia).
 
 > **Nota:** en este entorno no se ejecutaron las pruebas de integración (por indicación expresa). Este instructivo
 > es el procedimiento para validarlas contra el sandbox de Mercado Pago.

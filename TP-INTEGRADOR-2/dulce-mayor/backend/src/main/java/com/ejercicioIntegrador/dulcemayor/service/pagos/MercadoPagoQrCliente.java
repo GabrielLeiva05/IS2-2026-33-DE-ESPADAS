@@ -44,7 +44,7 @@ public class MercadoPagoQrCliente {
     public MercadoPagoQrCliente(@Value("${app.pagos.mercadopago.base-url:https://api.mercadopago.com}") String baseUrl,
                                 @Value("${app.pagos.mercadopago.access-token:}") String accessToken,
                                 @Value("${app.pagos.mercadopago.user-id:}") String userId,
-                                @Value("${app.pagos.mercadopago.external-pos-id:DULCEMAYOR-POS}") String externalPosId,
+                                @Value("${app.pagos.mercadopago.external-pos-id:CAJA01}") String externalPosId,
                                 @Value("${app.pagos.mercadopago.notification-url:}") String notificationUrl) {
         this.rest = RestClient.builder().baseUrl(baseUrl).build();
         this.accessToken = accessToken;

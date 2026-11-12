@@ -10,7 +10,14 @@ export default defineConfig({
     alias: { '@comun': fileURLToPath(new URL('../comun/src', import.meta.url)) },
     dedupe: ['react', 'react-dom', 'react-router', 'axios', 'leaflet', 'react-leaflet'],
   },
-  server: { port: 5173, strictPort: true, fs: { allow: ['..'] } },
+  server: { 
+    port: 5173, 
+    strictPort: true, 
+    fs: { allow: ['..'] },
+    allowedHosts: [
+      '.ngrok-free.app'
+    ]
+  },
   preview: { port: 5173 },
   build: { chunkSizeWarningLimit: 700 }, // React + Leaflet en un solo paquete
 })
