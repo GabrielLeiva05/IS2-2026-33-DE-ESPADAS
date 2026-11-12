@@ -195,7 +195,8 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
                 .map(d -> new DetallePedidoResponseDTO(d.getId(), d.getProducto().getId(), d.getProducto().getCodigo(),
                         d.getProducto().getNombre(), d.getProducto().getPresentacion(),
                         d.getProducto().getUnidadesPorPresentacion(), d.getCantidad(), d.getPrecioUnitario(),
-                        d.getSubtotal()))
+                        d.getSubtotal(),
+                        d.getProducto().getImagenes().isEmpty() ? null : d.getProducto().getImagenes().get(0).getId()))
                 .toList();
         boolean cargado = pedido.getEstado() == EstadoPedido.CARGADO;
         return new PedidoResponseDTO(pedido.getId(), pedido.getNumeroPedido(), pedido.getFechaHoraCarga(),

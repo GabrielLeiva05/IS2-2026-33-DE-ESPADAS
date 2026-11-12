@@ -61,7 +61,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -102,7 +101,6 @@ public class InicializadorDatosDemo implements ApplicationRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(InicializadorDatosDemo.class);
 
-    private static final String[] COLORES = {"#d6336c", "#7048e8", "#f08c00", "#1c7ed6", "#2f9e44", "#c2255c"};
     private static final int[] PESOS_CUIT = {5, 4, 3, 2, 7, 6, 5, 4, 3, 2};
 
     private final ServicioPais servicioPais;
@@ -200,7 +198,6 @@ public class InicializadorDatosDemo implements ApplicationRunner {
     private Map<String, String> cargarCatalogo() throws MiException {
         Map<String, String> idsCategorias = new LinkedHashMap<>();
         Map<String, String> idsSubCategorias = new LinkedHashMap<>();
-        Map<String, String> colorPorSubCategoria = new LinkedHashMap<>();
         for (Map.Entry<String, String> entrada : DatosDemo.SUBCATEGORIAS.entrySet()) {
             String categoria = entrada.getValue();
             if (!idsCategorias.containsKey(categoria)) {
@@ -208,8 +205,6 @@ public class InicializadorDatosDemo implements ApplicationRunner {
             }
             String idCategoria = idsCategorias.get(categoria);
             idsSubCategorias.put(entrada.getKey(), buscarOCrearSubCategoria(entrada.getKey(), idCategoria));
-            int indiceCategoria = new ArrayList<>(idsCategorias.keySet()).indexOf(categoria);
-            colorPorSubCategoria.put(entrada.getKey(), COLORES[indiceCategoria % COLORES.length]);
         }
 
         Map<String, String> idsProductos = new LinkedHashMap<>();
@@ -220,7 +215,7 @@ public class InicializadorDatosDemo implements ApplicationRunner {
             String codigo = c[0];
             String idProducto = idProductoExistente(codigo);
             if (idProducto == null) {
-                idProducto = crearProducto(c, indice, idsSubCategorias.get(c[3]), colorPorSubCategoria.get(c[3]));
+                idProducto = crearProducto(c, indice, idsSubCategorias.get(c[3]));
                 creados++;
             }
             idsProductos.put(codigo, idProducto);
@@ -230,9 +225,9 @@ public class InicializadorDatosDemo implements ApplicationRunner {
         return idsProductos;
     }
 
-    private String crearProducto(String[] c, int indice, String idSubCategoria, String color) throws MiException {
+    private String crearProducto(String[] c, int indice, String idSubCategoria) throws MiException {
         ImagenResponseDTO imagen = servicioImagen.alta(new ImagenRequestDTO(c[0] + ".svg", "image/svg+xml",
-                imagenSvg(c[0], c[1], color), TipoImagen.PRODUCTO));
+                ImagenesDemo.svg(c[1], c[3], indice), TipoImagen.PRODUCTO));
         ProductoResponseDTO producto = servicioProducto.alta(new ProductoRequestDTO(c[0], c[1], c[2],
                 Presentacion.valueOf(c[4]), Integer.valueOf(c[5]), "S".equals(c[6]), idSubCategoria,
                 List.of(imagen.id())));
@@ -269,22 +264,6 @@ public class InicializadorDatosDemo implements ApplicationRunner {
             }
         }
         return servicioSubCategoria.alta(new SubCategoriaRequestDTO(nombre, idCategoria)).id();
-    }
-
-    /** Imagen de reemplazo del producto: un SVG con su código y su nombre (no hay fotos reales en los datos de demo). */
-    private static byte[] imagenSvg(String codigo, String nombre, String color) {
-        String svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"400\" height=\"300\" viewBox=\"0 0 400 300\">"
-                + "<rect width=\"400\" height=\"300\" fill=\"" + color + "\"/>"
-                + "<circle cx=\"200\" cy=\"115\" r=\"70\" fill=\"#ffffff\" fill-opacity=\"0.30\"/>"
-                + "<text x=\"200\" y=\"130\" font-family=\"sans-serif\" font-size=\"42\" font-weight=\"bold\" "
-                + "text-anchor=\"middle\" fill=\"#ffffff\">" + codigo + "</text>"
-                + "<text x=\"200\" y=\"240\" font-family=\"sans-serif\" font-size=\"16\" text-anchor=\"middle\" "
-                + "fill=\"#ffffff\">" + escaparXml(nombre) + "</text></svg>";
-        return svg.getBytes(StandardCharsets.UTF_8);
-    }
-
-    private static String escaparXml(String texto) {
-        return texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     // ------------------------------------------------------------------ Empleados
