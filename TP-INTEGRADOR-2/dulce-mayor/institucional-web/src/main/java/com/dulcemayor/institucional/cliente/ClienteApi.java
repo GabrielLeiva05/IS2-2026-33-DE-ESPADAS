@@ -35,6 +35,14 @@ public class ClienteApi {
                 .build();
     }
 
+    /** GET de un archivo binario (PDF de una factura). */
+    public byte[] obtenerArchivo(String token, String uri, Object... variables) {
+        return ejecutar(() -> restClient.get().uri(uri, variables)
+                .headers(h -> autorizar(h, token))
+                .accept(MediaType.APPLICATION_PDF, MediaType.APPLICATION_OCTET_STREAM)
+                .retrieve().body(byte[].class));
+    }
+
     public <T> T obtener(String token, Class<T> tipo, String uri, Object... variables) {
         return ejecutar(() -> restClient.get().uri(uri, variables)
                 .headers(h -> autorizar(h, token))

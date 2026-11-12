@@ -1,1 +1,6 @@
-**/ .idea/
+**/ .idea/**
+.zip
+
+# Variables de entorno locales (secretos): no versionar. Los .env.example si se versionan.
+.env
+**/.env

@@ -1,7 +1,7 @@
 package com.dulcemayor.admin.service;
 
 import com.dulcemayor.admin.cliente.ClienteApi;
-import com.dulcemayor.admin.dto.EmpleadoFormularioDTO;
+import com.dulcemayor.admin.dto.FormularioConUbicacion;
 import com.dulcemayor.admin.dto.OpcionDTO;
 import com.dulcemayor.admin.dto.OpcionesUbicacionDTO;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class ServicioUbicacion {
      * Opciones para dibujar el formulario: si ya hay valores elegidos (edición o reintento tras un error)
      * se cargan los niveles correspondientes; si hay un único país, se preselecciona.
      */
-    public OpcionesUbicacionDTO opcionesPara(String token, EmpleadoFormularioDTO formulario) {
+    public OpcionesUbicacionDTO opcionesPara(String token, FormularioConUbicacion formulario) {
         List<OpcionDTO> paises = listarPaises(token);
         if (vacio(formulario.getIdPais()) && paises.size() == 1) {
             formulario.setIdPais(paises.get(0).getId());

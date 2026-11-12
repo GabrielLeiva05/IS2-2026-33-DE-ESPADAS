@@ -35,15 +35,17 @@
                         </div>
                         <div class="fila-campos tres">
                             <div class="campo"><label class="requerido" for="tipoDocumento">Tipo de documento</label>
-                                <select class="control" id="tipoDocumento" th:field="*{tipoDocumento}" required>
+                                <input type="hidden" th:unless="${formulario.nuevo}" name="tipoDocumento" th:value="*{tipoDocumento}">
+                                <select class="control" id="tipoDocumento" th:field="*{tipoDocumento}" required th:disabled="${!formulario.nuevo}">
                                     <option value="DNI">DNI</option>
                                     <option value="CUIL">CUIL</option>
                                     <option value="CUIT">CUIT</option>
                                     <option value="PASAPORTE">Pasaporte</option>
                                 </select></div>
                             <div class="campo"><label class="requerido" for="numeroDocumento">Número</label>
-                                <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric" maxlength="15" required>
-                                <span class="ayuda">Sin puntos ni guiones.</span></div>
+                                <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric" maxlength="15" required
+                                       th:readonly="${!formulario.nuevo}">
+                                <span class="ayuda" th:text="${formulario.nuevo} ? 'Sin puntos ni guiones.' : 'El documento no se puede modificar.'">Sin puntos ni guiones.</span></div>
                             <div class="campo"><label class="requerido" for="fechaNacimiento">Fecha de nacimiento</label>
                                 <input class="control" id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}" required>
                                 <span class="ayuda">Debe ser mayor de edad.</span></div>
@@ -79,10 +81,6 @@
                             <div class="campo"><label for="fechaIngreso">Fecha de ingreso</label>
                                 <input class="control" id="fechaIngreso" type="date" th:field="*{fechaIngreso}">
                                 <span class="ayuda" th:if="${formulario.nuevo}">Por defecto, hoy.</span></div>
-                        </div>
-                        <div class="fila-campos" data-segun-rol="PREVENTISTA">
-                            <div class="campo"><label class="requerido" for="zona">Zona de visitas</label>
-                                <input class="control" id="zona" th:field="*{zona}" maxlength="80" placeholder="Por ejemplo: Godoy Cruz centro"></div>
                         </div>
                         <div class="fila-campos dos" data-segun-rol="DISTRIBUIDOR">
                             <div class="campo"><label class="requerido" for="vehiculo">Vehículo</label>

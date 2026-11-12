@@ -64,9 +64,26 @@ public class ServicioProducto extends BaseService<Producto, ProductoRequestDTO, 
         }
     }
 
+    /**
+     * Pedidos se consulta de forma diferida porque ServicioPedido ya depende de este servicio (evita el ciclo).
+     * Se usa solo para proteger la baja.
+     */
+    private org.springframework.beans.factory.ObjectProvider<ServicioPedido> servicioPedido;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    void setServicioPedido(org.springframework.beans.factory.ObjectProvider<ServicioPedido> servicioPedido) {
+        this.servicioPedido = servicioPedido;
+    }
+
     @Override
     protected void validar(BaseUseCaseService casoDeUso, Producto producto) throws MiException {
         if (casoDeUso == BaseUseCaseService.BAJA) {
+            // Baja lógica: los pedidos y facturas históricos siguen apuntando al producto. No se permite si
+            // todavía hay pedidos cargados o por entregar que lo incluyen (quedarían con un producto inexistente).
+            ServicioPedido pedidos = servicioPedido == null ? null : servicioPedido.getIfAvailable();
+            if (pedidos != null && pedidos.hayPedidosAbiertosConProducto(producto.getId())) {
+                throw new MiException("No se puede dar de baja: el producto está en pedidos cargados o pendientes de entrega");
+            }
             return;
         }
         if (estaVacio(producto.getCodigo())) {

@@ -54,6 +54,6 @@ final class DatosPersonas {
 
     static EmpleadoRequestDTO empleado(RolUsuario rol, String correo) {
         return new EmpleadoRequestDTO("Ana", "Pérez", LocalDate.of(1990, 5, 20), TipoDocumento.DNI, "30.111.222",
-                correo, rol, null, null, direccion(), "Zona Este", "Fiat Fiorino", "AB 123 CD", null);
+                correo, rol, null, null, direccion(), "Fiat Fiorino", "AB 123 CD", null);
     }
 }

@@ -171,4 +171,13 @@ public class ServicioStock extends BaseService<Stock, StockRequestDTO, StockResp
             throw new MiException("La cantidad debe ser mayor a cero");
         }
     }
+
+    /** Stock agrupado por categoría para el panel (gráfico de torta, HU-43). La agregación la hace la base. */
+    @Transactional(readOnly = true)
+    public java.util.List<com.ejercicioIntegrador.dulcemayor.dto.StockCategoriaDTO> stockPorCategoria() {
+        return repositorioStock.stockPorCategoria().stream()
+                .map(fila -> new com.ejercicioIntegrador.dulcemayor.dto.StockCategoriaDTO((String) fila[0],
+                        ((Number) fila[1]).longValue(), ((Number) fila[2]).longValue()))
+                .toList();
+    }
 }

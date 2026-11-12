@@ -1,0 +1,84 @@
+services:
+  db:
+    image: mysql:8.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: dulcemayor
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      args: { MODULE: backend }
+    restart: always
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      JAVA_TOOL_OPTIONS: -Xmx512m
+      SPRING_PROFILES_ACTIVE: prod            # agregar ,oauth-google,oauth-facebook cuando estén las credenciales
+      DB_URL: jdbc:mysql://db:3306/dulcemayor?createDatabaseIfNotExist=true
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_ROOT_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JEFE_INICIAL_CORREO: ${JEFE_INICIAL_CORREO}
+      CORS_ALLOWED_ORIGINS: https://${DOMINIO},https://admin.${DOMINIO}
+      OAUTH2_REDIRECT_CLIENTE: https://${DOMINIO}/ingresar/oauth2
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID:-}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET:-}
+
+  admin-web:
+    build:
+      context: .
+      args: { MODULE: admin-web }
+    restart: always
+    depends_on: [backend]
+    environment:
+      JAVA_TOOL_OPTIONS: -Xmx256m
+      API_BASE_URL: http://backend:8080          # servidor -> servidor (red interna de Docker)
+      API_PUBLIC_URL: https://api.${DOMINIO}     # navegador -> API (imágenes)
+      SITIO_URL: https://${DOMINIO}
+      COOKIE_SECURE: "true"
+      THYMELEAF_CACHE: "true"
+      FORWARD_HEADERS_STRATEGY: framework
+
+  institucional-web:
+    build:
+      context: .
+      args: { MODULE: institucional-web }
+    restart: always
+    depends_on: [backend]
+    environment:
+      JAVA_TOOL_OPTIONS: -Xmx256m
+      API_BASE_URL: http://backend:8080
+      API_PUBLIC_URL: https://api.${DOMINIO}
+      OAUTH_GOOGLE_HABILITADO: "false"           # true solo con el perfil oauth-google activo en el backend
+      OAUTH_FACEBOOK_HABILITADO: "false"
+      COOKIE_SECURE: "true"
+      THYMELEAF_CACHE: "true"
+      FORWARD_HEADERS_STRATEGY: framework
+
+  caddy:
+    image: caddy:2
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMINIO: ${DOMINIO}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+    depends_on: [backend, admin-web, institucional-web]
+
+volumes:
+  dbdata:
+  caddydata:

@@ -29,7 +29,8 @@ public class InterceptorAcceso implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws IOException {
         String ruta = request.getRequestURI().substring(request.getContextPath().length());
-        boolean pedidoJson = ruta.startsWith("/ubicacion/");
+        boolean pedidoJson = ruta.startsWith("/ubicacion/") || ruta.startsWith("/estadisticas/")
+                || ruta.equals("/productos/subcategorias");
         Optional<SesionUsuario> sesion = gestorSesion.actual(request);
 
         if (sesion.isEmpty()) {
@@ -61,7 +62,7 @@ public class InterceptorAcceso implements HandlerInterceptor {
         if (ruta.startsWith("/empleados") || ruta.startsWith("/ubicacion/")) {
             return SesionUsuario::isJefe;
         }
-        if (ruta.startsWith("/clientes")) {
+        if (ruta.startsWith("/clientes") || ruta.startsWith("/rutas") || ruta.startsWith("/entregas")) {
             return SesionUsuario::isAdministrativo;
         }
         if (ruta.startsWith("/catalogo")) {

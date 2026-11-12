@@ -43,22 +43,22 @@
                 <input class="control" id="confirmacionClave" type="password" th:field="*{confirmacionClave}"
                        autocomplete="new-password" minlength="8" maxlength="72" required></div>
 
-            <details class="tarjeta" style="padding:var(--dm-e-4);box-shadow:none;border:1px solid var(--dm-borde)">
-                <summary class="etiqueta" style="cursor:pointer;min-height:32px">Datos opcionales (documento y nacimiento)</summary>
-                <div class="formulario mt-4">
+            <div class="formulario">
                     <div class="fila-campos dos">
-                        <div class="campo"><label for="tipoDocumento">Tipo de documento</label>
-                            <select class="control" id="tipoDocumento" th:field="*{tipoDocumento}">
+                        <div class="campo"><label class="requerido" for="tipoDocumento">Tipo de documento</label>
+                            <select class="control" id="tipoDocumento" th:field="*{tipoDocumento}" required>
                                 <option value="DNI">DNI</option><option value="CUIT">CUIT</option>
                                 <option value="CUIL">CUIL</option><option value="PASAPORTE">Pasaporte</option>
                             </select></div>
-                        <div class="campo"><label for="numeroDocumento">Número</label>
-                            <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric" maxlength="15"></div>
+                        <div class="campo"><label class="requerido" for="numeroDocumento">Número de documento</label>
+                            <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric"
+                                   maxlength="15" required placeholder="Sin puntos ni guiones"></div>
                     </div>
-                    <div class="campo"><label for="fechaNacimiento">Fecha de nacimiento</label>
-                        <input class="control" id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}"></div>
-                </div>
-            </details>
+                    <div class="campo"><label class="requerido" for="fechaNacimiento">Fecha de nacimiento</label>
+                        <input class="control" id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}" required
+                               th:max="${#temporals.format(#temporals.createNow().minusYears(18), 'yyyy-MM-dd')}">
+                        <small class="ayuda">Tenés que ser mayor de edad.</small></div>
+            </div>
 
             <button type="submit" class="btn btn-primario btn-bloque">Crear mi cuenta</button>
         </form>

@@ -38,7 +38,9 @@
                                 <option value="CUIL">CUIL</option><option value="PASAPORTE">Pasaporte</option>
                             </select></div>
                         <div class="campo"><label for="numeroDocumento">Número</label>
-                            <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric" maxlength="15"></div>
+                            <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric" maxlength="15"
+                                   th:readonly="${datos.numeroDocumento != null and !#strings.isEmpty(datos.numeroDocumento)}">
+                            <small class="ayuda" th:if="${datos.numeroDocumento != null and !#strings.isEmpty(datos.numeroDocumento)}">Una vez registrado, el documento no se puede modificar.</small></div>
                     </div>
                     <div class="campo"><label for="fechaNacimiento">Fecha de nacimiento</label>
                         <input class="control" id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}"></div>
@@ -71,8 +73,10 @@
                 </section>
 
                 <section class="tarjeta">
-                    <div class="tarjeta-encabezado"><h2>Mis pedidos</h2><span class="insignia insignia-gris">Próximamente</span></div>
-                    <p class="texto-secundario mb-0">Pronto vas a poder hacer y seguir tus pedidos desde aquí.</p>
+                    <div class="tarjeta-encabezado"><h2>Mis pedidos</h2></div>
+                    <p class="texto-secundario">Revisá los pedidos que te cargó tu preventista: confirmalos o anulalos.</p>
+                    <a class="btn btn-secundario btn-bloque" th:href="@{/mis-pedidos}"><svg class="icono icono-sm"><use href="#i-pedido"/></svg>Ver mis pedidos</a>
+                    <a class="btn btn-fantasma btn-bloque mt-4" th:href="@{/mis-facturas}"><svg class="icono icono-sm"><use href="#i-factura"/></svg>Ver mis facturas</a>
                 </section>
 
                 <form th:action="@{/salir}" method="post">

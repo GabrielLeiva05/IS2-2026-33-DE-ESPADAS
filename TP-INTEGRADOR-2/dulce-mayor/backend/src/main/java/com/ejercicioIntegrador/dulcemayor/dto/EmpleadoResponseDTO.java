@@ -9,6 +9,6 @@ import java.time.LocalDate;
 public record EmpleadoResponseDTO(String id, String nombre, String apellido, LocalDate fechaNacimiento,
                                   TipoDocumento tipoDocumento, String numeroDocumento, String correo,
                                   RolUsuario rol, boolean debeCambiarClave, String legajo, LocalDate fechaIngreso,
-                                  DireccionResponseDTO direccion, String zona, String vehiculo, String patente,
+                                  DireccionResponseDTO direccion, String vehiculo, String patente,
                                   String idImagen, boolean eliminado) implements BaseResponseDTO {
 }

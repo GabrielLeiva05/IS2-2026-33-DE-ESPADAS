@@ -113,7 +113,8 @@ y tiene las secciones *Overview*, *Branding*, *Audience*, *Clients*, *Data Acces
    GOOGLE_CLIENT_SECRET=<el client secret de Google>
    OAUTH2_REDIRECT_CLIENTE=http://localhost:8082/ingresar/oauth2
    ```
-2. Activar el perfil al iniciar la API. El perfil **no** se toma del `.env`: va como variable del sistema, argumento o configuración del IDE.
+2. Activar el perfil al iniciar la API. El perfil se puede definir **en `backend/.env`** (`SPRING_PROFILES_ACTIVE=oauth-google`)
+   o como variable del sistema, argumento o configuración del IDE.
    ```bat
    :: Windows (cmd)
    cd backend
@@ -125,7 +126,8 @@ y tiene las secciones *Overview*, *Branding*, *Audience*, *Clients*, *Data Acces
    $env:SPRING_PROFILES_ACTIVE="oauth-google"; .\mvnw.cmd spring-boot:run
    ```
    En IntelliJ: *Run → Edit Configurations → Active profiles: `oauth-google`*.
-3. Mostrar el botón en el sitio institucional:
+3. Mostrar el botón en el sitio institucional: definirlo en `institucional-web/.env`
+   (`OAUTH_GOOGLE_HABILITADO=true`) o como variable de entorno.
    ```bat
    cd institucional-web
    set OAUTH_GOOGLE_HABILITADO=true

@@ -80,7 +80,10 @@ public class SecurityConfig {
                         // --- Autenticación ---
                         .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/registro",
                                 "/api/auth/oauth2/canje").permitAll()
-                        .requestMatchers("/api/auth/yo", "/api/auth/clave").authenticated() // incluso con clave pendiente
+                        .requestMatchers("/api/auth/yo", "/api/auth/clave", "/api/auth/renovar").authenticated() // incluso con clave pendiente
+
+                        // --- Pagos: webhook público de Mercado Pago (el estado real se valida contra su API) ---
+                        .requestMatchers(HttpMethod.POST, "/api/pagos/mercadopago/webhook").permitAll()
 
                         // --- Público: catálogo, imágenes de productos y clasificación ---
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/imagenes/*/contenido",
@@ -91,6 +94,14 @@ public class SecurityConfig {
                                 .hasAnyRole(ADMINISTRATIVO, PREVENTISTA)
                         .requestMatchers(HttpMethod.GET, "/api/productos/**").hasAnyRole(ADMINISTRATIVO, PREVENTISTA)
 
+                        // --- Facturación (Ola 3). El cliente solo ve las suyas (lo verifica el servicio) ---
+                        .requestMatchers(HttpMethod.GET, "/api/facturas/mis-facturas/**").hasRole(CLIENTE)
+                        .requestMatchers("/api/facturas/**", "/api/proveedores/**").hasRole(ADMINISTRATIVO)
+
+                        // --- Estadísticas del panel (HU-43) ---
+                        .requestMatchers(HttpMethod.GET, "/api/estadisticas/pedidos-por-preventista").hasRole(JEFE)
+                        .requestMatchers(HttpMethod.GET, "/api/estadisticas/stock-por-categoria").hasRole(ADMINISTRATIVO)
+
                         // --- Catálogo y stock: personal administrativo (el jefe lo hereda) ---
                         .requestMatchers(RECURSOS_CATALOGO).hasRole(ADMINISTRATIVO)
 
@@ -100,10 +111,39 @@ public class SecurityConfig {
                         .requestMatchers(RECURSOS_UBICACION).hasRole(ADMINISTRATIVO)
 
                         // --- Personas y usuarios ---
+                        // El administrativo lista preventistas y distribuidores para armar rutas y asignar entregas.
+                        .requestMatchers(HttpMethod.GET, "/api/empleados/rol/*").hasRole(ADMINISTRATIVO)
                         .requestMatchers("/api/empleados/**", "/api/usuarios/**").hasRole(JEFE)
                         .requestMatchers("/api/clientes/yo").hasRole(CLIENTE)
+                        // Alta de clientes desde el celular del preventista y búsqueda por correo
+                        .requestMatchers(HttpMethod.POST, "/api/clientes/campo").hasAnyRole(ADMINISTRATIVO, PREVENTISTA)
+                        .requestMatchers(HttpMethod.GET, "/api/clientes/buscar").hasAnyRole(ADMINISTRATIVO, PREVENTISTA)
                         .requestMatchers(HttpMethod.GET, "/api/clientes/**").hasRole(ADMINISTRATIVO)
                         .requestMatchers(HttpMethod.DELETE, "/api/clientes/**").hasRole(JEFE)
+
+                        // --- Puntos de venta (HU-17) ---
+                        .requestMatchers(HttpMethod.GET, "/api/puntos-venta/**")
+                                .hasAnyRole(ADMINISTRATIVO, PREVENTISTA, DISTRIBUIDOR)
+                        .requestMatchers(HttpMethod.POST, "/api/puntos-venta/**").hasAnyRole(ADMINISTRATIVO, PREVENTISTA)
+                        .requestMatchers(HttpMethod.PUT, "/api/puntos-venta/**").hasRole(ADMINISTRATIVO) // el preventista da de alta, no edita
+                        .requestMatchers("/api/puntos-venta/**").hasRole(ADMINISTRATIVO)
+
+                        // --- Mapas: geocodificación para el alta de puntos de venta ---
+                        .requestMatchers(HttpMethod.GET, "/api/mapas/**")
+                                .hasAnyRole(ADMINISTRATIVO, PREVENTISTA, DISTRIBUIDOR)
+
+                        // --- Rutas: la app del preventista usa solo /mia (su ruta); el resto es administración ---
+                        .requestMatchers("/api/rutas/mia/**").hasRole(PREVENTISTA)
+                        .requestMatchers("/api/rutas/**").hasRole(ADMINISTRATIVO)
+
+                        // --- Reportes administrativos y gerenciales: solo el jefe administrativo ---
+                        .requestMatchers("/api/reportes/**").hasRole(JEFE)
+
+                        // --- Pedidos: cada rol en su sección; la propiedad la verifica ServicioPedido ---
+                        .requestMatchers("/api/pedidos/mis-pedidos/**").hasRole(CLIENTE)
+                        .requestMatchers("/api/pedidos/preventista/**").hasRole(PREVENTISTA)
+                        .requestMatchers("/api/pedidos/entregas/**").hasRole(DISTRIBUIDOR)
+                        .requestMatchers("/api/pedidos/**").hasRole(ADMINISTRATIVO)
 
                         // --- Todo lo demás queda cerrado hasta que su módulo defina permisos ---
                         .anyRequest().denyAll()

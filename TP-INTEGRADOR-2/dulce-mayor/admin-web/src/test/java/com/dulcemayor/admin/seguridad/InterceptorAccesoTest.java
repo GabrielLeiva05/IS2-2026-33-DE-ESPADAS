@@ -68,6 +68,15 @@ class InterceptorAccesoTest {
     }
 
     @Test
+    void losReportesSonSoloDelJefeAdministrativo() throws Exception {
+        assertEquals(200, pedir(sesion("JEFE", false), "/reportes/clientes-pedidos").getStatus());
+        assertEquals(200, pedir(sesion("JEFE", false), "/reportes/ventas/excel").getStatus());
+        assertEquals(403, pedir(sesion("ADMINISTRATIVO", false), "/reportes/clientes-pedidos").getStatus());
+        assertEquals(403, pedir(sesion("PREVENTISTA", false), "/reportes/ventas").getStatus());
+        assertEquals("/login", pedir(null, "/reportes/ventas").getRedirectedUrl());
+    }
+
+    @Test
     void elJefeHeredaLosPermisosDelAdministrativo() {
         SesionUsuario jefe = sesion("JEFE", false);
         assertTrue(jefe.isAdministrativo());

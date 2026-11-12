@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class EmpleadoFormularioDTO {
+public class EmpleadoFormularioDTO implements FormularioConUbicacion {
 
     private String id;
     private String nombre;
@@ -23,7 +23,6 @@ public class EmpleadoFormularioDTO {
     private String rol;
     private String legajo;
     private String fechaIngreso;
-    private String zona;
     private String vehiculo;
     private String patente;
     private String calle;
@@ -54,7 +53,6 @@ public class EmpleadoFormularioDTO {
         formulario.setRol(empleado.getRol());
         formulario.setLegajo(empleado.getLegajo());
         formulario.setFechaIngreso(empleado.getFechaIngreso());
-        formulario.setZona(empleado.getZona());
         formulario.setVehiculo(empleado.getVehiculo());
         formulario.setPatente(empleado.getPatente());
         DireccionDTO direccion = empleado.getDireccion();

@@ -4,6 +4,8 @@ import com.ejercicioIntegrador.dulcemayor.dto.base.ErrorDTO;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.OperacionNoPermitidaException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.RecursoNoEncontradoException;
+import com.ejercicioIntegrador.dulcemayor.exceptions.ServicioExternoNoDisponibleException;
+import com.ejercicioIntegrador.dulcemayor.exceptions.SesionVencidaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -37,6 +39,16 @@ public class ManejadorErrores {
     @ExceptionHandler(OperacionNoPermitidaException.class)
     public ResponseEntity<ErrorDTO> operacionNoPermitida(OperacionNoPermitidaException e) {
         return responder(HttpStatus.METHOD_NOT_ALLOWED, e.getMessage());
+    }
+
+    @ExceptionHandler(SesionVencidaException.class)
+    public ResponseEntity<ErrorDTO> sesionVencida(SesionVencidaException e) {
+        return responder(HttpStatus.UNAUTHORIZED, e.getMessage());
+    }
+
+    @ExceptionHandler(ServicioExternoNoDisponibleException.class)
+    public ResponseEntity<ErrorDTO> servicioExternoNoDisponible(ServicioExternoNoDisponibleException e) {
+        return responder(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
     }
 
     @ExceptionHandler(MiException.class)

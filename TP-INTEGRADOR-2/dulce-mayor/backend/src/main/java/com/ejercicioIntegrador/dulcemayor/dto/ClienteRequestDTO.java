@@ -12,5 +12,13 @@ import java.time.LocalDate;
  */
 public record ClienteRequestDTO(String nombre, String apellido, LocalDate fechaNacimiento,
                                 TipoDocumento tipoDocumento, String numeroDocumento,
-                                String correo, String clave, ProveedorAutenticacion proveedorAutenticacion) {
+                                String correo, String clave, ProveedorAutenticacion proveedorAutenticacion,
+                                boolean claveTemporal) {
+
+    public ClienteRequestDTO(String nombre, String apellido, LocalDate fechaNacimiento,
+                             TipoDocumento tipoDocumento, String numeroDocumento,
+                             String correo, String clave, ProveedorAutenticacion proveedorAutenticacion) {
+        this(nombre, apellido, fechaNacimiento, tipoDocumento, numeroDocumento, correo, clave,
+                proveedorAutenticacion, false);
+    }
 }

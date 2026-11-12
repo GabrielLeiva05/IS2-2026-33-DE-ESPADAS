@@ -2,15 +2,19 @@ package com.ejercicioIntegrador.dulcemayor.controller;
 
 import com.ejercicioIntegrador.dulcemayor.controller.base.BaseController;
 import com.ejercicioIntegrador.dulcemayor.controller.base.BaseUseCaseController;
+import com.ejercicioIntegrador.dulcemayor.dto.ClienteCampoDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.ClienteRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.ClienteResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.DatosPersonalesDTO;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.service.ServicioCliente;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +40,18 @@ public class ControladorCliente extends BaseController<ClienteRequestDTO, Client
     @Override
     protected boolean operacionHabilitada(BaseUseCaseController casoDeUso) {
         return casoDeUso != BaseUseCaseController.ALTA && casoDeUso != BaseUseCaseController.MODIFICACION;
+    }
+
+    /** Alta de un cliente desde la app del preventista: el cliente escribe su correo y su contraseña. */
+    @PostMapping("/campo")
+    public ResponseEntity<ClienteResponseDTO> altaEnCampo(@RequestBody ClienteCampoDTO alta) throws MiException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(servicioCliente.registrarClienteEnCampo(alta));
+    }
+
+    /** Busca un cliente ya registrado (por ejemplo, desde el sitio) para asociarle un punto de venta. */
+    @GetMapping("/buscar")
+    public ResponseEntity<ClienteResponseDTO> buscarPorCorreo(@RequestParam String correo) throws MiException {
+        return ResponseEntity.ok(servicioCliente.buscarClientePorCorreo(correo));
     }
 
     @GetMapping("/yo")

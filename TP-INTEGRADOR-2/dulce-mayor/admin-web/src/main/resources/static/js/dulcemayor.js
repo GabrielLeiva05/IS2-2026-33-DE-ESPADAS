@@ -50,7 +50,8 @@
     /* Evita el doble envío de formularios. */
     function iniciarEnvioUnico() {
         document.querySelectorAll("form[data-envio-unico]").forEach(function (form) {
-            form.addEventListener("submit", function () {
+            form.addEventListener("submit", function (e) {
+                if (e.defaultPrevented) return; /* el usuario canceló la confirmación */
                 form.querySelectorAll("button[type=submit]").forEach(function (b) {
                     window.setTimeout(function () { b.disabled = true; }, 0);
                 });

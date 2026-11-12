@@ -66,6 +66,26 @@ final class ValidacionesPersona {
         }
     }
 
+    /**
+     * Documento en una MODIFICACIÓN: una vez cargado no se cambia (corrección Ola 1, ni desde administración ni
+     * desde "Mi cuenta"). Si la persona todavía no tiene documento (por ejemplo, un cliente que entró con Google),
+     * se puede completar. Si la solicitud no trae documento, se conserva el actual.
+     */
+    static void aplicarDocumentoEnModificacion(Persona persona, TipoDocumento tipo, String numero) throws MiException {
+        String numeroNormalizado = normalizarDocumento(numero);
+        boolean solicitudSinDocumento = tipo == null && (numeroNormalizado == null || numeroNormalizado.isBlank());
+        boolean tieneDocumento = persona.getTipoDocumento() != null && persona.getNumeroDocumento() != null;
+        if (tieneDocumento) {
+            if (!solicitudSinDocumento && (tipo != persona.getTipoDocumento()
+                    || !persona.getNumeroDocumento().equals(numeroNormalizado))) {
+                throw new MiException("El documento no se puede modificar una vez registrado");
+            }
+            return;
+        }
+        persona.setTipoDocumento(tipo);
+        persona.setNumeroDocumento(numeroNormalizado);
+    }
+
     /** Fecha de nacimiento en el pasado y persona mayor de edad. */
     static void validarMayorDeEdad(LocalDate fechaNacimiento, boolean obligatoria) throws MiException {
         if (fechaNacimiento == null) {

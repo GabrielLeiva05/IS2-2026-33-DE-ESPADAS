@@ -58,12 +58,11 @@ public class ServicioEmpleados {
         DireccionSolicitudDTO direccion = new DireccionSolicitudDTO(texto(f.getCalle()), texto(f.getNumeracion()),
                 texto(f.getBarrio()), texto(f.getManzanaPiso()), texto(f.getCasaDepartamento()),
                 texto(f.getReferencia()), null, null, texto(f.getIdLocalidad()));
-        boolean preventista = Roles.PREVENTISTA.equals(f.getRol());
         boolean distribuidor = Roles.DISTRIBUIDOR.equals(f.getRol());
         return new EmpleadoSolicitudDTO(texto(f.getNombre()), texto(f.getApellido()), texto(f.getFechaNacimiento()),
-                texto(f.getTipoDocumento()), texto(f.getNumeroDocumento()), texto(f.getCorreo()), texto(f.getRol()),
+                // En la edición el documento no viaja: no se modifica (la API también lo rechaza)
+                f.isNuevo() ? texto(f.getTipoDocumento()) : null, f.isNuevo() ? texto(f.getNumeroDocumento()) : null, texto(f.getCorreo()), texto(f.getRol()),
                 texto(f.getLegajo()), texto(f.getFechaIngreso()), direccion,
-                preventista ? texto(f.getZona()) : null,
                 distribuidor ? texto(f.getVehiculo()) : null,
                 distribuidor ? texto(f.getPatente()) : null,
                 null);
