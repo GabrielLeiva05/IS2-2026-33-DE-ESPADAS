@@ -1,6 +1,29 @@
-**/.env
-**/target
-**/.idea
+# Control de versiones y editores
+.git
 **/.git
+.idea
+**/.idea
+.vscode
+**/.vscode
+
+# Dependencias y compilaciones
 **/node_modules
-movil
+**/target
+**/dist
+
+# Archivos de configuracion local y secretos
+**/.env
+**/.env.*
+**/*.local
+
+# Logs y archivos temporales
+**/*.log
+**/hs_err_pid*
+**/replay_pid*
+**/tmp
+
+# Archivos comprimidos y respaldos
+**/*.zip
+**/*.tar
+**/*.gz
+**/*.bak
