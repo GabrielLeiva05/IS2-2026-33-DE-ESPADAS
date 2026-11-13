@@ -58,7 +58,7 @@ class CreadorFacturaTest {
     void elCreadorDeClienteInstanciaUnaFacturaClienteDelPedidoConIvaDiscriminado() throws MiException {
         Pedido pedido = pedido(0);
 
-        Factura factura = new CreadorFacturaCliente(0.21).emitir(pedido);
+        Factura factura = new CreadorConcretoFacturaCliente(0.21).emitir(pedido);
 
         assertTrue(factura instanceof FacturaCliente);
         assertSame(pedido, ((FacturaCliente) factura).getPedido());
@@ -72,7 +72,7 @@ class CreadorFacturaTest {
 
     @Test
     void elDescuentoDelPedidoSeRestaAntesDelIva() throws MiException {
-        Factura factura = new CreadorFacturaCliente(0.21).emitir(pedido(501.0));
+        Factura factura = new CreadorConcretoFacturaCliente(0.21).emitir(pedido(501.0));
 
         assertEquals(4501.0, factura.getSubtotal(), DELTA);
         assertEquals(501.0, factura.getDescuento(), DELTA);
@@ -83,7 +83,7 @@ class CreadorFacturaTest {
     @Test
     void unPedidoSinRenglonesNoSeFactura() {
         Pedido vacio = new Pedido();
-        assertThrows(MiException.class, () -> new CreadorFacturaCliente(0.21).emitir(vacio));
+        assertThrows(MiException.class, () -> new CreadorConcretoFacturaCliente(0.21).emitir(vacio));
     }
 
     @Test
@@ -93,7 +93,7 @@ class CreadorFacturaTest {
         DatosFacturaProveedor datos = new DatosFacturaProveedor(proveedor, 4521L, LocalDate.of(2026, 11, 2),
                 List.of(new RenglonFactura(producto("A"), 10, 700.0), new RenglonFactura(producto("B"), 5, 120.4)));
 
-        Factura factura = new CreadorFacturaProveedor(0.21).emitir(datos);
+        Factura factura = new CreadorConcretoFacturaProveedor(0.21).emitir(datos);
 
         assertTrue(factura instanceof FacturaProveedor);
         assertSame(proveedor, ((FacturaProveedor) factura).getProveedor());
@@ -107,7 +107,7 @@ class CreadorFacturaTest {
     @Test
     void laFacturaDeProveedorExigeNumeroPositivoYRenglonesValidos() {
         Proveedor proveedor = new Proveedor();
-        CreadorFacturaProveedor creador = new CreadorFacturaProveedor(0.21);
+        CreadorConcretoFacturaProveedor creador = new CreadorConcretoFacturaProveedor(0.21);
         assertThrows(MiException.class, () -> creador.emitir(new DatosFacturaProveedor(proveedor, 0L, LocalDate.now(),
                 List.of(new RenglonFactura(producto("A"), 1, 10.0)))));
         assertThrows(MiException.class, () -> creador.emitir(new DatosFacturaProveedor(proveedor, 1L, LocalDate.now(),
@@ -120,7 +120,7 @@ class CreadorFacturaTest {
 
     @Test
     void laAlicuotaDebeEstarEntreCeroYUno() {
-        assertThrows(IllegalArgumentException.class, () -> new CreadorFacturaCliente(21));
-        assertThrows(IllegalArgumentException.class, () -> new CreadorFacturaProveedor(-0.1));
+        assertThrows(IllegalArgumentException.class, () -> new CreadorConcretoFacturaCliente(21));
+        assertThrows(IllegalArgumentException.class, () -> new CreadorConcretoFacturaProveedor(-0.1));
     }
 }

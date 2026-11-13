@@ -15,7 +15,7 @@ import com.ejercicioIntegrador.dulcemayor.service.base.BaseService;
 import com.ejercicioIntegrador.dulcemayor.service.base.BaseUseCaseService;
 import com.ejercicioIntegrador.dulcemayor.service.facturacion.ConversorFactura;
 import com.ejercicioIntegrador.dulcemayor.service.facturacion.CreadorFactura;
-import com.ejercicioIntegrador.dulcemayor.service.facturacion.CreadorFacturaCliente;
+import com.ejercicioIntegrador.dulcemayor.service.facturacion.CreadorConcretoFacturaCliente;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * registra fechaFacturacion y pasa el pedido a PENDIENTE_DE_ENTREGA: si la factura falla, la confirmación se deshace.
  *
  * Algoritmo de alta (Template Method de BaseService): crearEntidad delega en el creador del Factory Method
- * (CreadorFacturaCliente); validar impide facturar dos veces el mismo pedido; preAlta asigna el número correlativo.
+ * (CreadorConcretoFacturaCliente); validar impide facturar dos veces el mismo pedido; preAlta asigna el número correlativo.
  * Las facturas no se modifican ni se dan de baja por API (no hay anulación de pedidos confirmados).
  */
 @Service
@@ -46,7 +46,7 @@ public class ServicioFacturaCliente extends BaseService<FacturaCliente, Solicitu
     private final GeneradorPdfFactura generadorPdf;
 
     public ServicioFacturaCliente(RepositorioFacturaCliente repositorioFacturaCliente,
-                                  CreadorFacturaCliente creador, ServicioCliente servicioCliente,
+                                  CreadorConcretoFacturaCliente creador, ServicioCliente servicioCliente,
                                   GeneradorPdfFactura generadorPdf) {
         super(repositorioFacturaCliente);
         this.repositorioFacturaCliente = repositorioFacturaCliente;

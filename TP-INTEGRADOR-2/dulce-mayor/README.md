@@ -62,6 +62,7 @@ Resumen de esta entrega:
 19. [Cómo ejecutar y probar el proyecto](#19-cómo-ejecutar-y-probar-el-proyecto)
 20. [Funcionalidades pendientes (Pagos y otras)](#20-funcionalidades-pendientes)
 21. [Pagos con Mercado Pago (Checkout API)](#21-pagos-con-mercado-pago-checkout-api)
+22. [Patrón Decorator en el envío de correos](#22-patrón-decorator-en-el-envío-de-correos)
 
 ```
 dulce-mayor/
@@ -269,14 +270,14 @@ EstadoFactura: PENDIENTE_PAGO, PAGADA, ANULADA
 ## 7. Relaciones entre Facturación y los demás módulos
 
 ```
-Pedidos ──confirmarPedido──▶ ServicioFacturaCliente ──CreadorFacturaCliente──▶ FacturaCliente ─1:1─ Pedido
+Pedidos ──confirmarPedido──▶ ServicioFacturaCliente ──CreadorConcretoFacturaCliente──▶ FacturaCliente ─1:1─ Pedido
    │                                                                                   │
    │ PedidoResponseDTO.idFactura / numeroFactura / totalFacturado ◀────────────────────┘
    │ PedidoResumenDTO.total (monto a cobrar por el distribuidor) = total facturado
 Personas ──Pedido → PuntoVenta → Cliente──▶ propiedad de la factura (el cliente solo ve las suyas)
 Catálogo ──Producto──▶ DetalleFactura (precio del pedido, no el vigente al facturar)
           Baja de producto: bloqueada con pedidos abiertos; las facturas históricas lo conservan
-Proveedores ──▶ FacturaProveedor ──CreadorFacturaProveedor──▶ productos por ServicioProducto
+Proveedores ──▶ FacturaProveedor ──CreadorConcretoFacturaProveedor──▶ productos por ServicioProducto
 Direcciones ──▶ Proveedor.direccion (ServicioDireccion)
 Pagos (pendiente) ──▶ EstadoFactura PAGADA, FormaDePago, codigoQrPago
 ```
@@ -317,13 +318,17 @@ por tipo.
 | Rol del patrón | Clase en Dulce Mayor (`service/facturacion`) |
 |---|---|
 | Producto | `Factura` (abstracta) |
-| Productos concretos | `FacturaCliente`, `FacturaProveedor` |
+| Producto Concreto | `FacturaCliente`, `FacturaProveedor` |
 | Creador | `CreadorFactura<D>`, donde `D` son los datos de origen |
 | **Método fábrica** | `protected abstract Factura crearFactura(D datos)` |
 | Operación común, la que usa el método fábrica | `public final Factura emitir(D datos)`: crea la factura, agrega y valida los renglones, calcula subtotal, descuento, IVA y total, y pone el estado y la fecha |
-| Creadores concretos | `CreadorFacturaCliente` (D = `Pedido`) y `CreadorFacturaProveedor` (D = `DatosFacturaProveedor`) |
+| Creador Concreto | `CreadorConcretoFacturaCliente` (D = `Pedido`) y `CreadorConcretoFacturaProveedor` (D = `DatosFacturaProveedor`) |
 | Otros pasos que varían | `renglones(D)`, `descuento(D)`, `fechaFactura(D)` |
 | Clientes del patrón | `ServicioFacturaCliente.crearEntidad` y `ServicioFacturaProveedor.crearEntidad`/`actualizarEntidad` |
+
+Los **creadores** llevan el nombre del rol (`CreadorFactura`, `CreadorConcreto…`). Los **productos** conservan el
+nombre del diagrama de clases (`Factura`, `FacturaCliente`, `FacturaProveedor`) y el rol figura en su javadoc: son
+entidades JPA del dominio, y llamarlas `Producto…` se confundiría con `Producto` (la golosina del catálogo).
 
 **Por qué Factory Method y no otra cosa.** Hay dos familias de factura que comparten el procedimiento de emisión
 pero se instancian y se completan distinto. El patrón deja la parte común en un solo lugar, `emitir`. Los servicios
@@ -763,7 +768,7 @@ Se usa la **Checkout API con QR dinámico** (sin Checkout Pro y **sin redirigir*
 - `model/Pago` (1 Pago ── 1 Pedido) y `repository/RepositorioPago`.
 - `service/ServicioPago` (registrar pago, procesar webhook, acreditar de forma idempotente).
 - `service/ServicioCorreo` (correos HTML con el detalle y las instrucciones; QR adjunto vía `cid:qrPago`; aviso
-  al comercio que el distribuidor visitará a continuación).
+  al comercio que el distribuidor visitará a continuación). El envío pasa por el patrón Decorator (sección 22).
 - `service/pagos/MercadoPagoQrCliente` (Checkout API QR) y `service/pagos/GeneradorQrPng` (ZXing).
 - `controller/ControladorPago` (webhook público) y `dto/ConfirmarPedidoRequestDTO`.
 - `ServicioPedido.confirmarPedidoPresencial(...)` y `ServicioFacturaCliente.marcarPagada(...)`.
@@ -1012,7 +1017,7 @@ minutos estaremos visitando tu comercio para entregar tu pedido") y no incluye d
   Si no quedan paradas pendientes no se envía nada.
 - Cada parada se avisa una sola vez, porque el aviso sale después de marcarla como atendida y una parada no
   puede marcarse dos veces en el día.
-- Si el correo falla, la entrega se registra igual (mismo criterio que el resto: `ServicioCorreo` absorbe el error).
+- Si el correo falla, la entrega se registra igual (mismo criterio que el resto: el `DecoradorConcretoCorreoTolerante` absorbe el error; ver sección 22).
 
 **Cómo probarlo con Mailtrap:**
 
@@ -1022,3 +1027,70 @@ minutos estaremos visitando tu comercio para entregar tu pedido") y no incluye d
 3. En la primera parada tocar **Entregado**. En Mailtrap debe llegar el aviso al cliente de la **segunda** parada,
    con asunto `Tu pedido está por llegar · Dulce Mayor`.
 4. Registrar la entrega de la segunda parada: ahora el aviso llega al cliente de la tercera, y así hasta la última.
+
+---
+
+## 22. Patrón Decorator en el envío de correos
+
+**Problema.** Antes, `ServicioCorreo` hacía todo junto: armaba el HTML, revisaba si el correo estaba habilitado,
+enviaba por SMTP y atrapaba los errores para que un correo fallido no deshiciera la operación que lo disparó
+(confirmar un pedido, acreditar un pago, registrar una entrega). Con Decorator, el **envío básico** queda en una
+clase, y cada comportamiento **adicional** es una capa que lo envuelve. Las capas se combinan sin subclases por
+cada combinación, y quien envía no se entera de cuántas hay.
+
+Paquete `service/correo`:
+
+| Rol del patrón | Clase | Responsabilidad |
+|---|---|---|
+| **Componente** | `ComponenteCorreo` (interfaz) | `enviar(MensajeCorreo)`. La conocen tanto los envueltos como los decoradores. |
+| **Componente Concreto** | `ComponenteConcretoCorreoSmtp` | Arma el `MimeMessage` (HTML y QR en línea) y lo entrega con `JavaMailSender`. Clasifica las fallas: reintentables (el servidor no respondió) o no (falta configuración o destinatario). |
+| **Decorador Base** | `DecoradorBaseCorreo` (abstracta) | Tiene `- envuelto: ComponenteCorreo` y su `enviar()` delega en él. |
+| **Decorador Concreto** | `DecoradorConcretoCorreoHabilitado` | Si `CORREO_HABILITADO=false`, registra en el log y **no** delega. |
+| **Decorador Concreto** | `DecoradorConcretoCorreoTolerante` | Delega dentro de un `try/catch`: una falla se registra y no interrumpe la operación. |
+| **Decorador Concreto** | `DecoradorConcretoCorreoReintentos` | Reintenta las fallas transitorias (por defecto 3 intentos, con pausa de 1 s, 2 s…). Las no reintentables se propagan enseguida. |
+| **Cliente** | `ServicioCorreo` | Arma **qué** se envía (destinatario, asunto, HTML, QR) y llama a `componenteCorreo.enviar(...)`. |
+| (datos) | `MensajeCorreo`, `ErrorEnvioCorreoException` | El mensaje que recorre las capas y la falla tipada. |
+
+El armado está en `ConfiguracionCorreo` (la nota del diagrama `c = new DecoradorConcreto2(new DecoradorConcreto1(a))`):
+
+```java
+ComponenteCorreo smtp          = new ComponenteConcretoCorreoSmtp(proveedorMailSender, remitente, nombre);
+ComponenteCorreo conReintentos = new DecoradorConcretoCorreoReintentos(smtp, intentos, pausa);
+ComponenteCorreo tolerante     = new DecoradorConcretoCorreoTolerante(conReintentos);
+return new DecoradorConcretoCorreoHabilitado(tolerante, habilitado);
+// Habilitado → Tolerante → Reintentos → SMTP
+```
+
+**El orden importa.** "Habilitado" va afuera: si el correo está apagado, no se hace nada más. "Tolerante" envuelve
+a los reintentos, así la falla se absorbe recién cuando se agotaron todos los intentos.
+
+**Cambios respecto de antes:**
+- `ServicioCorreo` recibe un `ComponenteCorreo` en lugar de `JavaMailSender`. Sus métodos públicos y el contenido
+  de los correos no cambiaron, y `ServicioPago` y `ServicioPedido` no se tocaron.
+- Se suman `CORREO_INTENTOS` (3) y `CORREO_PAUSA_REINTENTO_MS` (1000). Con `CORREO_INTENTOS=1` no se reintenta.
+- Los reintentos ocurren dentro de la misma petición: en el peor caso, la confirmación tarda unos segundos más
+  si el servidor SMTP no responde.
+- Para agregar una capa (por ejemplo, redirigir todos los correos a una casilla de prueba en desarrollo) se crea
+  otro `DecoradorConcretoCorreo…` y se suma en `ConfiguracionCorreo`, sin modificar las clases existentes.
+
+**Pruebas:**
+- `service/correo/DecoradoresCorreoTest` prueba cada decorador con un componente falso y también la cadena
+  completa.
+- `service/correo/ComponenteConcretoCorreoSmtpTest` (con Mockito) prueba el armado y la clasificación de fallas
+  del componente concreto.
+
+### Nombres de los patrones en el código
+
+| Patrón | Rol | Clase |
+|---|---|---|
+| Decorator | Componente / Componente Concreto | `ComponenteCorreo` / `ComponenteConcretoCorreoSmtp` |
+| | Decorador Base / Decorador Concreto | `DecoradorBaseCorreo` / `DecoradorConcretoCorreoHabilitado`, `…Tolerante`, `…Reintentos` |
+| | Cliente | `ServicioCorreo` |
+| Strategy | Contexto | `ContextoExportacion` (antes `ExportadorReportes`) |
+| | Estrategia | `EstrategiaExportacion<R>` |
+| | Estrategia Concreta | `EstrategiaConcretaClientesPedidosPdf`, `EstrategiaConcretaClientesPedidosExcel`, `EstrategiaConcretaVentasExcel` (antes `Exportador…`) |
+| | Cliente | `ServicioReporte` |
+| Factory Method | Creador / Creador Concreto | `CreadorFactura` / `CreadorConcretoFacturaCliente`, `CreadorConcretoFacturaProveedor` (antes `CreadorFactura…`) |
+| | Producto / Producto Concreto | `Factura` / `FacturaCliente`, `FacturaProveedor` (nombres del diagrama de clases) |
+| Template Method | Clase abstracta / Clases concretas | `BaseService`, `BaseController` / los servicios y controladores |
+

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Mis facturas')}"></head>
+<body class="app-sitio">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<th:block th:replace="~{fragments/base :: cabecera}"></th:block>
+
+<main class="sitio-main">
+    <div class="contenedor seccion">
+        <div class="seccion-titulo"><h1 class="mb-0">Mis facturas</h1></div>
+        <p class="texto-secundario">Cada pedido que confirmás genera su factura. El IVA (21 %) figura discriminado.
+            Por ahora se pagan al recibir el pedido.</p>
+        <div th:replace="~{fragments/base :: alertas}"></div>
+
+        <div class="vacio tarjeta mt-4" th:if="${facturas.isEmpty()}">
+            <svg class="icono"><use href="#i-factura"/></svg>
+            <p>Todavía no tenés facturas. Se generan cuando confirmás un pedido.</p>
+            <a class="btn btn-secundario" th:href="@{/mis-pedidos}">Ver mis pedidos</a>
+        </div>
+
+        <section class="tarjeta mt-4" style="padding:0;overflow:hidden" th:unless="${facturas.isEmpty()}">
+            <div class="tabla-desplazable">
+            <table class="tabla tabla-apilable">
+                <thead><tr><th>Factura</th><th>Comercio</th><th class="col-secundaria">Subtotal</th><th class="col-secundaria">IVA</th><th>Total</th><th>Estado</th><th><span class="oculto-visual">PDF</span></th></tr></thead>
+                <tbody>
+                <tr th:each="f : ${facturas}">
+                    <td class="celda-principal"><span><strong th:text="'N.º ' + ${f.numeroFactura}">N.º 1</strong><br>
+                        <small class="texto-secundario" th:text="${f.fechaLegible} + ' · Pedido ' + ${f.numeroPedido}">fecha</small></span></td>
+                    <td data-label="Comercio" th:text="${f.nombreFantasia}">Comercio</td>
+                    <td class="col-secundaria" data-label="Subtotal" th:text="'$ ' + ${#numbers.formatDecimal(f.subtotal - f.descuento, 1, 'POINT', 2, 'COMMA')}">$</td>
+                    <td class="col-secundaria" data-label="IVA" th:text="'$ ' + ${#numbers.formatDecimal(f.iva, 1, 'POINT', 2, 'COMMA')}">$</td>
+                    <td data-label="Total"><strong th:text="'$ ' + ${#numbers.formatDecimal(f.total, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                    <td data-label="Estado"><span class="insignia" th:classappend="${f.estadoTono}" th:text="${f.estadoLegible}">Pendiente</span></td>
+                    <td class="celda-acciones"><a class="btn btn-secundario btn-chico" th:href="@{/mis-facturas/{id}/pdf(id=${f.id})}">
+                        <svg class="icono icono-sm"><use href="#i-descarga"/></svg>Descargar PDF</a></td>
+                </tr>
+                </tbody>
+            </table>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/base :: pie}"></footer>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

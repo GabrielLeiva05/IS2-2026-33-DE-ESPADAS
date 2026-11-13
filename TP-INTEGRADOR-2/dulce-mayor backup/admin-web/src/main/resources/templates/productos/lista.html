@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Productos')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Productos')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Productos</h1>
+                    <p>Alta, modificación y baja de productos, con su precio vigente y su stock.</p>
+                </div>
+                <a class="btn btn-primario" th:href="@{/productos/nuevo}"><svg class="icono icono-sm"><use href="#i-mas"/></svg>Nuevo producto</a>
+            </div>
+
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <form class="tarjeta filtros mt-4" th:action="@{/productos}" method="get" role="search">
+                <div class="campo">
+                    <label for="texto">Buscar</label>
+                    <input class="control" id="texto" name="texto" th:value="${texto}" placeholder="Nombre o código">
+                </div>
+                <button type="submit" class="btn btn-azul">Buscar</button>
+            </form>
+
+            <div class="vacio tarjeta mt-4" th:if="${filas.isEmpty()}">
+                <svg class="icono"><use href="#i-catalogo"/></svg>
+                <p>No hay productos para mostrar.</p>
+            </div>
+
+            <section class="tarjeta tarjeta-tabla mt-4" th:unless="${filas.isEmpty()}">
+                <div class="tabla-desplazable">
+                <table class="tabla tabla-apilable">
+                    <thead><tr><th>Producto</th><th>Categoría</th><th>Presentación</th><th>Precio</th><th>Stock</th><th><span class="oculto-visual">Acciones</span></th></tr></thead>
+                    <tbody>
+                    <tr th:each="f : ${filas}" th:with="p=${f.producto()}">
+                        <td class="celda-principal">
+                            <span><strong th:text="${p.nombre}">Producto</strong><br>
+                                <small class="texto-secundario" th:text="${p.codigo}">COD</small>
+                                <span class="insignia insignia-oferta" th:if="${p.enOferta}">Oferta</span></span>
+                        </td>
+                        <td data-label="Categoría" th:text="${p.nombreCategoria} + ' · ' + ${p.nombreSubCategoria}">Cat</td>
+                        <td data-label="Presentación" th:text="${p.presentacionLegible}">Caja</td>
+                        <td data-label="Precio">
+                            <strong th:unless="${f.sinPrecio}" th:text="'$ ' + ${#numbers.formatDecimal(f.precioVigente(), 1, 'POINT', 2, 'COMMA')}">$</strong>
+                            <span class="insignia insignia-naranja" th:if="${f.sinPrecio}">Sin precio</span>
+                        </td>
+                        <td data-label="Stock">
+                            <span th:if="${f.stock() == null}" class="insignia insignia-gris">Sin stock cargado</span>
+                            <span th:if="${f.stock() != null}" class="insignia"
+                                  th:classappend="${f.stock().cantidadActual <= 0} ? 'insignia-roja' : (${f.stock().bajoMinimo} ? 'insignia-naranja' : 'insignia-verde')"
+                                  th:text="${f.stock().cantidadActual} + ' bultos'">10</span>
+                        </td>
+                        <td class="celda-acciones">
+                            <a class="btn btn-secundario btn-chico" th:href="@{/productos/{id}/editar(id=${p.id})}">
+                                <svg class="icono icono-sm"><use href="#i-editar"/></svg>Editar</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

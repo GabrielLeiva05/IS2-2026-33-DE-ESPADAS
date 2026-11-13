@@ -101,18 +101,18 @@ Paquete `com.ejercicioIntegrador.dulcemayor.exportacion`:
 
 | Clase | Rol | Responsabilidad |
 |---|---|---|
-| `EstrategiaExportacion<R>` | **Strategy** (interfaz) | `tipoDeReporte()`, `formato()`, `byte[] exportar(R reporte)` |
-| `ExportadorClientesPedidosPdf` | Estrategia concreta | Clientes y pedidos → PDF con JasperReports y la plantilla JRXML (compilada una sola vez, de forma perezosa y segura entre hilos) |
-| `ExportadorClientesPedidosExcel` | Estrategia concreta | Clientes y pedidos → `.xlsx` con POI |
-| `ExportadorVentasExcel` | Estrategia concreta | Histórico de ventas → `.xlsx` con POI (hojas Resumen y Detalle) |
-| `ExportadorReportes` | **Context** | Recibe todas las estrategias por inyección y ejecuta la que coincide con el tipo de reporte y el formato |
+| `EstrategiaExportacion<R>` | **Estrategia** (interfaz) | `tipoDeReporte()`, `formato()`, `byte[] exportar(R reporte)` |
+| `EstrategiaConcretaClientesPedidosPdf` | **Estrategia Concreta** | Clientes y pedidos → PDF con JasperReports y la plantilla JRXML (compilada una sola vez, de forma perezosa y segura entre hilos) |
+| `EstrategiaConcretaClientesPedidosExcel` | **Estrategia Concreta** | Clientes y pedidos → `.xlsx` con POI |
+| `EstrategiaConcretaVentasExcel` | **Estrategia Concreta** | Histórico de ventas → `.xlsx` con POI (hojas Resumen y Detalle) |
+| `ContextoExportacion` | **Contexto** | Recibe todas las estrategias por inyección y ejecuta la que coincide con el tipo de reporte y el formato |
 | `FormatoExportacion` | Enum | `PDF`, `EXCEL` con extensión y tipo de contenido |
 | `LibroExcel`, `TextoReporte` | Utilitarios del paquete | Estilos POI y textos de encabezado compartidos, para no duplicar código |
 | `ErrorExportacionException` | Excepción técnica | Falla de la biblioteca → 500 por `ManejadorErrores` |
 
-**Cómo se selecciona y ejecuta.** `ServicioReporte` arma el reporte y llama `exportadorReportes.exportar(reporte, formato)`. El contexto recorre las estrategias y ejecuta la que cumple `estrategia.formato() == formato && estrategia.tipoDeReporte().isInstance(reporte)`. No hay `if/else` ni `switch` por formato; la selección vive solo en `ExportadorReportes` (ni en controladores ni en servicios). Si no hay estrategia (por ejemplo, ventas en PDF) se responde con un error de negocio claro.
+**Cómo se selecciona y ejecuta.** `ServicioReporte` arma el reporte y llama `contextoExportacion.exportar(reporte, formato)`. El contexto recorre las estrategias y ejecuta la que cumple `estrategia.formato() == formato && estrategia.tipoDeReporte().isInstance(reporte)`. No hay `if/else` ni `switch` por formato; la selección vive solo en `ContextoExportacion` (ni en controladores ni en servicios). Si no hay estrategia (por ejemplo, ventas en PDF) se responde con un error de negocio claro.
 
-**Cómo agregar un formato (p. ej. CSV del histórico).** Crear una clase `@Component` que implemente `EstrategiaExportacion<ReporteVentasDTO>` con `formato() = CSV` (y agregar `CSV` al enum `FormatoExportacion`). `ExportadorReportes` la descubre sola: no se modifican el servicio ni el controlador.
+**Cómo agregar un formato (p. ej. CSV del histórico).** Crear una clase `@Component` que implemente `EstrategiaExportacion<ReporteVentasDTO>` con `formato() = CSV` (y agregar `CSV` al enum `FormatoExportacion`). `ContextoExportacion` la descubre sola: no se modifican el servicio ni el controlador.
 
 **Ventajas.** Extensible sin modificar código existente (abierto/cerrado), una responsabilidad por clase, sin lógica de formato en los servicios, y la pantalla, el PDF y el Excel muestran exactamente los mismos datos porque todos parten del mismo DTO. Es una aplicación real: hay dos tipos de reporte y dos formatos con bibliotecas distintas.
 
@@ -165,7 +165,7 @@ Errores: `400` fechas inválidas, período faltante, formato sin estrategia, dep
 ## 8. Archivos y clases modificadas
 
 **Backend — nuevos** (`com.ejercicioIntegrador.dulcemayor`):
-`controller/ControladorReporte`; `service/ServicioReporte`; `exportacion/` (`EstrategiaExportacion`, `ExportadorReportes`, `FormatoExportacion`, `ExportadorClientesPedidosPdf`, `ExportadorClientesPedidosExcel`, `ExportadorVentasExcel`, `LibroExcel`, `TextoReporte`, `ErrorExportacionException`); `dto/` (`FiltroReporteDTO`, `PedidoReporteDTO`, `ReporteClientesPedidosDTO`, `VentaDTO`, `SubtotalVentasDTO`, `ReporteVentasDTO`, `ArchivoReporteDTO`); recurso `resources/reportes/reporte_clientes_pedidos.jrxml`; pruebas `service/ServicioReporteTest`, `exportacion/ExportadorReportesTest`.
+`controller/ControladorReporte`; `service/ServicioReporte`; `exportacion/` (`EstrategiaExportacion`, `ContextoExportacion`, `FormatoExportacion`, `EstrategiaConcretaClientesPedidosPdf`, `EstrategiaConcretaClientesPedidosExcel`, `EstrategiaConcretaVentasExcel`, `LibroExcel`, `TextoReporte`, `ErrorExportacionException`); `dto/` (`FiltroReporteDTO`, `PedidoReporteDTO`, `ReporteClientesPedidosDTO`, `VentaDTO`, `SubtotalVentasDTO`, `ReporteVentasDTO`, `ArchivoReporteDTO`); recurso `resources/reportes/reporte_clientes_pedidos.jrxml`; pruebas `service/ServicioReporteTest`, `exportacion/ContextoExportacionTest`.
 
 **Backend — modificados:**
 - `repository/RepositorioPedido`: dos consultas derivadas por rango de fechas.
@@ -206,7 +206,7 @@ Ninguna está gestionada por el BOM de Spring Boot, por eso la versión es expl�
 
 **Pruebas automatizadas escritas pero sin ejecutar:**
 - `ServicioReporteTest` (Mockito): fecha de inicio posterior a la de fin; histórico sin período; intervalo consultado `[1/10 00:00, 1/11 00:00)` (inclusivo del último día); solo pedidos confirmados y no anulados cuentan como venta; subtotales y totales; filtro por departamento sin repositorios; estados de envío y monto facturado; filtro por estado.
-- `ExportadorReportesTest`: el contexto elige la estrategia correcta por formato, rechaza combinaciones sin estrategia y entradas nulas.
+- `ContextoExportacionTest`: el contexto elige la estrategia correcta por formato, rechaza combinaciones sin estrategia y entradas nulas.
 - `InterceptorAccesoTest`: los reportes solo para el jefe.
 
 **Pendiente de probar a mano, por riesgo:**

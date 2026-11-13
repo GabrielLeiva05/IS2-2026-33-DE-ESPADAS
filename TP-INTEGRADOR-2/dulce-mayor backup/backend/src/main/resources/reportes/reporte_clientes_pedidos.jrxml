@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.20.6.final using JasperReports Library version 6.20.6 -->
+<!-- Adaptada al modelo real de Dulce Mayor: ver README, seccion "Plantilla JRXML". -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reporte_clientes_pedidos" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="402d699f-dae4-4939-abdd-7609582bda77">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<style name="Base" isDefault="true" fontName="SansSerif" fontSize="9"/>
+	<style name="Zebra" mode="Opaque" backcolor="#FFFFFF">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT} % 2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#FFF0F5"/>
+		</conditionalStyle>
+	</style>
+	<style name="Estado" mode="Opaque" forecolor="#333333" backcolor="#EEEEEE" fontSize="8" isBold="true">
+		<conditionalStyle>
+			<conditionExpression><![CDATA["Entregado".equals($F{estadoEnvio})]]></conditionExpression>
+			<style mode="Opaque" forecolor="#1B5E20" backcolor="#C8E6C9"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA["En reparto".equals($F{estadoEnvio})]]></conditionExpression>
+			<style mode="Opaque" forecolor="#E65100" backcolor="#FFE0B2"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA["Pendiente de asignación".equals($F{estadoEnvio})]]></conditionExpression>
+			<style mode="Opaque" forecolor="#0D47A1" backcolor="#BBDEFB"/>
+		</conditionalStyle>
+		<conditionalStyle>
+			<conditionExpression><![CDATA["Anulado".equals($F{estadoEnvio})]]></conditionExpression>
+			<style mode="Opaque" forecolor="#B71C1C" backcolor="#FFCDD2"/>
+		</conditionalStyle>
+	</style>
+	<!-- Parametros del reporte -->
+	<parameter name="PERIODO_DESDE" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="PERIODO_HASTA" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FECHA_GENERACION" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="FILTROS" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Sin filtros adicionales"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USUARIO_GENERADOR" class="java.lang.String">
+		<defaultValueExpression><![CDATA["-"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<!-- Una fila por pedido. El listado debe llegar ORDENADO por cliente y comercio (agrupa por clavePuntoVenta). -->
+	<field name="clavePuntoVenta" class="java.lang.String"/>
+	<field name="dniCliente" class="java.lang.String"/>
+	<field name="nombreCliente" class="java.lang.String"/>
+	<field name="emailCliente" class="java.lang.String"/>
+	<field name="nombreComercio" class="java.lang.String"/>
+	<field name="departamento" class="java.lang.String"/>
+	<field name="domicilioComercio" class="java.lang.String"/>
+	<field name="numeroPedido" class="java.lang.String"/>
+	<field name="fechaCarga" class="java.util.Date"/>
+	<field name="preventista" class="java.lang.String"/>
+	<field name="estadoPedido" class="java.lang.String"/>
+	<field name="estadoEnvio" class="java.lang.String"/>
+	<field name="fechaFacturacion" class="java.util.Date"/>
+	<field name="fechaEntrega" class="java.util.Date"/>
+	<field name="nombreDistribuidor" class="java.lang.String"/>
+	<field name="montoFacturado" class="java.lang.Double"/>
+	<variable name="cantPedidosCliente" class="java.lang.Integer" resetType="Group" resetGroup="ComercioGroup" calculation="Count">
+		<variableExpression><![CDATA[$F{numeroPedido}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="totalCliente" class="java.lang.Double" resetType="Group" resetGroup="ComercioGroup" calculation="Sum">
+		<variableExpression><![CDATA[$F{montoFacturado} == null ? 0.0 : $F{montoFacturado}]]></variableExpression>
+		<initialValueExpression><![CDATA[0.0]]></initialValueExpression>
+	</variable>
+	<variable name="cantClientes" class="java.lang.Integer" calculation="Sum">
+		<variableExpression><![CDATA[$V{ComercioGroup_COUNT} == 1 ? 1 : 0]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="cantPedidosTotal" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[$F{numeroPedido}]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="cantEntregados" class="java.lang.Integer" calculation="Sum">
+		<variableExpression><![CDATA["Entregado".equals($F{estadoEnvio}) ? 1 : 0]]></variableExpression>
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<variable name="cantPendientes" class="java.lang.Integer" calculation="Sum">
+		<variableExpression><![CDATA[("Pendiente de asignación".equals($F{estadoEnvio}) || "En reparto".equals($F{estadoEnvio})) ? 1 : 0]]></variableExpression>
+	</variable>
+	<variable name="totalGeneral" class="java.lang.Double" calculation="Sum">
+		<variableExpression><![CDATA[$F{montoFacturado} == null ? 0.0 : $F{montoFacturado}]]></variableExpression>
+		<initialValueExpression><![CDATA[0.0]]></initialValueExpression>
+	</variable>
+	<group name="ComercioGroup" isReprintHeaderOnEachPage="true" minHeightToStartNewPage="110">
+		<groupExpression><![CDATA[$F{clavePuntoVenta}]]></groupExpression>
+		<groupHeader>
+			<band height="88" splitType="Prevent">
+				<rectangle radius="6">
+					<reportElement x="0" y="8" width="802" height="50" backcolor="#FAFAFA" uuid="47173d44-85b9-456e-8533-325680567fd1"/>
+					<graphicElement>
+						<pen lineWidth="1.0" lineColor="#E0E0E0"/>
+					</graphicElement>
+				</rectangle>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement x="10" y="12" width="300" height="20" uuid="bd1d77a3-9540-4a4b-9ca9-f0ef89677aee"/>
+					<textElement verticalAlignment="Middle">
+						<font size="11" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Cliente: " + $F{nombreCliente}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement x="320" y="12" width="140" height="20" uuid="314a1173-a998-48d3-9e44-9d1388718210"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Documento: " + ($F{dniCliente} != null ? $F{dniCliente} : "-")]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement x="470" y="12" width="322" height="20" uuid="7bc5e6e6-3f16-4bad-b277-6c65b4344f23"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Correo: " + ($F{emailCliente} != null ? $F{emailCliente} : "-")]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement x="10" y="34" width="300" height="20" uuid="6d1e6e94-211f-43c8-be64-f32da5a9a73d"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Comercio: " + $F{nombreComercio}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement x="320" y="34" width="140" height="20" uuid="cc158569-4e7f-43a0-8e5f-4c65631175de"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Depto.: " + $F{departamento}]]></textFieldExpression>
+				</textField>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement x="470" y="34" width="322" height="20" uuid="8958f007-96b8-47fe-97f0-673c8ca59f8c"/>
+					<textElement verticalAlignment="Middle">
+						<font size="10"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Domicilio: " + $F{domicilioComercio}]]></textFieldExpression>
+				</textField>
+				<rectangle radius="0">
+					<reportElement x="0" y="62" width="802" height="24" backcolor="#FFB6C1" uuid="badfa5e6-8339-4b6a-9cb6-46309cbfc6c7"/>
+					<graphicElement>
+						<pen lineWidth="0.0"/>
+					</graphicElement>
+				</rectangle>
+				<staticText>
+					<reportElement x="5" y="62" width="55" height="24" forecolor="#333333" uuid="c5590291-5e6a-49d3-883f-b6c3a15d5f66"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[N° Pedido]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="60" y="62" width="95" height="24" forecolor="#333333" uuid="65815b48-a04c-403f-8673-b6dae62200a4"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Fecha de carga]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="158" y="62" width="100" height="24" forecolor="#333333" uuid="735ad978-c1d9-45cd-8af1-1ef9d36fd7a3"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Preventista]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="262" y="62" width="82" height="24" forecolor="#333333" uuid="dc479728-1fdf-46b1-9643-626b7193c432"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Estado pedido]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="348" y="62" width="98" height="24" forecolor="#333333" uuid="bc3f34c8-21e6-4b49-ac86-006513070ca3"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Estado de envío]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="450" y="62" width="68" height="24" forecolor="#333333" uuid="d4c0760b-9362-4426-8575-c92e55e5f7d8"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Facturación]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="522" y="62" width="92" height="24" forecolor="#333333" uuid="6f115a05-e047-47bb-8cee-df9b914b5fa4"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Entrega]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="618" y="62" width="88" height="24" forecolor="#333333" uuid="66f2c438-8f8d-4e31-bacd-05d2a1448a1d"/>
+					<textElement verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Distribuidor]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="710" y="62" width="87" height="24" forecolor="#333333" uuid="c05f28b5-0469-4f57-b186-9eeab141a0e1"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Monto facturado]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="44" splitType="Prevent">
+				<line>
+					<reportElement x="0" y="2" width="802" height="1" forecolor="#FFB6C1" uuid="15f8a42c-f064-4fc6-9b8d-316591a01c0f"/>
+				</line>
+				<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+					<reportElement x="260" y="8" width="445" height="22" uuid="2e1b805b-6694-4544-9bdc-8835c826fc1e"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Subtotal " + $F{nombreComercio} + " (" + $V{cantPedidosCliente} + ($V{cantPedidosCliente} == 1 ? " pedido" : " pedidos") + "):"]]></textFieldExpression>
+				</textField>
+				<textField pattern="$ #,##0.00">
+					<reportElement x="705" y="8" width="92" height="22" forecolor="#D6336C" uuid="6c883d95-1d37-4e20-afa2-812b618aff80"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle">
+						<font size="10" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$V{totalCliente}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="100" splitType="Stretch">
+			<rectangle radius="0">
+				<reportElement x="0" y="0" width="802" height="88" backcolor="#FF69B4" uuid="82ba95b2-8b8e-4312-8812-f35092369309"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<ellipse>
+				<reportElement x="25" y="14" width="44" height="44" backcolor="#FFD700" uuid="ad9ff4e5-fa23-4302-8536-c16e33a5559e"/>
+				<graphicElement>
+					<pen lineWidth="1.5" lineColor="#FFFFFF"/>
+				</graphicElement>
+			</ellipse>
+			<line>
+				<reportElement x="47" y="58" width="2" height="24" forecolor="#FFFFFF" uuid="bb90cdb5-3ccd-461b-9cf3-833185a807f3"/>
+				<graphicElement>
+					<pen lineWidth="4"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement x="90" y="12" width="460" height="36" forecolor="#FFFFFF" uuid="c1397c9d-6ea0-4e53-b057-a7291278c091"/>
+				<textElement verticalAlignment="Middle">
+					<font size="22" isBold="true"/>
+				</textElement>
+				<text><![CDATA[REPORTE DE CLIENTES Y PEDIDOS]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="90" y="52" width="460" height="22" forecolor="#FFFFFF" uuid="247f60ba-af33-439a-8017-15be8e2d01e8"/>
+				<textElement verticalAlignment="Middle">
+					<font size="11"/>
+				</textElement>
+				<text><![CDATA[Dulce Mayor - Distribuidora Mayorista de Golosinas | Mendoza, Argentina]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="560" y="12" width="230" height="18" forecolor="#FFFFFF" uuid="e84f5c83-78f6-4ead-afb4-9ce2a6bcffa0"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[PERÍODO]]></text>
+			</staticText>
+			<textField textAdjust="ScaleFont">
+				<reportElement x="560" y="32" width="230" height="20" forecolor="#FFFFFF" uuid="a1e3497a-b43f-426e-955b-defbc49368b8"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Del " + $P{PERIODO_DESDE} + " al " + $P{PERIODO_HASTA}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="ScaleFont">
+				<reportElement x="560" y="56" width="230" height="18" forecolor="#FFFFFF" uuid="fdb8d313-0311-415b-a8b7-bd5dd20e62b8"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Generado: " + $P{FECHA_GENERACION}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="ScaleFont">
+				<reportElement x="90" y="74" width="700" height="14" forecolor="#FFFFFF" uuid="af8269e8-41c8-464d-a3fc-0e823be99ba3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Filtros: " + $P{FILTROS}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="24" splitType="Stretch">
+			<printWhenExpression><![CDATA[$V{PAGE_NUMBER} > 1]]></printWhenExpression>
+			<textField>
+				<reportElement x="0" y="0" width="802" height="18" forecolor="#D6336C" uuid="b1646f59-bc11-48ba-9fd4-e8053e6c06c0"/>
+				<textElement verticalAlignment="Middle">
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dulce Mayor - Reporte de clientes y pedidos | Período: " + $P{PERIODO_DESDE} + " al " + $P{PERIODO_HASTA}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="20" width="802" height="1" forecolor="#FFB6C1" uuid="94db586a-933e-4f19-8aa1-aff47d7370f3"/>
+			</line>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="26" splitType="Stretch">
+			<rectangle radius="0">
+				<reportElement style="Zebra" stretchType="RelativeToBandHeight" x="0" y="0" width="802" height="26" uuid="b9aec6b5-bb5d-4521-90be-012f03e08dd6"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<textField isBlankWhenNull="true">
+				<reportElement x="5" y="3" width="55" height="20" uuid="3f9a118d-bb75-4615-98d7-a828b439b0ab"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{numeroPedido}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy HH:mm" isBlankWhenNull="true">
+				<reportElement x="60" y="3" width="95" height="20" uuid="63cc56d8-0862-4ced-bd2d-99b511208aac"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{fechaCarga}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+				<reportElement x="158" y="3" width="100" height="20" uuid="0a7b05ae-c4a5-4f49-a7b0-c06dcbc6e8ff"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{preventista}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+				<reportElement x="262" y="3" width="82" height="20" uuid="28e19435-9fc5-47b7-a38b-f4bb679abeef"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{estadoPedido}]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="ScaleFont" isBlankWhenNull="true">
+				<reportElement style="Estado" x="348" y="5" width="98" height="16" uuid="9a486498-ecd2-4d32-b3e1-e1ce525578fc"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{estadoEnvio}]]></textFieldExpression>
+			</textField>
+			<textField >
+				<reportElement x="450" y="3" width="68" height="20" uuid="b8fcbc3b-2871-4c94-aeb1-13b509728eb4"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{fechaFacturacion} != null ? new java.text.SimpleDateFormat("dd/MM/yyyy").format($F{fechaFacturacion}) : "-"]]></textFieldExpression>
+			</textField>
+			<textField >
+				<reportElement x="522" y="3" width="92" height="20" uuid="c5c238e3-994a-4a17-b415-26bc2e942ee7"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{fechaEntrega} != null ? new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format($F{fechaEntrega}) : "-"]]></textFieldExpression>
+			</textField>
+			<textField textAdjust="ScaleFont" >
+				<reportElement x="618" y="3" width="88" height="20" uuid="b6f2f3b9-ddbf-408e-88f2-0f080a96b0e7"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{nombreDistribuidor} != null ? $F{nombreDistribuidor} : "-"]]></textFieldExpression>
+			</textField>
+			<textField pattern="$ #,##0.00" isBlankWhenNull="true">
+				<reportElement x="710" y="3" width="87" height="20" uuid="fc718dfa-9ff1-43ed-8e85-3c7d841d8e17"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{montoFacturado}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="28" splitType="Stretch">
+			<line>
+				<reportElement x="0" y="4" width="802" height="1" forecolor="#FFB6C1" uuid="d943b32a-dbeb-4ed7-bc5c-d4e2293bbaaf"/>
+			</line>
+			<textField>
+				<reportElement x="0" y="8" width="600" height="16" forecolor="#888888" uuid="abcbde8a-73c9-4a89-b3db-ac82bd4bf270"/>
+				<textElement verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Dulce Mayor | Generado por: " + $P{USUARIO_GENERADOR} + " el " + $P{FECHA_GENERACION}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="682" y="8" width="80" height="16" forecolor="#888888" uuid="e8b4cbce-71f2-4e24-85e6-f491ce95cfa3"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER} + " de"]]></textFieldExpression>
+			</textField>
+			<textField evaluationTime="Report">
+				<reportElement x="762" y="8" width="40" height="16" forecolor="#888888" uuid="b49c37d0-6070-489e-81af-fd9dd405cf79"/>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="120" splitType="Prevent">
+			<staticText>
+				<reportElement x="0" y="10" width="400" height="22" forecolor="#D6336C" uuid="fd789125-e840-4a1f-b5a6-2930bd79a36c"/>
+				<textElement verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[RESUMEN GENERAL DEL PERÍODO]]></text>
+			</staticText>
+			<rectangle radius="6">
+				<reportElement x="0" y="38" width="150" height="70" backcolor="#FAFAFA" uuid="0a861b60-381d-4ee7-9b76-1dac89d5f4f7"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#E0E0E0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="10" y="44" width="130" height="18" forecolor="#666666" uuid="be7eb452-0ac2-4569-a7a7-8b9c22c6d4ec"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Comercios]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="10" y="64" width="130" height="36" uuid="09c864a3-3634-47a3-9d76-e907b99df585"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{cantClientes}]]></textFieldExpression>
+			</textField>
+			<rectangle radius="6">
+				<reportElement x="163" y="38" width="150" height="70" backcolor="#FAFAFA" uuid="afcd5499-3c5f-4e89-8b4e-07798edd377c"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#E0E0E0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="173" y="44" width="130" height="18" forecolor="#666666" uuid="f65bd9ff-5b77-4c75-8632-75653f9b5cac"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Pedidos realizados]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="173" y="64" width="130" height="36" uuid="218ea80d-25c5-44bc-a559-2f53f27f1050"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{cantPedidosTotal}]]></textFieldExpression>
+			</textField>
+			<rectangle radius="6">
+				<reportElement x="326" y="38" width="150" height="70" backcolor="#E8F5E9" uuid="6c5daa12-6e78-4d2e-ba33-522ad415b997"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#C8E6C9"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="336" y="44" width="130" height="18" forecolor="#1B5E20" uuid="da6b3755-540d-4d70-8756-47fd2dc78a98"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Entregados]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="336" y="64" width="130" height="36" forecolor="#1B5E20" uuid="5e14eba5-6264-4590-90f1-e7449dddfe2a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{cantEntregados}]]></textFieldExpression>
+			</textField>
+			<rectangle radius="6">
+				<reportElement x="489" y="38" width="150" height="70" backcolor="#FFF3E0" uuid="dc96754a-83c3-4360-b433-c910b9e24f8a"/>
+				<graphicElement>
+					<pen lineWidth="1.0" lineColor="#FFE0B2"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="499" y="44" width="130" height="18" forecolor="#E65100" uuid="9ef8d37c-75cd-4539-ab47-a83e6652f16a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Pendientes de entrega]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="499" y="64" width="130" height="36" forecolor="#E65100" uuid="53511f13-9d66-4419-888b-edfac3925d01"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="20" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{cantPendientes}]]></textFieldExpression>
+			</textField>
+			<rectangle radius="6">
+				<reportElement x="652" y="38" width="150" height="70" backcolor="#FF69B4" uuid="3f1f772c-61a1-408b-89f7-68c998f63e70"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="662" y="44" width="130" height="18" forecolor="#FFFFFF" uuid="14c9146c-f823-4957-aaa8-91a0dcadc285"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<text><![CDATA[Total facturado]]></text>
+			</staticText>
+			<textField pattern="$ #,##0.00" textAdjust="ScaleFont">
+				<reportElement x="657" y="64" width="140" height="36" forecolor="#FFFFFF" uuid="105376f3-2064-402c-9725-035af6833937"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{totalGeneral}]]></textFieldExpression>
+			</textField>
+		</band>
+	</summary>
+</jasperReport>

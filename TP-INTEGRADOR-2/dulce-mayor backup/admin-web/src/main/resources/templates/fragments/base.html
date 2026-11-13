@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!-- Fragmentos comunes de admin-web: encabezado HTML, menú lateral, barra superior, barra inferior y alertas. -->
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#d10f8c">
+    <title th:text="${titulo} + ' · Dulce Mayor Administración'">Dulce Mayor</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dulcemayor.css}">
+    <script th:src="@{/js/dulcemayor.js}" defer></script>
+</head>
+
+<body>
+
+<!-- Logotipo con nombre -->
+<a th:fragment="marca(subtitulo)" class="marca" th:href="@{/}" aria-label="Dulce Mayor, ir al inicio">
+    <svg class="marca-icono" aria-hidden="true"><use href="#i-logo"/></svg>
+    <span class="marca-texto"><span>Dulce</span><span>Mayor</span>
+        <small class="marca-sub" th:text="${subtitulo}">Administración</small></span>
+</a>
+
+<!-- Menú lateral: fijo en escritorio, cajón deslizable en celulares. Cada opción según el rol. -->
+<aside th:fragment="sidebar" class="sidebar" data-sidebar aria-label="Menú principal">
+    <a th:replace="~{fragments/base :: marca('Administración')}"></a>
+    <ul class="menu">
+        <li><a th:href="@{/}" th:classappend="${rutaActual == '/'} ? 'activo'">
+            <svg class="icono"><use href="#i-inicio"/></svg>Inicio</a></li>
+        <li th:if="${sesion != null and sesion.puedeVerCatalogo}"><a th:href="@{/catalogo}" th:classappend="${#strings.startsWith(rutaActual, '/catalogo')} ? 'activo'">
+            <svg class="icono"><use href="#i-catalogo"/></svg>Catálogo y stock</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/productos}" th:classappend="${#strings.startsWith(rutaActual, '/productos')} ? 'activo'">
+            <svg class="icono"><use href="#i-stock"/></svg>Productos</a></li>
+        <li th:if="${sesion != null and sesion.jefe}"><a th:href="@{/empleados}" th:classappend="${#strings.startsWith(rutaActual, '/empleados')} ? 'activo'">
+            <svg class="icono"><use href="#i-personas"/></svg>Empleados</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/clientes}" th:classappend="${#strings.startsWith(rutaActual, '/clientes')} ? 'activo'">
+            <svg class="icono"><use href="#i-tienda"/></svg>Clientes</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/rutas}" th:classappend="${#strings.startsWith(rutaActual, '/rutas')} ? 'activo'">
+            <svg class="icono"><use href="#i-ruta"/></svg>Rutas</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/entregas}" th:classappend="${#strings.startsWith(rutaActual, '/entregas')} ? 'activo'">
+            <svg class="icono"><use href="#i-camion"/></svg>Entregas</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/facturas}" th:classappend="${#strings.startsWith(rutaActual, '/facturas')} ? 'activo'">
+            <svg class="icono"><use href="#i-factura"/></svg>Facturas</a></li>
+        <li th:if="${sesion != null and sesion.administrativo}"><a th:href="@{/proveedores}" th:classappend="${#strings.startsWith(rutaActual, '/proveedores')} ? 'activo'">
+            <svg class="icono"><use href="#i-documento"/></svg>Proveedores</a></li>
+        <li th:if="${sesion != null and sesion.jefe}"><a th:href="@{/reportes/clientes-pedidos}" th:classappend="${#strings.startsWith(rutaActual, '/reportes')} ? 'activo'">
+            <svg class="icono"><use href="#i-grafico"/></svg>Reportes</a></li>
+        <li><a th:href="@{/cambiar-clave}" th:classappend="${rutaActual == '/cambiar-clave'} ? 'activo'">
+            <svg class="icono"><use href="#i-llave"/></svg>Mi contraseña</a></li>
+    </ul>
+    <p class="menu-titulo">Próximos módulos</p>
+    <ul class="menu" aria-label="Módulos todavía no disponibles">
+        <li><span class="menu-item pendiente"><svg class="icono"><use href="#i-etiqueta"/></svg>Promociones<span class="insignia insignia-gris">Pronto</span></span></li>
+    </ul>
+    <div class="sidebar-pie">
+        <form th:action="@{/salir}" method="post">
+            <button type="submit" class="btn btn-fantasma btn-bloque" style="justify-content:flex-start">
+                <svg class="icono"><use href="#i-salir"/></svg>Cerrar sesión</button>
+        </form>
+    </div>
+</aside>
+
+<!-- Barra superior: compacta en celulares (botón de menú + título), amplia en escritorio -->
+<header th:fragment="topbar(titulo)" class="topbar">
+    <button type="button" class="btn btn-fantasma btn-icono boton-menu" data-abrir-menu aria-label="Abrir menú">
+        <svg class="icono"><use href="#i-menu"/></svg>
+    </button>
+    <h1 class="topbar-titulo" th:text="${titulo}">Título</h1>
+    <a class="usuario-chip" th:if="${sesion != null}" th:href="@{/cambiar-clave}" title="Mi cuenta">
+        <span class="avatar" th:text="${sesion.iniciales}">DM</span>
+        <span class="datos"><strong th:text="${sesion.nombreCompleto}">Nombre</strong>
+            <small th:text="${sesion.rolLegible}">Rol</small></span>
+    </a>
+</header>
+
+<!-- Barra de navegación inferior tipo aplicación (solo celulares) -->
+<nav th:fragment="navInferior" class="nav-inferior" aria-label="Navegación rápida">
+    <a th:href="@{/}" th:classappend="${rutaActual == '/'} ? 'activo'">
+        <svg class="icono"><use href="#i-inicio"/></svg>Inicio</a>
+    <a th:if="${sesion != null and sesion.puedeVerCatalogo}" th:href="@{/catalogo}" th:classappend="${#strings.startsWith(rutaActual, '/catalogo')} ? 'activo'">
+        <svg class="icono"><use href="#i-catalogo"/></svg>Catálogo</a>
+    <a th:if="${sesion != null and sesion.jefe}" th:href="@{/empleados}" th:classappend="${#strings.startsWith(rutaActual, '/empleados')} ? 'activo'">
+        <svg class="icono"><use href="#i-personas"/></svg>Empleados</a>
+    <a th:if="${sesion != null and sesion.administrativo and !sesion.jefe}" th:href="@{/rutas}" th:classappend="${#strings.startsWith(rutaActual, '/rutas')} ? 'activo'">
+        <svg class="icono"><use href="#i-ruta"/></svg>Rutas</a>
+    <a th:href="@{/cambiar-clave}" th:classappend="${rutaActual == '/cambiar-clave'} ? 'activo'">
+        <svg class="icono"><use href="#i-usuario"/></svg>Cuenta</a>
+    <button type="button" data-abrir-menu>
+        <svg class="icono"><use href="#i-menu"/></svg>Menú</button>
+</nav>
+
+<!-- Mensajes de resultado (atributos flash "exito" y "error") -->
+<div th:fragment="alertas" class="pila">
+    <div class="alerta alerta-exito" role="status" th:if="${exito != null}">
+        <svg class="icono"><use href="#i-ok"/></svg><span th:text="${exito}">Listo</span></div>
+    <div class="alerta alerta-error" role="alert" th:if="${error != null}">
+        <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+</div>
+
+</body>
+</html>

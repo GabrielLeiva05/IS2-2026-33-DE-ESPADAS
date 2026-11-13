@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<!-- Piezas de las pantallas de acceso de clientes: panel de marca y botones de proveedores externos. -->
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<body>
+
+<section th:fragment="panelMarca" class="acceso-panel-marca" aria-hidden="true">
+    <a th:replace="~{fragments/base :: marca('Mayorista de golosinas')}"></a>
+    <div>
+        <h2>Tu kiosco, siempre abastecido</h2>
+        <p>Con tu cuenta de cliente consultás el catálogo mayorista con precios por bulto y pack.</p>
+    </div>
+    <ul>
+        <li><svg class="icono"><use href="#i-combo"/></svg>Precios por bulto, caja y pack</li>
+        <li><svg class="icono"><use href="#i-etiqueta"/></svg>Ofertas de la semana</li>
+        <li><svg class="icono"><use href="#i-escudo"/></svg>Tus datos protegidos</li>
+    </ul>
+</section>
+
+<!-- Botones de Google y Facebook: SOLO en el acceso de clientes, y solo si el proveedor está habilitado. -->
+<th:block th:fragment="botonesSociales(texto)">
+    <div class="pila" th:if="${googleHabilitado or facebookHabilitado}">
+        <a th:if="${googleHabilitado}" class="btn btn-social" th:href="${apiPublica} + '/oauth2/authorization/google'">
+            <svg aria-hidden="true"><use href="#i-google"/></svg><span th:text="${texto} + ' Google'">Continuar con Google</span></a>
+        <a th:if="${facebookHabilitado}" class="btn btn-social" th:href="${apiPublica} + '/oauth2/authorization/facebook'">
+            <svg aria-hidden="true"><use href="#i-facebook"/></svg><span th:text="${texto} + ' Facebook'">Continuar con Facebook</span></a>
+        <p class="separador">o con tu correo</p>
+    </div>
+</th:block>
+
+</body>
+</html>

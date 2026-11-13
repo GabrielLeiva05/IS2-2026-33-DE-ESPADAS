@@ -22,8 +22,8 @@ import java.util.List;
 
 /**
  * Factura (abstracta) del diagrama, bloque Facturación y pagos. Es el PRODUCTO del patrón Factory Method:
- * sus productos concretos son FacturaCliente y FacturaProveedor, y los crean CreadorFacturaCliente y
- * CreadorFacturaProveedor (ver service/facturacion).
+ * sus productos concretos son FacturaCliente y FacturaProveedor, y los crean CreadorConcretoFacturaCliente y
+ * CreadorConcretoFacturaProveedor (ver service/facturacion).
  *
  * Factura ◆── 1..* DetalleFactura. Herencia JOINED: tabla "facturas" con lo común y una tabla por subclase.
  * Importes: el diagrama guarda solo el total (con IVA). El subtotal sin IVA es la suma de los renglones y el IVA

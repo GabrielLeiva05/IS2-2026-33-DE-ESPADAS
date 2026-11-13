@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Facturas')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar('Facturas')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <h1>Facturas</h1>
+                    <p th:if="${tipo == 'clientes'}">Se emiten solas cuando el cliente confirma su pedido. Quedan pendientes de pago hasta que se implemente el módulo de Pagos.</p>
+                    <p th:if="${tipo == 'proveedores'}">Facturas de compra cargadas por administración.</p>
+                </div>
+                <a class="btn btn-primario" th:if="${tipo == 'proveedores'}" th:href="@{/facturas/proveedores/nueva}">
+                    <svg class="icono icono-sm"><use href="#i-mas"/></svg>Cargar factura de proveedor</a>
+            </div>
+            <div th:replace="~{fragments/base :: alertas}"></div>
+
+            <nav class="pestanias mt-4" aria-label="Tipo de factura">
+                <a th:href="@{/facturas}" th:classappend="${tipo == 'clientes'} ? 'activo'">De clientes</a>
+                <a th:href="@{/facturas(tipo='proveedores')}" th:classappend="${tipo == 'proveedores'} ? 'activo'">De proveedores</a>
+            </nav>
+
+            <div class="vacio tarjeta" th:if="${facturas.isEmpty()}">
+                <svg class="icono"><use href="#i-factura"/></svg>
+                <p class="mb-0" th:text="${tipo == 'clientes'} ? 'Todavía no hay facturas: se generan cuando un cliente confirma su pedido.' : 'Todavía no se cargaron facturas de proveedores.'">Sin facturas</p>
+            </div>
+
+            <section class="tarjeta tarjeta-tabla" th:unless="${facturas.isEmpty()}">
+                <div class="tabla-desplazable">
+                <table class="tabla tabla-apilable">
+                    <thead><tr>
+                        <th>Factura</th>
+                        <th th:text="${tipo == 'clientes'} ? 'Cliente' : 'Proveedor'">Cliente</th>
+                        <th class="col-secundaria">Subtotal</th><th class="col-secundaria">IVA</th><th>Total</th><th>Estado</th>
+                        <th><span class="oculto-visual">PDF</span></th>
+                    </tr></thead>
+                    <tbody>
+                    <tr th:each="f : ${facturas}">
+                        <td class="celda-principal"><span><strong th:text="'N.º ' + ${f.numeroFactura}">N.º</strong><br>
+                            <small class="texto-secundario" th:text="${f.fechaLegible} + (${f.numeroPedido != null} ? ' · Pedido ' + ${f.numeroPedido} : '')">fecha</small></span></td>
+                        <td th:data-label="${tipo == 'clientes'} ? 'Cliente' : 'Proveedor'">
+                            <th:block th:if="${tipo == 'clientes'}"><span th:text="${f.nombreFantasia}">Comercio</span><br>
+                                <small class="texto-secundario" th:text="${f.nombreCliente}">Cliente</small></th:block>
+                            <th:block th:if="${tipo == 'proveedores'}"><span th:text="${f.razonSocialProveedor}">Proveedor</span><br>
+                                <small class="texto-secundario" th:text="'CUIT ' + ${f.cuitProveedor}">CUIT</small></th:block>
+                        </td>
+                        <td class="col-secundaria" data-label="Subtotal" th:text="'$ ' + ${#numbers.formatDecimal(f.subtotal - f.descuento, 1, 'POINT', 2, 'COMMA')}">$</td>
+                        <td class="col-secundaria" data-label="IVA" th:text="'$ ' + ${#numbers.formatDecimal(f.iva, 1, 'POINT', 2, 'COMMA')}">$</td>
+                        <td data-label="Total"><strong th:text="'$ ' + ${#numbers.formatDecimal(f.total, 1, 'POINT', 2, 'COMMA')}">$</strong></td>
+                        <td data-label="Estado"><span class="insignia" th:classappend="${f.estadoTono}" th:text="${f.estadoLegible}">Pendiente</span></td>
+                        <td class="celda-acciones">
+                            <a class="btn btn-secundario btn-chico" th:href="${tipo == 'clientes'} ? @{/facturas/clientes/{id}/pdf(id=${f.id})} : @{/facturas/proveedores/{id}/pdf(id=${f.id})}">
+                                <svg class="icono icono-sm"><use href="#i-descarga"/></svg>PDF</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

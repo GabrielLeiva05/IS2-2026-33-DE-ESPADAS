@@ -19,7 +19,7 @@ import java.util.List;
  *  - renglones(datos), descuento(datos) y fechaFactura(datos) son los otros pasos que varían.
  *
  * Productos: Factura (abstracto) → FacturaCliente, FacturaProveedor.
- * Creadores concretos: CreadorFacturaCliente, CreadorFacturaProveedor.
+ * Creadores concretos: CreadorConcretoFacturaCliente, CreadorConcretoFacturaProveedor.
  * Para una nueva clase de factura se agrega una subclase de Factura y su creador, sin tocar esta clase ni a quien la usa.
  *
  * El creador solo ARMA la factura: no la numera ni la guarda (eso lo hace el servicio de cada factura con su

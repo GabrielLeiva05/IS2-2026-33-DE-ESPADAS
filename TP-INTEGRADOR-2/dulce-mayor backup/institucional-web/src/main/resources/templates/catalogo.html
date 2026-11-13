@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head(${ofertas} ? 'Ofertas' : 'Catálogo mayorista')}"></head>
+<body class="app-sitio">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<th:block th:replace="~{fragments/base :: cabecera}"></th:block>
+
+<main class="sitio-main">
+    <div class="contenedor seccion">
+        <div class="seccion-titulo">
+            <h1 class="mb-0" th:text="${ofertas} ? 'Ofertas' : 'Catálogo mayorista'">Catálogo mayorista</h1>
+            <span class="insignia insignia-magenta" th:text="${productos.size()} + ' productos'">0 productos</span>
+        </div>
+
+        <form class="filtros" th:action="@{/catalogo}" method="get">
+            <div class="campo">
+                <label for="texto-filtro">Buscar</label>
+                <input class="control" id="texto-filtro" name="texto" type="search" th:value="${texto}" placeholder="Nombre o marca">
+            </div>
+            <div class="campo">
+                <label for="categoria">Categoría</label>
+                <select class="control" id="categoria" name="categoria" data-auto-envio>
+                    <option value="">Todas</option>
+                    <option th:each="c : ${categorias}" th:value="${c.id}" th:text="${c.nombre}" th:selected="${c.id == categoria}">Categoría</option>
+                </select>
+            </div>
+            <div class="campo">
+                <label for="ofertas">Mostrar</label>
+                <select class="control" id="ofertas" name="ofertas" data-auto-envio>
+                    <option value="false" th:selected="${!ofertas}">Todos</option>
+                    <option value="true" th:selected="${ofertas}">Solo ofertas</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-azul">Filtrar</button>
+        </form>
+
+        <div class="alerta alerta-info mb-4" role="note">
+            <svg class="icono"><use href="#i-info"/></svg>
+            <span>Tu preventista toma el pedido en tu comercio. Después lo confirmás o lo anulás desde «Mis pedidos».</span>
+        </div>
+
+        <div class="vacio tarjeta" th:if="${productos.isEmpty()}">
+            <svg class="icono"><use href="#i-buscar"/></svg>
+            <p>No encontramos productos con esos filtros.</p>
+            <a class="btn btn-secundario" th:href="@{/catalogo}">Ver todo el catálogo</a>
+        </div>
+        <div class="grilla-productos" th:unless="${productos.isEmpty()}">
+            <th:block th:each="p : ${productos}"><article th:replace="~{fragments/base :: producto(${p})}"></article></th:block>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/base :: pie}"></footer>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

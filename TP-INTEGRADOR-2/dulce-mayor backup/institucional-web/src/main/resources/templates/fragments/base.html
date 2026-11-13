@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<!-- Fragmentos comunes del sitio institucional: encabezado HTML, cabecera, barra inferior, pie, alertas y tarjeta de producto. -->
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#d10f8c">
+    <meta name="description" content="Dulce Mayor, mayorista de golosinas en Mendoza. Venta por bulto y pack para kioscos y almacenes.">
+    <title th:text="${titulo} + ' · Dulce Mayor'">Dulce Mayor</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dulcemayor.css}">
+    <script th:src="@{/js/dulcemayor.js}" defer></script>
+</head>
+
+<body>
+
+<a th:fragment="marca(subtitulo)" class="marca" th:href="@{/}" aria-label="Dulce Mayor, ir al inicio">
+    <svg class="marca-icono" aria-hidden="true"><use href="#i-logo"/></svg>
+    <span class="marca-texto"><span>Dulce</span><span>Mayor</span>
+        <small class="marca-sub" th:if="${subtitulo != null}" th:text="${subtitulo}">Mayorista</small></span>
+</a>
+
+<!-- Cinta superior + cabecera. En escritorio: buscador y menú; en celular: compacta con buscador debajo. -->
+<th:block th:fragment="cabecera">
+    <div class="cinta">Venta mayorista por bulto y pack · Mendoza</div>
+    <header class="cabecera">
+        <div class="cabecera-interior">
+            <a th:replace="~{fragments/base :: marca(null)}"></a>
+            <form class="buscador control-con-icono" th:action="@{/catalogo}" method="get" role="search">
+                <svg class="icono"><use href="#i-buscar"/></svg>
+                <label class="oculto-visual" for="buscar-escritorio">Buscar productos</label>
+                <input class="control" id="buscar-escritorio" name="texto" type="search" th:value="${texto}"
+                       placeholder="Buscar golosinas, chocolates, marcas…">
+            </form>
+            <div class="cabecera-acciones">
+                <th:block th:if="${sesion == null}">
+                    <a class="btn btn-fantasma btn-chico enlace-cuenta" th:href="@{/ingresar}">
+                        <svg class="icono icono-sm"><use href="#i-usuario"/></svg>Ingresar</a>
+                    <a class="btn btn-primario btn-chico" th:href="@{/registro}">Crear cuenta</a>
+                </th:block>
+                <a th:if="${sesion != null}" class="usuario-chip" th:href="@{/mi-cuenta}" title="Mi cuenta">
+                    <span class="avatar" th:text="${sesion.iniciales}">MC</span>
+                    <span class="datos" style="display:block"><strong th:text="${sesion.nombre}">Nombre</strong><small>Mi cuenta</small></span>
+                </a>
+            </div>
+            <nav class="nav-sitio" aria-label="Secciones">
+                <a th:href="@{/}" th:classappend="${rutaActual == '/'} ? 'activo'">Inicio</a>
+                <a th:href="@{/catalogo}" th:classappend="${rutaActual == '/catalogo' and !(ofertas ?: false)} ? 'activo'">Catálogo mayorista</a>
+                <a th:href="@{/catalogo(ofertas=true)}" th:classappend="${rutaActual == '/catalogo' and (ofertas ?: false)} ? 'activo'">Ofertas</a>
+                <a th:if="${sesion != null}" th:href="@{/mis-pedidos}" th:classappend="${#strings.startsWith(rutaActual, '/mis-pedidos')} ? 'activo'">Mis pedidos</a>
+                <a th:if="${sesion != null}" th:href="@{/mis-facturas}" th:classappend="${#strings.startsWith(rutaActual, '/mis-facturas')} ? 'activo'">Mis facturas</a>
+                <a th:href="@{/} + '#nosotros'">Nosotros</a>
+            </nav>
+        </div>
+        <form class="buscador-movil control-con-icono" th:action="@{/catalogo}" method="get" role="search"
+              th:if="${rutaActual == '/' or rutaActual == '/catalogo'}">
+            <svg class="icono" style="left:1.9rem"><use href="#i-buscar"/></svg>
+            <label class="oculto-visual" for="buscar-movil">Buscar productos</label>
+            <input class="control" id="buscar-movil" name="texto" type="search" th:value="${texto}"
+                   placeholder="Buscar golosinas, marcas…" enterkeyhint="search">
+        </form>
+    </header>
+</th:block>
+
+<!-- Barra inferior tipo aplicación (celulares) -->
+<nav th:fragment="navInferior" class="nav-inferior" aria-label="Navegación rápida">
+    <a th:href="@{/}" th:classappend="${rutaActual == '/'} ? 'activo'">
+        <svg class="icono"><use href="#i-inicio"/></svg>Inicio</a>
+    <a th:href="@{/catalogo}" th:classappend="${rutaActual == '/catalogo' and !(ofertas ?: false)} ? 'activo'">
+        <svg class="icono"><use href="#i-catalogo"/></svg>Catálogo</a>
+    <a th:if="${sesion == null}" th:href="@{/catalogo(ofertas=true)}" th:classappend="${rutaActual == '/catalogo' and (ofertas ?: false)} ? 'activo'">
+        <svg class="icono"><use href="#i-etiqueta"/></svg>Ofertas</a>
+    <a th:if="${sesion != null}" th:href="@{/mis-pedidos}" th:classappend="${#strings.startsWith(rutaActual, '/mis-pedidos')} ? 'activo'">
+        <svg class="icono"><use href="#i-pedido"/></svg>Pedidos</a>
+    <a th:href="${sesion != null} ? @{/mi-cuenta} : @{/ingresar}"
+       th:classappend="${#strings.startsWith(rutaActual, '/mi-cuenta') or rutaActual == '/ingresar' or rutaActual == '/registro'} ? 'activo'">
+        <svg class="icono"><use href="#i-usuario"/></svg><span th:text="${sesion != null} ? 'Mi cuenta' : 'Ingresar'">Cuenta</span></a>
+</nav>
+
+<footer th:fragment="pie" class="pie-sitio" id="nosotros">
+    <div class="contenedor pie-grilla">
+        <div>
+            <a th:replace="~{fragments/base :: marca(null)}"></a>
+            <p class="mt-4">Mayorista de golosinas de Mendoza. Abastecemos kioscos, almacenes y comercios con venta por
+                bulto y pack, atención de preventistas en cada zona y reparto propio.</p>
+        </div>
+        <div>
+            <h4>El sitio</h4>
+            <ul>
+                <li><a th:href="@{/catalogo}">Catálogo mayorista</a></li>
+                <li><a th:href="@{/catalogo(ofertas=true)}">Ofertas</a></li>
+                <li><a th:href="${sesion != null} ? @{/mi-cuenta} : @{/registro}" th:text="${sesion != null} ? 'Mi cuenta' : 'Crear cuenta'">Crear cuenta</a></li>
+                <li><a th:href="@{/mis-pedidos}">Mis pedidos</a></li>
+                <li><a th:href="@{/mis-facturas}">Mis facturas</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Pagos disponibles</h4>
+            <ul>
+                <li>Efectivo al entregar</li>
+                <li>Transferencia bancaria</li>
+                <li>QR de Mercado Pago</li>
+            </ul>
+        </div>
+    </div>
+    <div class="contenedor mt-4"><small>© Dulce Mayor · Mendoza, Argentina</small></div>
+</footer>
+
+<div th:fragment="alertas" class="pila">
+    <div class="alerta alerta-exito" role="status" th:if="${exito != null}">
+        <svg class="icono"><use href="#i-ok"/></svg><span th:text="${exito}">Listo</span></div>
+    <div class="alerta alerta-error" role="alert" th:if="${error != null}">
+        <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+</div>
+
+<!-- Tarjeta de producto (sin botón de compra: los pedidos los carga el preventista en el comercio) -->
+<article th:fragment="producto(p)" class="producto">
+    <div class="producto-imagen">
+        <img th:if="${p.primeraImagen != null}" th:src="${apiPublica} + '/api/imagenes/' + ${p.primeraImagen} + '/contenido'"
+             th:alt="${p.nombre}" loading="lazy">
+        <svg th:unless="${p.primeraImagen != null}" class="icono sin-imagen" aria-hidden="true"><use href="#i-caramelo"/></svg>
+        <div class="etiquetas">
+            <span class="insignia insignia-oferta" th:if="${p.enOferta}">OFERTA</span>
+            <span class="insignia insignia-azul" th:text="${p.presentacion}">CAJA</span>
+        </div>
+    </div>
+    <div class="producto-cuerpo">
+        <span class="detalle" th:text="${p.categoria}">Categoría</span>
+        <h3 th:text="${p.nombre}">Producto</h3>
+        <span class="detalle" th:text="${p.presentacionLegible}">Caja x 24</span>
+        <span class="producto-precio" th:text="'$ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 2, 'COMMA')}">$ 0,00</span>
+    </div>
+    <div class="producto-pie">
+        <span class="insignia" th:classappend="${p.stockDisponible > 0} ? 'insignia-verde' : 'insignia-gris'"
+              th:text="${p.stockDisponible > 0} ? 'Disponible' : 'Sin stock'">Disponible</span>
+        <small class="texto-secundario" th:text="${p.codigo}">código</small>
+    </div>
+</article>
+
+</body>
+</html>

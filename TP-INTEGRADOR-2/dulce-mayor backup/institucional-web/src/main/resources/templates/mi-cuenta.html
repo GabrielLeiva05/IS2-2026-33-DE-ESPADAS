@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Mi cuenta')}"></head>
+<body class="app-sitio">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<th:block th:replace="~{fragments/base :: cabecera}"></th:block>
+
+<main class="sitio-main">
+    <div class="contenedor seccion">
+        <section class="perfil-cabecera">
+            <span class="avatar" th:text="${sesion.iniciales}">MC</span>
+            <div>
+                <h1 th:text="${sesion.nombreCompleto}">Nombre</h1>
+                <p th:text="${sesion.correo}">correo</p>
+                <span class="insignia insignia-gris mt-4" style="background:rgba(255,255,255,.2);color:#fff;border:0"
+                      th:text="'Ingresás con ' + ${sesion.proveedorLegible}">Ingresás con</span>
+            </div>
+        </section>
+
+        <div th:replace="~{fragments/base :: alertas}"></div>
+
+        <div class="grilla-cuenta mt-4">
+            <section class="tarjeta">
+                <div class="tarjeta-encabezado"><h2>Mis datos</h2></div>
+                <div class="alerta alerta-error mb-4" role="alert" th:if="${errorDatos != null}">
+                    <svg class="icono"><use href="#i-error"/></svg><span th:text="${errorDatos}">Error</span></div>
+                <form class="formulario" th:action="@{/mi-cuenta/datos}" th:object="${datos}" method="post" data-envio-unico>
+                    <div class="fila-campos dos">
+                        <div class="campo"><label class="requerido" for="nombre">Nombre</label>
+                            <input class="control" id="nombre" th:field="*{nombre}" autocomplete="given-name" maxlength="80" required></div>
+                        <div class="campo"><label class="requerido" for="apellido">Apellido</label>
+                            <input class="control" id="apellido" th:field="*{apellido}" autocomplete="family-name" maxlength="80" required></div>
+                    </div>
+                    <div class="fila-campos dos">
+                        <div class="campo"><label for="tipoDocumento">Tipo de documento</label>
+                            <select class="control" id="tipoDocumento" th:field="*{tipoDocumento}">
+                                <option value="DNI">DNI</option><option value="CUIT">CUIT</option>
+                                <option value="CUIL">CUIL</option><option value="PASAPORTE">Pasaporte</option>
+                            </select></div>
+                        <div class="campo"><label for="numeroDocumento">Número</label>
+                            <input class="control" id="numeroDocumento" th:field="*{numeroDocumento}" inputmode="numeric" maxlength="15"
+                                   th:readonly="${datos.numeroDocumento != null and !#strings.isEmpty(datos.numeroDocumento)}">
+                            <small class="ayuda" th:if="${datos.numeroDocumento != null and !#strings.isEmpty(datos.numeroDocumento)}">Una vez registrado, el documento no se puede modificar.</small></div>
+                    </div>
+                    <div class="campo"><label for="fechaNacimiento">Fecha de nacimiento</label>
+                        <input class="control" id="fechaNacimiento" type="date" th:field="*{fechaNacimiento}"></div>
+                    <div class="campo"><label for="correoFijo">Correo electrónico</label>
+                        <input class="control" id="correoFijo" th:value="${sesion.correo}" readonly>
+                        <span class="ayuda">Es tu usuario de ingreso: no se puede modificar.</span></div>
+                    <button type="submit" class="btn btn-primario">Guardar datos</button>
+                </form>
+            </section>
+
+            <div class="pila">
+                <section class="tarjeta">
+                    <div class="tarjeta-encabezado"><h2>Contraseña</h2></div>
+                    <th:block th:if="${sesion.tieneClaveLocal}">
+                        <div class="alerta alerta-error mb-4" role="alert" th:if="${errorClave != null}">
+                            <svg class="icono"><use href="#i-error"/></svg><span th:text="${errorClave}">Error</span></div>
+                        <form class="formulario" th:action="@{/mi-cuenta/clave}" th:object="${clave}" method="post" data-envio-unico>
+                            <div class="campo"><label for="claveActual">Contraseña actual</label>
+                                <input class="control" id="claveActual" type="password" th:field="*{claveActual}" autocomplete="current-password" required></div>
+                            <div class="campo"><label for="nuevaClave">Nueva contraseña</label>
+                                <input class="control" id="nuevaClave" type="password" th:field="*{nuevaClave}" autocomplete="new-password" minlength="8" maxlength="72" required>
+                                <span class="ayuda">Entre 8 y 72 caracteres, con letras y números.</span></div>
+                            <div class="campo"><label for="confirmarClave">Repetí la nueva contraseña</label>
+                                <input class="control" id="confirmarClave" type="password" th:field="*{confirmarClave}" autocomplete="new-password" minlength="8" maxlength="72" required></div>
+                            <button type="submit" class="btn btn-secundario">Cambiar contraseña</button>
+                        </form>
+                    </th:block>
+                    <p class="texto-secundario mb-0" th:unless="${sesion.tieneClaveLocal}">
+                        Tu cuenta ingresa con <strong th:text="${sesion.proveedorLegible}">Google</strong>: la contraseña la administra ese proveedor.</p>
+                </section>
+
+                <section class="tarjeta">
+                    <div class="tarjeta-encabezado"><h2>Mis pedidos</h2></div>
+                    <p class="texto-secundario">Revisá los pedidos que te cargó tu preventista: confirmalos o anulalos.</p>
+                    <a class="btn btn-secundario btn-bloque" th:href="@{/mis-pedidos}"><svg class="icono icono-sm"><use href="#i-pedido"/></svg>Ver mis pedidos</a>
+                    <a class="btn btn-fantasma btn-bloque mt-4" th:href="@{/mis-facturas}"><svg class="icono icono-sm"><use href="#i-factura"/></svg>Ver mis facturas</a>
+                </section>
+
+                <form th:action="@{/salir}" method="post">
+                    <button type="submit" class="btn btn-peligro btn-bloque"><svg class="icono icono-sm"><use href="#i-salir"/></svg>Cerrar sesión</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/base :: pie}"></footer>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Elegí tu contraseña')}"></head>
+<body class="acceso">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<section th:replace="~{fragments/acceso :: panelMarca}"></section>
+
+<div class="acceso-encabezado-movil">
+    <p>Primer ingreso</p>
+    <strong>Elegí tu contraseña</strong>
+</div>
+
+<main class="acceso-cuerpo">
+    <div class="acceso-tarjeta">
+        <a th:replace="~{fragments/base :: marca('Mayorista de golosinas')}"></a>
+        <h1>Elegí tu contraseña</h1>
+        <p class="bajada">Tu cuenta la creó tu preventista con la contraseña provisoria <strong>dulcemayor</strong>.
+            Reemplazala por una propia para ver tus pedidos.</p>
+
+        <div class="alerta alerta-error mb-4" role="alert" th:if="${error != null}">
+            <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+
+        <form class="formulario" th:action="@{/cambiar-clave}" th:object="${formulario}" method="post" data-envio-unico>
+            <div class="campo">
+                <label class="requerido" for="claveActual">Contraseña provisoria</label>
+                <input class="control" id="claveActual" type="password" th:field="*{claveActual}"
+                       autocomplete="current-password" required>
+            </div>
+            <div class="campo">
+                <label class="requerido" for="nuevaClave">Nueva contraseña</label>
+                <div class="control-con-accion">
+                    <input class="control" id="nuevaClave" type="password" th:field="*{nuevaClave}"
+                           autocomplete="new-password" minlength="8" maxlength="72" required>
+                    <button type="button" class="accion" data-ver-clave="nuevaClave" aria-label="Mostrar contraseña" aria-pressed="false">
+                        <svg class="icono"><use href="#i-ojo"/></svg></button>
+                </div>
+                <ul class="reglas-clave"><li>Entre 8 y 72 caracteres, con letras y números.</li>
+                    <li>Distinta de "dulcemayor" y de tu correo.</li></ul>
+            </div>
+            <div class="campo">
+                <label class="requerido" for="confirmarClave">Repetí la nueva contraseña</label>
+                <input class="control" id="confirmarClave" type="password" th:field="*{confirmarClave}"
+                       autocomplete="new-password" minlength="8" maxlength="72" required>
+            </div>
+            <button type="submit" class="btn btn-primario btn-bloque">Guardar y continuar</button>
+        </form>
+
+        <form class="mt-4" th:action="@{/salir}" method="post">
+            <button type="submit" class="btn btn-fantasma btn-bloque">Salir</button>
+        </form>
+    </div>
+</main>
+</body>
+</html>

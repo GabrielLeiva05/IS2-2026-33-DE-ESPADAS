@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Ingresar')}"></head>
+<body class="acceso">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<section th:replace="~{fragments/acceso :: panelMarca}"></section>
+
+<div class="acceso-encabezado-movil">
+    <p>Clientes</p>
+    <strong>Ingresá a Dulce Mayor</strong>
+</div>
+
+<main class="acceso-cuerpo">
+    <div class="acceso-tarjeta">
+        <a th:replace="~{fragments/base :: marca('Mayorista de golosinas')}"></a>
+        <h1>Ingresá a tu cuenta</h1>
+        <p class="bajada">Consultá precios mayoristas y gestioná tus datos.</p>
+
+        <div class="pila mb-4">
+            <div class="alerta alerta-info" role="status" th:if="${param.expirada != null}">
+                <svg class="icono"><use href="#i-reloj"/></svg><span>Tu sesión venció. Volvé a ingresar.</span></div>
+            <div class="alerta alerta-error" role="alert" th:if="${error != null}">
+                <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+        </div>
+
+        <th:block th:replace="~{fragments/acceso :: botonesSociales('Continuar con')}"></th:block>
+
+        <form class="formulario mt-4" th:action="@{/ingresar}" th:object="${formulario}" method="post" data-envio-unico>
+            <div class="campo">
+                <label for="correo">Correo electrónico</label>
+                <div class="control-con-icono">
+                    <svg class="icono"><use href="#i-correo"/></svg>
+                    <input class="control" id="correo" type="email" th:field="*{correo}" autocomplete="username"
+                           inputmode="email" autocapitalize="off" spellcheck="false" required placeholder="tu@correo.com">
+                </div>
+            </div>
+            <div class="campo">
+                <label for="clave">Contraseña</label>
+                <div class="control-con-accion">
+                    <input class="control" id="clave" type="password" th:field="*{clave}" autocomplete="current-password"
+                           required placeholder="Tu contraseña">
+                    <button type="button" class="accion" data-ver-clave="clave" aria-label="Mostrar contraseña" aria-pressed="false">
+                        <svg class="icono"><use href="#i-ojo"/></svg></button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primario btn-bloque">Ingresar</button>
+        </form>
+
+        <p class="acceso-pie">¿Todavía no tenés cuenta? <a th:href="@{/registro}">Registrate gratis</a></p>
+        <p class="acceso-pie mt-0"><a th:href="@{/}"><svg class="icono icono-sm" style="vertical-align:-4px"><use href="#i-volver"/></svg>Volver al sitio</a></p>
+    </div>
+</main>
+</body>
+</html>

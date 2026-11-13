@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Mis pedidos')}"></head>
+<body class="app-sitio">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<th:block th:replace="~{fragments/base :: cabecera}"></th:block>
+
+<main class="sitio-main">
+    <div class="contenedor seccion">
+        <div class="seccion-titulo">
+            <h1 class="mb-0">Mis pedidos</h1>
+            <span class="insignia insignia-naranja" th:if="${porConfirmar > 0}"
+                  th:text="${porConfirmar} + ' por confirmar'">1 por confirmar</span>
+        </div>
+        <p class="texto-secundario">Tu preventista carga el pedido en tu comercio y la mercadería queda reservada.
+            Confirmalo para que salga a reparto, o anulalo si no lo querés: lo pagás al recibirlo.</p>
+
+        <div th:replace="~{fragments/base :: alertas}"></div>
+
+        <div class="vacio tarjeta mt-4" th:if="${pedidos.isEmpty()}">
+            <svg class="icono"><use href="#i-pedido"/></svg>
+            <p>Todavía no tenés pedidos. Los carga tu preventista cuando visita tu comercio.</p>
+            <a class="btn btn-secundario" th:href="@{/catalogo}">Ver el catálogo</a>
+        </div>
+
+        <section class="tarjeta mt-4" style="padding:0;overflow:hidden" th:unless="${pedidos.isEmpty()}">
+            <table class="tabla tabla-apilable">
+                <thead><tr><th>Pedido</th><th>Comercio</th><th>Estado</th><th>Total</th><th><span class="oculto-visual">Ver</span></th></tr></thead>
+                <tbody>
+                <tr th:each="p : ${pedidos}">
+                    <td class="celda-principal">
+                        <span><strong th:text="'N.º ' + ${p.numeroPedido}">N.º 1001</strong><br>
+                            <small class="texto-secundario" th:text="'Cargado el ' + ${p.cargaLegible}">fecha</small></span>
+                    </td>
+                    <td data-label="Comercio" th:text="${p.nombreFantasia}">Comercio</td>
+                    <td data-label="Estado"><span class="insignia" th:classappend="${p.estadoTono}" th:text="${p.estadoLegible}">Estado</span></td>
+                    <td data-label="Total"><strong th:text="'$ ' + ${#numbers.formatDecimal(p.total, 1, 'POINT', 2, 'COMMA')}">$ 0,00</strong></td>
+                    <td class="celda-acciones">
+                        <a class="btn btn-chico" th:classappend="${p.puedeConfirmarse} ? 'btn-primario' : 'btn-fantasma'"
+                           th:href="@{/mis-pedidos/{id}(id=${p.id})}" th:text="${p.puedeConfirmarse} ? 'Revisar y confirmar' : 'Ver detalle'">Ver</a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/base :: pie}"></footer>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+</body>
+</html>

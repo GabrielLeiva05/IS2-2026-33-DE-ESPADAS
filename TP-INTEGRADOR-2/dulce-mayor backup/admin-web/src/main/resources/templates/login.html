@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head('Ingresar')}"></head>
+<body class="acceso">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+
+<section class="acceso-panel-marca" aria-hidden="true">
+    <a th:replace="~{fragments/base :: marca('Sistema administrativo')}"></a>
+    <div>
+        <h2>Toda la operación de Dulce Mayor en un solo lugar</h2>
+        <p>Catálogo, stock y personal del mayorista, con permisos según el rol de cada empleado.</p>
+    </div>
+    <ul>
+        <li><svg class="icono"><use href="#i-escudo"/></svg>Acceso con correo y contraseña</li>
+        <li><svg class="icono"><use href="#i-llave"/></svg>Contraseña temporal que se cambia en el primer ingreso</li>
+        <li><svg class="icono"><use href="#i-personas"/></svg>Cada rol ve solo lo que le corresponde</li>
+    </ul>
+</section>
+
+<div class="acceso-encabezado-movil">
+    <p>Sistema administrativo</p>
+    <strong>Dulce Mayor</strong>
+</div>
+
+<main class="acceso-cuerpo">
+    <div class="acceso-tarjeta">
+        <a th:replace="~{fragments/base :: marca('Sistema administrativo')}"></a>
+        <h1>Ingresar</h1>
+        <p class="bajada">Usá el correo y la contraseña que te asignó la administración.</p>
+
+        <div class="pila mb-4">
+            <div class="alerta alerta-info" role="status" th:if="${param.expirada != null}">
+                <svg class="icono"><use href="#i-reloj"/></svg><span>Tu sesión venció. Volvé a ingresar.</span></div>
+            <div class="alerta alerta-exito" role="status" th:if="${param.salida != null}">
+                <svg class="icono"><use href="#i-ok"/></svg><span>Cerraste la sesión.</span></div>
+            <div class="alerta alerta-error" role="alert" th:if="${error != null}">
+                <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+        </div>
+
+        <form class="formulario" th:action="@{/login}" th:object="${formulario}" method="post" data-envio-unico>
+            <div class="campo">
+                <label for="correo">Correo electrónico</label>
+                <div class="control-con-icono">
+                    <svg class="icono"><use href="#i-correo"/></svg>
+                    <input class="control" id="correo" type="email" th:field="*{correo}" autocomplete="username"
+                           inputmode="email" autocapitalize="off" spellcheck="false" required
+                           placeholder="nombre@dulcemayor.com.ar">
+                </div>
+            </div>
+            <div class="campo">
+                <label for="clave">Contraseña</label>
+                <div class="control-con-accion">
+                    <input class="control" id="clave" type="password" th:field="*{clave}"
+                           autocomplete="current-password" required placeholder="Tu contraseña">
+                    <button type="button" class="accion" data-ver-clave="clave" aria-label="Mostrar contraseña" aria-pressed="false">
+                        <svg class="icono"><use href="#i-ojo"/></svg></button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primario btn-bloque">Ingresar
+                <svg class="icono icono-sm"><use href="#i-flecha"/></svg></button>
+        </form>
+
+        <p class="acceso-pie">¿Sos cliente? Ingresá desde el
+            <a th:href="${sitioUrl} + '/ingresar'">sitio de Dulce Mayor</a>.</p>
+    </div>
+</main>
+</body>
+</html>
