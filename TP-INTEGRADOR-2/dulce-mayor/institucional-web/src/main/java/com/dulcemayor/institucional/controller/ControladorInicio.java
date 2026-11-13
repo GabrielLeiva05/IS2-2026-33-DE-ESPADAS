@@ -17,6 +17,7 @@ public class ControladorInicio {
     @GetMapping("/")
     public String inicio(Model model) {
         model.addAttribute("categorias", servicioCatalogo.categorias());
+        model.addAttribute("cotizacion", servicioCatalogo.cotizacion().orElse(null));
         model.addAttribute("ofertas", servicioCatalogo.ofertasDestacadas());
         model.addAttribute("destacados", servicioCatalogo.destacados());
         return "inicio";

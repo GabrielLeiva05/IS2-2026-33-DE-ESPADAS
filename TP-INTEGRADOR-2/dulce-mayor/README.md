@@ -62,6 +62,10 @@ Resumen de esta entrega:
 19. [Cómo ejecutar y probar el proyecto](#19-cómo-ejecutar-y-probar-el-proyecto)
 20. [Funcionalidades pendientes (Pagos y otras)](#20-funcionalidades-pendientes)
 21. [Pagos con Mercado Pago (Checkout API)](#21-pagos-con-mercado-pago-checkout-api)
+22. [Patrón Decorator en el envío de correos](#22-patrón-decorator-en-el-envío-de-correos)
+23. [Ampliación: cotización del dólar y precios en USD](#23-ampliación-cotización-del-dólar-y-precios-en-usd)
+24. [Ampliación: promociones y códigos de descuento](#24-ampliación-promociones-y-códigos-de-descuento)
+25. [Ampliación: asistente de presupuestos con IA (Gemini)](#25-ampliación-asistente-de-presupuestos-con-ia-gemini)
 
 ```
 dulce-mayor/
@@ -269,14 +273,14 @@ EstadoFactura: PENDIENTE_PAGO, PAGADA, ANULADA
 ## 7. Relaciones entre Facturación y los demás módulos
 
 ```
-Pedidos ──confirmarPedido──▶ ServicioFacturaCliente ──CreadorFacturaCliente──▶ FacturaCliente ─1:1─ Pedido
+Pedidos ──confirmarPedido──▶ ServicioFacturaCliente ──CreadorConcretoFacturaCliente──▶ FacturaCliente ─1:1─ Pedido
    │                                                                                   │
    │ PedidoResponseDTO.idFactura / numeroFactura / totalFacturado ◀────────────────────┘
    │ PedidoResumenDTO.total (monto a cobrar por el distribuidor) = total facturado
 Personas ──Pedido → PuntoVenta → Cliente──▶ propiedad de la factura (el cliente solo ve las suyas)
 Catálogo ──Producto──▶ DetalleFactura (precio del pedido, no el vigente al facturar)
           Baja de producto: bloqueada con pedidos abiertos; las facturas históricas lo conservan
-Proveedores ──▶ FacturaProveedor ──CreadorFacturaProveedor──▶ productos por ServicioProducto
+Proveedores ──▶ FacturaProveedor ──CreadorConcretoFacturaProveedor──▶ productos por ServicioProducto
 Direcciones ──▶ Proveedor.direccion (ServicioDireccion)
 Pagos (pendiente) ──▶ EstadoFactura PAGADA, FormaDePago, codigoQrPago
 ```
@@ -317,13 +321,17 @@ por tipo.
 | Rol del patrón | Clase en Dulce Mayor (`service/facturacion`) |
 |---|---|
 | Producto | `Factura` (abstracta) |
-| Productos concretos | `FacturaCliente`, `FacturaProveedor` |
+| Producto Concreto | `FacturaCliente`, `FacturaProveedor` |
 | Creador | `CreadorFactura<D>`, donde `D` son los datos de origen |
 | **Método fábrica** | `protected abstract Factura crearFactura(D datos)` |
 | Operación común, la que usa el método fábrica | `public final Factura emitir(D datos)`: crea la factura, agrega y valida los renglones, calcula subtotal, descuento, IVA y total, y pone el estado y la fecha |
-| Creadores concretos | `CreadorFacturaCliente` (D = `Pedido`) y `CreadorFacturaProveedor` (D = `DatosFacturaProveedor`) |
+| Creador Concreto | `CreadorConcretoFacturaCliente` (D = `Pedido`) y `CreadorConcretoFacturaProveedor` (D = `DatosFacturaProveedor`) |
 | Otros pasos que varían | `renglones(D)`, `descuento(D)`, `fechaFactura(D)` |
 | Clientes del patrón | `ServicioFacturaCliente.crearEntidad` y `ServicioFacturaProveedor.crearEntidad`/`actualizarEntidad` |
+
+Los **creadores** llevan el nombre del rol (`CreadorFactura`, `CreadorConcreto…`). Los **productos** conservan el
+nombre del diagrama de clases (`Factura`, `FacturaCliente`, `FacturaProveedor`) y el rol figura en su javadoc: son
+entidades JPA del dominio, y llamarlas `Producto…` se confundiría con `Producto` (la golosina del catálogo).
 
 **Por qué Factory Method y no otra cosa.** Hay dos familias de factura que comparten el procedimiento de emisión
 pero se instancian y se completan distinto. El patrón deja la parte común en un solo lugar, `emitir`. Los servicios
@@ -763,7 +771,7 @@ Se usa la **Checkout API con QR dinámico** (sin Checkout Pro y **sin redirigir*
 - `model/Pago` (1 Pago ── 1 Pedido) y `repository/RepositorioPago`.
 - `service/ServicioPago` (registrar pago, procesar webhook, acreditar de forma idempotente).
 - `service/ServicioCorreo` (correos HTML con el detalle y las instrucciones; QR adjunto vía `cid:qrPago`; aviso
-  al comercio que el distribuidor visitará a continuación).
+  al comercio que el distribuidor visitará a continuación). El envío pasa por el patrón Decorator (sección 22).
 - `service/pagos/MercadoPagoQrCliente` (Checkout API QR) y `service/pagos/GeneradorQrPng` (ZXing).
 - `controller/ControladorPago` (webhook público) y `dto/ConfirmarPedidoRequestDTO`.
 - `ServicioPedido.confirmarPedidoPresencial(...)` y `ServicioFacturaCliente.marcarPagada(...)`.
@@ -1012,7 +1020,7 @@ minutos estaremos visitando tu comercio para entregar tu pedido") y no incluye d
   Si no quedan paradas pendientes no se envía nada.
 - Cada parada se avisa una sola vez, porque el aviso sale después de marcarla como atendida y una parada no
   puede marcarse dos veces en el día.
-- Si el correo falla, la entrega se registra igual (mismo criterio que el resto: `ServicioCorreo` absorbe el error).
+- Si el correo falla, la entrega se registra igual (mismo criterio que el resto: el `DecoradorConcretoCorreoTolerante` absorbe el error; ver sección 22).
 
 **Cómo probarlo con Mailtrap:**
 
@@ -1022,3 +1030,157 @@ minutos estaremos visitando tu comercio para entregar tu pedido") y no incluye d
 3. En la primera parada tocar **Entregado**. En Mailtrap debe llegar el aviso al cliente de la **segunda** parada,
    con asunto `Tu pedido está por llegar · Dulce Mayor`.
 4. Registrar la entrega de la segunda parada: ahora el aviso llega al cliente de la tercera, y así hasta la última.
+
+---
+
+## 22. Patrón Decorator en el envío de correos
+
+**Problema.** Antes, `ServicioCorreo` hacía todo junto: armaba el HTML, revisaba si el correo estaba habilitado,
+enviaba por SMTP y atrapaba los errores para que un correo fallido no deshiciera la operación que lo disparó
+(confirmar un pedido, acreditar un pago, registrar una entrega). Con Decorator, el **envío básico** queda en una
+clase, y cada comportamiento **adicional** es una capa que lo envuelve. Las capas se combinan sin subclases por
+cada combinación, y quien envía no se entera de cuántas hay.
+
+Paquete `service/correo`:
+
+| Rol del patrón | Clase | Responsabilidad |
+|---|---|---|
+| **Componente** | `ComponenteCorreo` (interfaz) | `enviar(MensajeCorreo)`. La conocen tanto los envueltos como los decoradores. |
+| **Componente Concreto** | `ComponenteConcretoCorreoSmtp` | Arma el `MimeMessage` (HTML y QR en línea) y lo entrega con `JavaMailSender`. Clasifica las fallas: reintentables (el servidor no respondió) o no (falta configuración o destinatario). |
+| **Decorador Base** | `DecoradorBaseCorreo` (abstracta) | Tiene `- envuelto: ComponenteCorreo` y su `enviar()` delega en él. |
+| **Decorador Concreto** | `DecoradorConcretoCorreoHabilitado` | Si `CORREO_HABILITADO=false`, registra en el log y **no** delega. |
+| **Decorador Concreto** | `DecoradorConcretoCorreoTolerante` | Delega dentro de un `try/catch`: una falla se registra y no interrumpe la operación. |
+| **Decorador Concreto** | `DecoradorConcretoCorreoReintentos` | Reintenta las fallas transitorias (por defecto 3 intentos, con pausa de 1 s, 2 s…). Las no reintentables se propagan enseguida. |
+| **Cliente** | `ServicioCorreo` | Arma **qué** se envía (destinatario, asunto, HTML, QR) y llama a `componenteCorreo.enviar(...)`. |
+| (datos) | `MensajeCorreo`, `ErrorEnvioCorreoException` | El mensaje que recorre las capas y la falla tipada. |
+
+El armado está en `ConfiguracionCorreo` (la nota del diagrama `c = new DecoradorConcreto2(new DecoradorConcreto1(a))`):
+
+```java
+ComponenteCorreo smtp          = new ComponenteConcretoCorreoSmtp(proveedorMailSender, remitente, nombre);
+ComponenteCorreo conReintentos = new DecoradorConcretoCorreoReintentos(smtp, intentos, pausa);
+ComponenteCorreo tolerante     = new DecoradorConcretoCorreoTolerante(conReintentos);
+return new DecoradorConcretoCorreoHabilitado(tolerante, habilitado);
+// Habilitado → Tolerante → Reintentos → SMTP
+```
+
+**El orden importa.** "Habilitado" va afuera: si el correo está apagado, no se hace nada más. "Tolerante" envuelve
+a los reintentos, así la falla se absorbe recién cuando se agotaron todos los intentos.
+
+**Cambios respecto de antes:**
+- `ServicioCorreo` recibe un `ComponenteCorreo` en lugar de `JavaMailSender`. Sus métodos públicos y el contenido
+  de los correos no cambiaron, y `ServicioPago` y `ServicioPedido` no se tocaron.
+- Se suman `CORREO_INTENTOS` (3) y `CORREO_PAUSA_REINTENTO_MS` (1000). Con `CORREO_INTENTOS=1` no se reintenta.
+- Los reintentos ocurren dentro de la misma petición: en el peor caso, la confirmación tarda unos segundos más
+  si el servidor SMTP no responde.
+- Para agregar una capa (por ejemplo, redirigir todos los correos a una casilla de prueba en desarrollo) se crea
+  otro `DecoradorConcretoCorreo…` y se suma en `ConfiguracionCorreo`, sin modificar las clases existentes.
+
+**Pruebas:**
+- `service/correo/DecoradoresCorreoTest` prueba cada decorador con un componente falso y también la cadena
+  completa.
+- `service/correo/ComponenteConcretoCorreoSmtpTest` (con Mockito) prueba el armado y la clasificación de fallas
+  del componente concreto.
+
+### Nombres de los patrones en el código
+
+| Patrón | Rol | Clase |
+|---|---|---|
+| Decorator | Componente / Componente Concreto | `ComponenteCorreo` / `ComponenteConcretoCorreoSmtp` |
+| | Decorador Base / Decorador Concreto | `DecoradorBaseCorreo` / `DecoradorConcretoCorreoHabilitado`, `…Tolerante`, `…Reintentos` |
+| | Cliente | `ServicioCorreo` |
+| Strategy | Contexto | `ContextoExportacion` (antes `ExportadorReportes`) |
+| | Estrategia | `EstrategiaExportacion<R>` |
+| | Estrategia Concreta | `EstrategiaConcretaClientesPedidosPdf`, `EstrategiaConcretaClientesPedidosExcel`, `EstrategiaConcretaVentasExcel` (antes `Exportador…`) |
+| | Cliente | `ServicioReporte` |
+| Factory Method | Creador / Creador Concreto | `CreadorFactura` / `CreadorConcretoFacturaCliente`, `CreadorConcretoFacturaProveedor` (antes `CreadorFactura…`) |
+| | Producto / Producto Concreto | `Factura` / `FacturaCliente`, `FacturaProveedor` (nombres del diagrama de clases) |
+| Template Method | Clase abstracta / Clases concretas | `BaseService`, `BaseController` / los servicios y controladores |
+
+---
+
+## 23. Ampliación: cotización del dólar y precios en USD
+
+- **Fuente:** [DolarAPI](https://dolarapi.com) (`GET {COTIZACION_URL}/v1/dolares/{tipo}`), gratuita y sin clave. Tipos admitidos: `oficial`, `blue`, `bolsa`, `contadoconliqui`, `tarjeta`, `mayorista`, `cripto` (`COTIZACION_TIPO`, por defecto `oficial`).
+- **Clases:** `ProveedorCotizacion` (interfaz) → `ProveedorCotizacionDolarApi` (RestClient, 3 s de conexión / 5 s de lectura); `ServicioCotizacion` (caché); `ConversorMoneda` (BigDecimal, 2 decimales, HALF_UP); `ControladorCotizacion` (`GET /api/cotizacion`, público).
+- **Caché:** la cotización se guarda `COTIZACION_CACHE_MINUTOS` (10). Si DolarAPI falla, se reintenta recién al minuto y mientras tanto se usa el último valor marcado como *desactualizado*. Si nunca se obtuvo, la API responde 503 y el sitio muestra los precios solo en pesos (el catálogo nunca deja de funcionar por la cotización).
+- **Dónde se ve:** catálogo e inicio del sitio institucional (aviso con tipo, valor y hora), la tarjeta de cada producto (≈ US$), la app del preventista y el asistente de presupuestos. Los precios oficiales siguen siendo en pesos: el valor en dólares es de referencia. Los pedidos y las facturas no usan la cotización.
+
+## 24. Ampliación: promociones y códigos de descuento
+
+### Modelo (herencia JOINED)
+
+`Promocion` (abstracta: nombre, vigencia, activa, alcance por productos y/o subcategorías) con tres subclases:
+
+| Tipo | Clase | Regla |
+|---|---|---|
+| Porcentaje por producto | `PromocionPorcentual` | X % sobre los productos alcanzados. Automática. |
+| Por volumen | `PromocionVolumen` + `TramoVolumen` | % según la cantidad de bultos del renglón (tramos sin superposición; solo el último puede quedar abierto). Automática. |
+| Código | `CodigoDescuento` | Porcentaje o importe fijo, monto mínimo, usos máximos, acumulable o no. Lo ingresa el preventista. |
+
+`DescuentoPedido` guarda una **copia** de cada descuento aplicado (nombre, código, porcentaje, importe). Si después se modifica o elimina la promoción, los pedidos ya hechos no cambian.
+
+### Cómo se combinan (lo calcula siempre el backend: `CalculadorDescuentos`)
+
+1. Por cada renglón se aplica **la mejor** promoción automática (no se suman entre sí).
+2. Después se aplica **un solo código** sobre lo que queda. Si el código no es acumulable, no alcanza a los renglones que ya tienen promoción automática.
+3. Un importe fijo nunca supera el total al que alcanza. Todo se calcula con `BigDecimal`; el importe que mande la app no se toma en cuenta.
+
+Los usos del código se cuentan al cargar el pedido con bloqueo pesimista (`bloquearCodigo`), y se devuelven si el pedido se anula. La factura toma `pedido.descuento` y calcula el IVA sobre el neto.
+
+### Pantallas y endpoints
+
+- **admin-web → Promociones** (solo administrativo): ABM con formulario por tipo, tramos dinámicos, activar/desactivar y baja lógica.
+- **Catálogo** (institucional y preventista): precio de lista tachado, precio con promoción, insignia PROMO y textos de las promociones vigentes; el filtro "Ofertas" incluye los productos con promoción.
+- **App del preventista:** campo "Código de descuento" en el resumen, que llama a `POST /api/pedidos/preventista/simular` y muestra los descuentos antes de cargar; el detalle del pedido los lista.
+- **Sitio institucional:** el detalle del pedido muestra subtotal de lista y cada descuento.
+- `GET/POST/PUT/DELETE /api/promociones/**` (ADMINISTRATIVO), `POST /api/pedidos/preventista/simular` (PREVENTISTA). `PedidoRequestDTO` acepta `codigoDescuento` (opcional) y `PedidoResponseDTO` devuelve `descuentos` y `codigoDescuento`.
+
+Para probar: en admin-web crear un código (p. ej. `DULCE10`, 10 %, vigente desde hoy) y una promoción porcentual sobre una subcategoría; luego cargar un pedido desde la app del preventista usando el código.
+
+## 25. Ampliación: asistente de presupuestos con IA (Gemini)
+
+Chat en el sitio institucional, **solo para clientes con sesión** (botón "Armá tu presupuesto").
+
+### Reparto de responsabilidades
+
+| Quién | Qué hace |
+|---|---|
+| Gemini (`ProveedorIAGemini`) | Solo **interpreta** el mensaje y devuelve JSON con esquema fijo: acción (`AGREGAR`, `QUITAR`, `CAMBIAR_CANTIDAD`, `RECOMENDAR`, `CONSULTAR`, `VACIAR`, `OTRA`), los productos **tal como los nombró el cliente**, cantidades, monto y rubro. No recibe precios, no consulta la base y no elige productos. |
+| `BuscadorProductos` (Java) | Busca esos nombres en el catálogo disponible (sin tildes ni plurales, código exacto). Si hay varios candidatos, el asistente **pregunta cuál** y ofrece opciones; si no existe, lo dice. |
+| `ServicioPresupuesto` (Java) | Valida cantidades y stock, calcula precios, promociones automáticas (el mismo `ServicioPromocion` que los pedidos) y el total en pesos y dólares, y arma el texto de la respuesta. Si la IA llegara a mencionar importes en un saludo, ese texto se descarta. |
+| `RecomendadorPresupuesto` (Java) | Con un monto ("tengo 50 mil para chocolates") arma una propuesta con un algoritmo goloso que nunca supera el monto. |
+
+El presupuesto vive en memoria: **no reserva stock ni crea pedidos** (el pedido lo sigue cargando el preventista).
+
+### Contexto, límites y errores
+
+- Se recuerdan los últimos 10 turnos y el presupuesto actual, para entender "sumá dos más" o "sacá los de chocolate". Una conversación activa por cliente; vence a los 30 minutos sin uso.
+- Mensajes de hasta 500 caracteres y 8 por minuto por cliente (429 si se supera).
+- Sin `GEMINI_API_KEY`, o si Gemini no responde, la API devuelve 503 con un mensaje claro y la conversación queda intacta; si Gemini rechaza por cuota, 429.
+- La clave viaja en el encabezado `x-goog-api-key`, nunca en la URL ni en los registros. El sitio institucional reenvía con el token de la sesión del servidor (el navegador no lo ve) y exige el encabezado `X-Requested-With: fetch`.
+
+### Endpoints
+
+- `POST /api/presupuestos/chat` (CLIENTE) — cuerpo `{idConversacion, mensaje, idProductoElegido}`; responde `{idConversacion, mensaje, opciones, presupuesto}`.
+- `DELETE /api/presupuestos/chat/{id}` (CLIENTE) — botón "Nuevo".
+- Sitio institucional: `POST /asistente/mensajes` y `DELETE /asistente/conversaciones/{id}` (puente con la sesión).
+
+### Cómo obtener la clave
+
+1. Entrar a [Google AI Studio](https://aistudio.google.com/apikey) con una cuenta de Google y crear una API key (el plan gratuito alcanza para el TP).
+2. Ponerla en `GEMINI_API_KEY` del `.env` del backend (nunca en el código ni en el repositorio). `GEMINI_MODELO` permite cambiar de modelo si Google retira el configurado.
+
+### Variables nuevas (ver `backend/.env.example`)
+
+`COTIZACION_URL`, `COTIZACION_TIPO`, `COTIZACION_CACHE_MINUTOS`, `GEMINI_API_KEY`, `GEMINI_MODELO`, `GEMINI_URL`, `ASISTENTE_LARGO_MAXIMO`, `ASISTENTE_MENSAJES_POR_MINUTO`, `ASISTENTE_MINUTOS_INACTIVIDAD`.
+
+### Pruebas
+
+- `ServicioCotizacionTest`: conversión, caché, fallas de la API y valor desactualizado.
+- `CalculadorDescuentosTest`: porcentaje, volumen, mejor promoción por renglón, código acumulable y no acumulable, importe fijo, monto mínimo.
+- `BuscadorProductosTest`, `RecomendadorPresupuestoTest`, `ProveedorIAGeminiTest`: coincidencia de productos, ambigüedad, productos inexistentes, recomendación dentro del monto y lectura de respuestas de Gemini (incluidas respuestas inválidas). No llaman a la API real.
+- `ServicioCatalogoTest` (Mockito): precios en USD y promociones en el catálogo.
+
+**Qué se ejecutó realmente:** en el entorno de desarrollo no había acceso a Maven Central ni a internet, así que el proyecto se compiló con `javac` contra versiones simplificadas de las librerías. Se ejecutaron `ServicioCotizacionTest`, `CalculadorDescuentosTest`, `BuscadorProductosTest`, `RecomendadorPresupuestoTest` y `ProveedorIAGeminiTest` (todas OK) y un banco de escenarios en memoria con los servicios reales (alta de promociones, catálogo, simulación, pedido, factura y 21 escenarios del asistente con una IA falsa). **No se ejecutaron:** `mvn test` completo (incluidas las pruebas con Mockito), la aplicación contra MySQL, una llamada real a Gemini ni a DolarAPI. Antes de entregar conviene correr `mvn test` y probar el asistente con una clave real.
+

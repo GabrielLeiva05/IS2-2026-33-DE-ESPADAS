@@ -13,7 +13,7 @@ import com.ejercicioIntegrador.dulcemayor.service.base.BaseService;
 import com.ejercicioIntegrador.dulcemayor.service.base.BaseUseCaseService;
 import com.ejercicioIntegrador.dulcemayor.service.facturacion.ConversorFactura;
 import com.ejercicioIntegrador.dulcemayor.service.facturacion.CreadorFactura;
-import com.ejercicioIntegrador.dulcemayor.service.facturacion.CreadorFacturaProveedor;
+import com.ejercicioIntegrador.dulcemayor.service.facturacion.CreadorConcretoFacturaProveedor;
 import com.ejercicioIntegrador.dulcemayor.service.facturacion.DatosFacturaProveedor;
 import com.ejercicioIntegrador.dulcemayor.service.facturacion.RenglonFactura;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ import java.util.Optional;
 
 /**
  * FacturaProveedor (Ola 3): crearFacturaProveedor, modificarFacturaProveedor y listarFacturaPorProveedor del diagrama.
- * El alta y la modificación arman la factura con el creador del Factory Method (CreadorFacturaProveedor), igual que
+ * El alta y la modificación arman la factura con el creador del Factory Method (CreadorConcretoFacturaProveedor), igual que
  * la factura de cliente: mismos renglones, mismo IVA discriminado, mismo estado inicial.
  * Solo se modifica mientras está PENDIENTE_PAGO. No se da de baja por API.
  */
@@ -41,7 +41,7 @@ public class ServicioFacturaProveedor extends BaseService<FacturaProveedor, Fact
     private final GeneradorPdfFactura generadorPdf;
 
     public ServicioFacturaProveedor(RepositorioFacturaProveedor repositorioFacturaProveedor,
-                                    CreadorFacturaProveedor creador, ServicioProveedor servicioProveedor,
+                                    CreadorConcretoFacturaProveedor creador, ServicioProveedor servicioProveedor,
                                     ServicioProducto servicioProducto, GeneradorPdfFactura generadorPdf) {
         super(repositorioFacturaProveedor);
         this.repositorioFacturaProveedor = repositorioFacturaProveedor;

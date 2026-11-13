@@ -31,6 +31,16 @@
                     </tr>
                     </tbody>
                 </table>
+                <div th:unless="${#lists.isEmpty(pedido.descuentos)}" style="padding:1rem 1rem 0;border-top:1px solid var(--dm-borde, #eee)">
+                    <div style="display:flex;justify-content:space-between">
+                        <span>Subtotal de lista</span>
+                        <span th:text="'$ ' + ${#numbers.formatDecimal(pedido.subtotal, 1, 'POINT', 2, 'COMMA')}">$</span>
+                    </div>
+                    <div class="importe-descuento" style="display:flex;justify-content:space-between" th:each="d : ${pedido.descuentos}">
+                        <span th:text="${d.titulo}">Promoción</span>
+                        <span th:text="'− $ ' + ${#numbers.formatDecimal(d.importe, 1, 'POINT', 2, 'COMMA')}">$</span>
+                    </div>
+                </div>
                 <div class="barra-fila" style="display:flex;justify-content:space-between;padding:1rem;border-top:1px solid var(--dm-borde, #eee)">
                     <strong th:text="${pedido.totalFacturado != null} ? 'Subtotal sin IVA' : 'Total sin IVA'">Total</strong>
                     <strong class="producto-precio" th:text="'$ ' + ${#numbers.formatDecimal(pedido.total, 1, 'POINT', 2, 'COMMA')}">$</strong>

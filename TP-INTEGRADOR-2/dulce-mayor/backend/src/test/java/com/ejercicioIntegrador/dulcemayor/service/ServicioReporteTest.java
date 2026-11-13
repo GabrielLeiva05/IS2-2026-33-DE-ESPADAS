@@ -5,7 +5,7 @@ import com.ejercicioIntegrador.dulcemayor.dto.ReporteClientesPedidosDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.ReporteVentasDTO;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
-import com.ejercicioIntegrador.dulcemayor.exportacion.ExportadorReportes;
+import com.ejercicioIntegrador.dulcemayor.exportacion.ContextoExportacion;
 import com.ejercicioIntegrador.dulcemayor.model.Cliente;
 import com.ejercicioIntegrador.dulcemayor.model.Departamento;
 import com.ejercicioIntegrador.dulcemayor.model.Direccion;
@@ -43,7 +43,7 @@ class ServicioReporteTest {
     void setUp() {
         servicioPedido = mock(ServicioPedido.class);
         servicio = new ServicioReporte(servicioPedido, mock(ServicioEmpleado.class), mock(ServicioDepartamento.class),
-                mock(ExportadorReportes.class));
+                mock(ContextoExportacion.class));
         capital = departamento("d1", "Capital");
         godoyCruz = departamento("d2", "Godoy Cruz");
         ana = preventista("e1", "Ana", "Paz");
@@ -158,7 +158,7 @@ class ServicioReporteTest {
         ServicioDepartamento servicioDepartamento = mock(ServicioDepartamento.class);
         when(servicioDepartamento.obtenerEntidad("d2")).thenReturn(godoyCruz);
         servicio = new ServicioReporte(servicioPedido, mock(ServicioEmpleado.class), servicioDepartamento,
-                mock(ExportadorReportes.class));
+                mock(ContextoExportacion.class));
         when(servicioPedido.listarEntidadesFacturadasEntre(any(), any())).thenReturn(List.of(
                 pedido(1, a, ana, EstadoPedido.ENTREGADO, 10, D1, D1),
                 pedido(2, b, luis, EstadoPedido.ENTREGADO, 20, D1, D1)));

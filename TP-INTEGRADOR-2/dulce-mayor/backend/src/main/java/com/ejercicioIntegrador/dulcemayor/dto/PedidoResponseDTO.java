@@ -13,6 +13,7 @@ import java.util.List;
  * del diagrama). Las acciones posibles se informan para que las vistas no repliquen reglas del negocio.
  * idFactura/numeroFactura/totalFacturado: la FacturaCliente que se emitió al confirmar (total con IVA, el que se
  * cobra al entregar); son null mientras el pedido no está confirmado.
+ * descuentos: copia de las promociones y el código aplicados al cargarlo (subtotal − descuento = total, sin IVA).
  */
 public record PedidoResponseDTO(String id, long numeroPedido, LocalDateTime fechaHoraCarga,
                                 LocalDateTime fechaConfirmacion, LocalDateTime fechaDespacho,
@@ -23,5 +24,6 @@ public record PedidoResponseDTO(String id, long numeroPedido, LocalDateTime fech
                                 String nombrePreventista, String idDistribuidor, String nombreDistribuidor,
                                 List<DetallePedidoResponseDTO> detalles, boolean eliminado,
                                 String idFactura, Long numeroFactura, Double totalFacturado,
-                                FormaDePago formaDePago, EstadoPago estadoPago) implements BaseResponseDTO {
+                                FormaDePago formaDePago, EstadoPago estadoPago,
+                                List<DescuentoPedidoDTO> descuentos, String codigoDescuento) implements BaseResponseDTO {
 }

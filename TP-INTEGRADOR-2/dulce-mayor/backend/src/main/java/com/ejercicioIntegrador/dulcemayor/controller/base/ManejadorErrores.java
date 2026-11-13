@@ -1,6 +1,7 @@
 package com.ejercicioIntegrador.dulcemayor.controller.base;
 
 import com.ejercicioIntegrador.dulcemayor.dto.base.ErrorDTO;
+import com.ejercicioIntegrador.dulcemayor.exceptions.LimiteExcedidoException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.OperacionNoPermitidaException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.RecursoNoEncontradoException;
@@ -49,6 +50,11 @@ public class ManejadorErrores {
     @ExceptionHandler(ServicioExternoNoDisponibleException.class)
     public ResponseEntity<ErrorDTO> servicioExternoNoDisponible(ServicioExternoNoDisponibleException e) {
         return responder(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
+    }
+
+    @ExceptionHandler(LimiteExcedidoException.class)
+    public ResponseEntity<ErrorDTO> limiteExcedido(LimiteExcedidoException e) {
+        return responder(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
     }
 
     @ExceptionHandler(MiException.class)

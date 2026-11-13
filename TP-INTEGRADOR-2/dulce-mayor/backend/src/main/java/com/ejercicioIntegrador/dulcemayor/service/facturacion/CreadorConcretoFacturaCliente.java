@@ -16,9 +16,9 @@ import java.util.List;
  * la fecha de la factura es la de facturación del pedido (fechaFacturacion, registrada al confirmar).
  */
 @Component
-public class CreadorFacturaCliente extends CreadorFactura<Pedido> {
+public class CreadorConcretoFacturaCliente extends CreadorFactura<Pedido> {
 
-    public CreadorFacturaCliente(@Value("${app.facturacion.alicuota-iva:0.21}") double alicuotaIva) {
+    public CreadorConcretoFacturaCliente(@Value("${app.facturacion.alicuota-iva:0.21}") double alicuotaIva) {
         super(alicuotaIva);
     }
 

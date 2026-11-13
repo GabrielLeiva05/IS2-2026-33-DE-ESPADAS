@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /** Producto del catálogo con precio vigente y stock disponible (/api/catalogo). */
@@ -28,6 +29,13 @@ public class ProductoCatalogoDTO {
     private double precio;
     private int stockDisponible;
     private List<String> idsImagen;
+    /** Precio convertido con la cotización vigente; null si no hay cotización. */
+    private BigDecimal precioUsd;
+    /** Precio con la mejor promoción porcentual vigente (calculado en el backend); null si no hay. */
+    private BigDecimal precioPromocional;
+    private BigDecimal precioPromocionalUsd;
+    /** Textos de las promociones vigentes ("10% de descuento", "Desde 10 bultos: 5%"). */
+    private List<String> promociones = List.of();
 
     /** "Caja x 24", "Pack x 12", "Unidad". */
     public String getPresentacionLegible() {

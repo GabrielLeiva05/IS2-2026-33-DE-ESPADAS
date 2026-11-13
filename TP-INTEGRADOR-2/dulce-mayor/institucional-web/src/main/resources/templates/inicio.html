@@ -39,6 +39,8 @@
             </nav>
         </section>
 
+        <div class="mt-4" th:replace="~{fragments/base :: cotizacion(${cotizacion})}"></div>
+
         <section class="seccion" th:if="${!ofertas.isEmpty()}">
             <div class="seccion-titulo">
                 <h2>Ofertas de la semana</h2>

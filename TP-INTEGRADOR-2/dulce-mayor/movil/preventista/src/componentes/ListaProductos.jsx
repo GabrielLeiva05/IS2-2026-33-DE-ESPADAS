@@ -87,8 +87,15 @@ export default function ListaProductos({ cantidadDe, alCambiar }) {
               <small>{p.categoria} · {presentacionLegible(p.presentacion, p.unidadesPorPresentacion)}</small>
               <div className="producto-pie">
                 <span>
-                  <span className="precio">{formatoMoneda(p.precio)}</span>
-                  {p.enOferta && <span className="insignia insignia-magenta" style={{ marginLeft: 6 }}>Oferta</span>}
+                  {p.precioPromocional != null ? (
+                    <>
+                      <s className="texto-secundario texto-chico">{formatoMoneda(p.precio)}</s>{' '}
+                      <span className="precio">{formatoMoneda(p.precioPromocional)}</span>
+                    </>
+                  ) : <span className="precio">{formatoMoneda(p.precio)}</span>}
+                  {(p.enOferta || p.promociones?.length > 0) && <span className="insignia insignia-magenta" style={{ marginLeft: 6 }}>Oferta</span>}
+                  {p.precioUsd != null && <small className="texto-secundario"> ≈ US$ {Number(p.precioPromocionalUsd ?? p.precioUsd).toFixed(2)}</small>}
+                  {p.promociones?.map((t) => <small key={t} style={{ display: 'block', color: 'var(--exito, #1b7f3b)' }}>{t}</small>)}
                   <br /><small>Stock: {p.stockDisponible} bultos</small>
                 </span>
                 {alCambiar && (

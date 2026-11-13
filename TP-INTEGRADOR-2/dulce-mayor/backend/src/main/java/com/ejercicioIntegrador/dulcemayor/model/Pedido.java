@@ -78,6 +78,21 @@ public class Pedido extends BaseEntity {
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedido> detalles = new ArrayList<>();
 
+    /** Descuentos aplicados al cargar el pedido (promociones y código), con copia de sus datos. */
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DescuentoPedido> descuentos = new ArrayList<>();
+
+    public void agregarDescuento(DescuentoPedido descuento) {
+        descuento.setPedido(this);
+        descuentos.add(descuento);
+    }
+
+    /** Código de descuento usado en el pedido (null si no se usó). */
+    public String getCodigoDescuento() {
+        return descuentos.stream().map(DescuentoPedido::getCodigo).filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
     public void agregarDetalle(DetallePedido detalle) {
         detalle.setPedido(this);
         detalles.add(detalle);

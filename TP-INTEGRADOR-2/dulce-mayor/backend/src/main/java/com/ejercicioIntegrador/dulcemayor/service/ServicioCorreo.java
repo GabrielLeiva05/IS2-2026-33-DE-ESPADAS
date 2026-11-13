@@ -6,15 +6,10 @@ import com.ejercicioIntegrador.dulcemayor.model.FacturaCliente;
 import com.ejercicioIntegrador.dulcemayor.model.Pedido;
 import com.ejercicioIntegrador.dulcemayor.model.PuntoVenta;
 import com.ejercicioIntegrador.dulcemayor.model.Usuario;
-import jakarta.mail.internet.MimeMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import com.ejercicioIntegrador.dulcemayor.service.correo.ComponenteCorreo;
+import com.ejercicioIntegrador.dulcemayor.service.correo.MensajeCorreo;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -30,31 +25,24 @@ import java.util.Locale;
  * Y cuando el distribuidor entrega en un comercio, se avisa al comercio que sigue en la ruta que será el
  * próximo visitado.
  *
- * Si el correo no está configurado (app.correo.habilitado=false o sin spring.mail.host) no falla la
- * confirmación del pedido: se registra en el log y se continúa.
+ * PATRÓN DECORATOR — CLIENTE: esta clase arma QUÉ se envía (destinatario, asunto, HTML, QR) y se lo pasa a un
+ * ComponenteCorreo. CÓMO se envía (si está habilitado, reintentos, tolerancia a fallas, SMTP) lo resuelven las
+ * capas del patrón (paquete service.correo), que esta clase no conoce.
+ * Si el correo no está configurado o falla, la confirmación del pedido no se interrumpe: se registra en el log.
  */
 @Service
 public class ServicioCorreo {
 
-    private static final Logger log = LoggerFactory.getLogger(ServicioCorreo.class);
     private static final Locale ARGENTINA = Locale.of("es", "AR");
 
-    private final ObjectProvider<JavaMailSender> proveedorMailSender;
-
-    @Value("${app.correo.habilitado:false}")
-    private boolean habilitado;
-
-    @Value("${app.correo.remitente:no-responder@dulcemayor.com.ar}")
-    private String remitente;
-
-    @Value("${app.correo.nombre-remitente:Dulce Mayor}")
-    private String nombreRemitente;
+    /** Componente del patrón Decorator: el envío real ya viene envuelto con sus capas (ConfiguracionCorreo). */
+    private final ComponenteCorreo componenteCorreo;
 
     @Value("${app.pagos.titular-transferencia:Dulce Mayor S.A.}")
     private String titularTransferencia;
 
-    public ServicioCorreo(ObjectProvider<JavaMailSender> proveedorMailSender) {
-        this.proveedorMailSender = proveedorMailSender;
+    public ServicioCorreo(ComponenteCorreo componenteCorreo) {
+        this.componenteCorreo = componenteCorreo;
     }
 
     /** Correo inicial con el detalle del pedido y las instrucciones de pago según el medio elegido. */
@@ -88,32 +76,9 @@ public class ServicioCorreo {
         enviarA(correoCliente(pedido), asunto, html, qrPng);
     }
 
+    /** Arma el mensaje y lo entrega a la cadena de decoradores (Habilitado → Tolerante → Reintentos → SMTP). */
     private void enviarA(String destino, String asunto, String html, byte[] qrPng) {
-        if (!habilitado) {
-            log.info("Correo deshabilitado: no se envía «{}» a {} (activar CORREO_HABILITADO y MAIL_*)",
-                    asunto, destino);
-            return;
-        }
-        JavaMailSender sender = proveedorMailSender.getIfAvailable();
-        if (sender == null || destino == null) {
-            log.warn("No hay servidor de correo configurado o el cliente no tiene correo: «{}»", asunto);
-            return;
-        }
-        try {
-            MimeMessage mensaje = sender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
-            helper.setFrom(remitente, nombreRemitente);
-            helper.setTo(destino);
-            helper.setSubject(asunto);
-            helper.setText(html, true);
-            if (qrPng != null) {
-                helper.addInline("qrPago", new ByteArrayResource(qrPng), "image/png");
-            }
-            sender.send(mensaje);
-        } catch (Exception e) {
-            // Un correo fallido no debe tirar abajo la operación que lo dispara (pedido o entrega).
-            log.warn("No se pudo enviar «{}» a {}: {}", asunto, destino, e.getMessage());
-        }
+        componenteCorreo.enviar(new MensajeCorreo(destino, asunto, html, qrPng));
     }
 
     private static String correoCliente(Pedido pedido) {
@@ -189,7 +154,7 @@ public class ServicioCorreo {
                     + "<h3 style=\"margin-top:0\">Pago con QR de Mercado Pago</h3>"
                     + "<p>Escaneá el código QR adjunto con la app de Mercado Pago para pagar "
                     + "<strong style=\"font-size:18px\">" + pesos(monto) + "</strong>.</p>"
-                    + (conQr ? "<p style=\"text-align:center\"><img src=\"cid:qrPago\" alt=\"QR de pago\" "
+                    + (conQr ? "<p style=\"text-align:center\"><img src=\"cid:" + MensajeCorreo.ID_IMAGEN_QR + "\" alt=\"QR de pago\" "
                     + "style=\"width:220px;height:220px\"></p>" : "")
                     + "<p>Cuando el pago se acredite, vas a recibir otro correo de confirmación.</p></div>";
         };

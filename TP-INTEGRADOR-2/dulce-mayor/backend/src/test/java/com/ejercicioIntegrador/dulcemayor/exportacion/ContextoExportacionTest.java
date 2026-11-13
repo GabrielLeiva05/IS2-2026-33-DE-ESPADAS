@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /** Patrón Strategy: el contexto elige la estrategia por tipo de reporte y formato, sin condicionales por formato. */
-class ExportadorReportesTest {
+class ContextoExportacionTest {
 
     /** Estrategia de prueba para el reporte de ventas en PDF (en producción solo existe en Excel). */
     private static EstrategiaExportacion<ReporteVentasDTO> ventasEn(FormatoExportacion formato, byte[] resultado) {
@@ -42,7 +42,7 @@ class ExportadorReportesTest {
     void ejecutaLaEstrategiaDelFormatoPedido() throws MiException {
         byte[] pdf = {1};
         byte[] excel = {2};
-        ExportadorReportes exportador = new ExportadorReportes(
+        ContextoExportacion exportador = new ContextoExportacion(
                 List.of(ventasEn(FormatoExportacion.PDF, pdf), ventasEn(FormatoExportacion.EXCEL, excel)));
 
         assertArrayEquals(pdf, exportador.exportar(reporteVacio(), FormatoExportacion.PDF));
@@ -51,7 +51,7 @@ class ExportadorReportesTest {
 
     @Test
     void rechazaUnaCombinacionSinEstrategia() {
-        ExportadorReportes exportador = new ExportadorReportes(List.of(ventasEn(FormatoExportacion.EXCEL, new byte[0])));
+        ContextoExportacion exportador = new ContextoExportacion(List.of(ventasEn(FormatoExportacion.EXCEL, new byte[0])));
 
         assertThrows(MiException.class, () -> exportador.exportar(reporteVacio(), FormatoExportacion.PDF));
         // Una estrategia de ventas no sirve para otro tipo de reporte
@@ -62,7 +62,7 @@ class ExportadorReportesTest {
 
     @Test
     void rechazaReporteOFormatoNulos() {
-        ExportadorReportes exportador = new ExportadorReportes(List.of());
+        ContextoExportacion exportador = new ContextoExportacion(List.of());
         assertThrows(MiException.class, () -> exportador.exportar(null, FormatoExportacion.PDF));
         assertThrows(MiException.class, () -> exportador.exportar(reporteVacio(), null));
     }

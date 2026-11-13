@@ -20,7 +20,13 @@ export const catalogo = {
 }
 
 export const pedidos = {
-  cargar: (idPuntoVenta, detalles) => api.post('/api/pedidos/preventista', { idPuntoVenta, detalles }).then((r) => r.data),
+  cargar: (idPuntoVenta, detalles, codigoDescuento) => api
+    .post('/api/pedidos/preventista', { idPuntoVenta, detalles, codigoDescuento: codigoDescuento || null })
+    .then((r) => r.data),
+  /** Calcula en el backend precios, promociones y el código de descuento sin cargar el pedido. */
+  simular: (idPuntoVenta, detalles, codigoDescuento) => api
+    .post('/api/pedidos/preventista/simular', { idPuntoVenta, detalles, codigoDescuento: codigoDescuento || null })
+    .then((r) => r.data),
   mios: () => api.get('/api/pedidos/preventista').then((r) => r.data),
   uno: (id) => api.get(`/api/pedidos/preventista/${encodeURIComponent(id)}`).then((r) => r.data),
   /** Confirma el pedido en forma presencial con el medio de pago preferido por el cliente. */

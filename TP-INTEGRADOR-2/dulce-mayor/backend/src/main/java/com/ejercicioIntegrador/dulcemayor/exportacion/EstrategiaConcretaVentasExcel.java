@@ -12,12 +12,12 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Estrategia concreta: histórico de ventas en Excel (.xlsx), con Apache POI.
+ * PATRÓN STRATEGY — ESTRATEGIA CONCRETA: histórico de ventas en Excel (.xlsx), con Apache POI.
  * Hoja "Resumen": totales generales y subtotales por departamento, por preventista y por departamento y preventista.
  * Hoja "Detalle": una fila por venta, ordenada por departamento, preventista y fecha (el orden lo arma el servicio).
  */
 @Component
-public class ExportadorVentasExcel implements EstrategiaExportacion<ReporteVentasDTO> {
+public class EstrategiaConcretaVentasExcel implements EstrategiaExportacion<ReporteVentasDTO> {
 
     private static final String[] COLUMNAS_DETALLE = {"Departamento", "Preventista", "Documento del cliente",
             "Cliente", "Comercio", "N.º pedido", "Fecha de venta", "Subtotal", "Descuento", "Total"};

@@ -108,6 +108,35 @@
         </div>
     </div>
     <div class="contenedor mt-4"><small>© Dulce Mayor · Mendoza, Argentina</small></div>
+    <!-- Asistente de presupuestos con IA: solo para clientes con sesión. La IA interpreta el pedido; los productos,
+         precios y promociones los calcula el sistema. -->
+    <th:block th:if="${sesion != null}">
+        <button type="button" class="asistente-abrir" id="asistente-abrir" aria-controls="asistente" aria-expanded="false">
+            Armá tu presupuesto</button>
+        <section class="asistente" id="asistente" hidden aria-label="Asistente de presupuestos"
+                 th:attr="data-url=@{/asistente}">
+            <header class="asistente-cabecera">
+                <strong>Asistente de presupuestos</strong>
+                <span>
+                    <button type="button" class="asistente-enlace" id="asistente-nuevo">Nuevo</button>
+                    <button type="button" class="asistente-enlace" id="asistente-cerrar" aria-label="Cerrar">✕</button>
+                </span>
+            </header>
+            <div class="asistente-mensajes" id="asistente-mensajes" aria-live="polite">
+                <p class="asistente-msj asistente-bot">Hola. Decime qué productos y cuántos bultos querés
+                    (“5 cajas de alfajores de maicena”) o cuánto querés gastar, y te armo un presupuesto con los precios
+                    y promociones vigentes.</p>
+            </div>
+            <div class="asistente-presupuesto" id="asistente-presupuesto" hidden></div>
+            <form class="asistente-form" id="asistente-form">
+                <input class="control" id="asistente-texto" maxlength="500" autocomplete="off"
+                       placeholder="Escribí tu pedido…" aria-label="Mensaje para el asistente" required>
+                <button class="btn btn-primario" type="submit">Enviar</button>
+            </form>
+            <small class="asistente-nota">Presupuesto orientativo, sin IVA. No reserva mercadería: el pedido lo carga tu preventista.</small>
+        </section>
+        <script th:src="@{/js/asistente.js}" defer></script>
+    </th:block>
 </footer>
 
 <div th:fragment="alertas" class="pila">
@@ -115,6 +144,20 @@
         <svg class="icono"><use href="#i-ok"/></svg><span th:text="${exito}">Listo</span></div>
     <div class="alerta alerta-error" role="alert" th:if="${error != null}">
         <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+</div>
+
+<!-- Cotización del dólar con la que se calculan los precios en USD (o aviso si no está disponible) -->
+<div th:fragment="cotizacion(c)" class="cotizacion" role="note">
+    <svg class="icono"><use href="#i-info"/></svg>
+    <span th:if="${c != null}">
+        <strong th:text="${c.titulo}">Dólar Oficial</strong>:
+        <span th:text="'$ ' + ${#numbers.formatDecimal(c.venta, 1, 'POINT', 2, 'COMMA')} + ' (venta)'">$ 0,00</span>
+        <small class="texto-secundario" th:if="${c.actualizadaLegible != null}"
+               th:text="' · actualizado el ' + ${c.actualizadaLegible} + ' · fuente: ' + ${c.fuente}">· actualizado</small>
+        <small class="insignia insignia-naranja" th:if="${c.desactualizada}">sin actualizar: la fuente no responde</small>
+        <small class="texto-secundario d-block">Los precios son en pesos; el valor en dólares es de referencia y se calcula con esta cotización.</small>
+    </span>
+    <span th:if="${c == null}">La cotización del dólar no está disponible en este momento: los precios se muestran solo en pesos.</span>
 </div>
 
 <!-- Tarjeta de producto (sin botón de compra: los pedidos los carga el preventista en el comercio) -->
@@ -125,6 +168,7 @@
         <svg th:unless="${p.primeraImagen != null}" class="icono sin-imagen" aria-hidden="true"><use href="#i-caramelo"/></svg>
         <div class="etiquetas">
             <span class="insignia insignia-oferta" th:if="${p.enOferta}">OFERTA</span>
+            <span class="insignia insignia-promo" th:if="${!#lists.isEmpty(p.promociones)}">PROMO</span>
             <span class="insignia insignia-azul" th:text="${p.presentacion}">CAJA</span>
         </div>
     </div>
@@ -132,7 +176,13 @@
         <span class="detalle" th:text="${p.categoria}">Categoría</span>
         <h3 th:text="${p.nombre}">Producto</h3>
         <span class="detalle" th:text="${p.presentacionLegible}">Caja x 24</span>
-        <span class="producto-precio" th:text="'$ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 2, 'COMMA')}">$ 0,00</span>
+        <small class="precio-lista" th:if="${p.precioPromocional != null}"
+               th:text="'$ ' + ${#numbers.formatDecimal(p.precio, 1, 'POINT', 2, 'COMMA')}">$ 0,00</small>
+        <span class="producto-precio"
+              th:text="'$ ' + ${#numbers.formatDecimal(p.precioPromocional != null ? p.precioPromocional : p.precio, 1, 'POINT', 2, 'COMMA')}">$ 0,00</span>
+        <small class="precio-usd" th:if="${p.precioUsd != null}"
+               th:text="'≈ US$ ' + ${#numbers.formatDecimal(p.precioPromocionalUsd != null ? p.precioPromocionalUsd : p.precioUsd, 1, 'POINT', 2, 'COMMA')}">≈ US$ 0,00</small>
+        <small class="promo-texto d-block" th:each="t : ${p.promociones}" th:text="${t}">Promo</small>
     </div>
     <div class="producto-pie">
         <span class="insignia" th:classappend="${p.stockDisponible > 0} ? 'insignia-verde' : 'insignia-gris'"

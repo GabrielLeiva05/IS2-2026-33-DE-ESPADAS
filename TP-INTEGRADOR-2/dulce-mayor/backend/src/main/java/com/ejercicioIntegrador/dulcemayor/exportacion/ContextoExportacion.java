@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * PATRÓN STRATEGY: contexto que elige y ejecuta la estrategia de exportación.
+ * PATRÓN STRATEGY — CONTEXTO: elige y ejecuta la estrategia de exportación.
  *
  * Spring le inyecta todas las EstrategiaExportacion registradas. La elección se hace por polimorfismo, según el
  * tipo de reporte recibido y el formato pedido: no hay if/else ni switch por formato, y la selección vive solo
@@ -14,11 +14,11 @@ import java.util.List;
  * (por ejemplo, el histórico de ventas en PDF) responde con un error de negocio claro.
  */
 @Component
-public class ExportadorReportes {
+public class ContextoExportacion {
 
     private final List<EstrategiaExportacion<?>> estrategias;
 
-    public ExportadorReportes(List<EstrategiaExportacion<?>> estrategias) {
+    public ContextoExportacion(List<EstrategiaExportacion<?>> estrategias) {
         this.estrategias = List.copyOf(estrategias);
     }
 

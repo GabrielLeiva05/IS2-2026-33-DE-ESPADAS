@@ -38,6 +38,6 @@ public class ControladorCatalogo {
 
     @GetMapping("/{idProducto}")
     public ResponseEntity<ProductoCatalogoDTO> consultar(@PathVariable String idProducto) throws MiException {
-        return ResponseEntity.ok(servicioCatalogo.consultarProductoDisponible(idProducto));
+        return ResponseEntity.ok(servicioCatalogo.consultarProductoConPrecios(idProducto));
     }
 }

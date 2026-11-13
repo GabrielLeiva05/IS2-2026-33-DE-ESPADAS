@@ -67,6 +67,16 @@ export default function DetallePedido() {
                 </div>
               ))}
               <hr className="separador" />
+              {pedido.descuentos?.length > 0 && (
+                <>
+                  <div className="fila texto-chico"><span>Subtotal</span><span>{formatoMoneda(pedido.subtotal)}</span></div>
+                  {pedido.descuentos.map((d, i) => (
+                    <div key={i} className="fila texto-chico" style={{ color: 'var(--exito, #1b7f3b)' }}>
+                      <span>{d.nombrePromocion}{d.codigo ? ` (${d.codigo})` : ''}</span><span>− {formatoMoneda(d.importe)}</span>
+                    </div>
+                  ))}
+                </>
+              )}
               <div className="fila"><span>Total</span><span className="fila-total">{formatoMoneda(pedido.total)}</span></div>
             </section>
 

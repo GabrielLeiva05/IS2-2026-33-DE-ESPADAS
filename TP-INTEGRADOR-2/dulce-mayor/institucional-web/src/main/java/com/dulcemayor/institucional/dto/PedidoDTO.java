@@ -40,6 +40,8 @@ public class PedidoDTO {
     private String direccion;
     private String nombrePreventista;
     private List<DetallePedidoDTO> detalles = List.of();
+    private List<DescuentoPedidoDTO> descuentos = List.of();
+    private String codigoDescuento;
 
     public String getCargaLegible() {
         return legible(fechaHoraCarga);

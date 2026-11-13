@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 
 /**
- * Estrategia concreta: reporte de clientes y pedidos en Excel (.xlsx), con Apache POI.
+ * PATRÓN STRATEGY — ESTRATEGIA CONCRETA: reporte de clientes y pedidos en Excel (.xlsx), con Apache POI.
  * Una fila por pedido con los datos del cliente y del comercio, y una fila final de totales.
  */
 @Component
-public class ExportadorClientesPedidosExcel implements EstrategiaExportacion<ReporteClientesPedidosDTO> {
+public class EstrategiaConcretaClientesPedidosExcel implements EstrategiaExportacion<ReporteClientesPedidosDTO> {
 
     private static final String[] COLUMNAS = {"Documento", "Cliente", "Correo", "Comercio", "Departamento",
             "Domicilio del comercio", "N.º pedido", "Fecha de carga", "Preventista", "Estado del pedido",

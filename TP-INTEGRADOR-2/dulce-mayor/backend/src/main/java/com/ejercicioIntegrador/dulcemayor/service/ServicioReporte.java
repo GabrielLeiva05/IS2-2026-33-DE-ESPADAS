@@ -10,7 +10,7 @@ import com.ejercicioIntegrador.dulcemayor.dto.VentaDTO;
 import com.ejercicioIntegrador.dulcemayor.enumeraciones.EstadoPedido;
 import com.ejercicioIntegrador.dulcemayor.exceptions.MiException;
 import com.ejercicioIntegrador.dulcemayor.exceptions.RecursoNoEncontradoException;
-import com.ejercicioIntegrador.dulcemayor.exportacion.ExportadorReportes;
+import com.ejercicioIntegrador.dulcemayor.exportacion.ContextoExportacion;
 import com.ejercicioIntegrador.dulcemayor.exportacion.FormatoExportacion;
 import com.ejercicioIntegrador.dulcemayor.model.Cliente;
 import com.ejercicioIntegrador.dulcemayor.model.Departamento;
@@ -45,7 +45,7 @@ import java.util.Map;
  * No hereda de BaseService porque no administra una entidad propia (mismo criterio que ServicioCatalogo).
  * No accede a ningún repositorio: los pedidos los pide a ServicioPedido, el departamento a ServicioDepartamento
  * y los empleados a ServicioEmpleado. El archivo lo genera la estrategia de exportación elegida por
- * ExportadorReportes; este servicio nunca pregunta por el formato.
+ * ContextoExportacion; este servicio nunca pregunta por el formato.
  */
 @Service
 public class ServicioReporte {
@@ -62,14 +62,14 @@ public class ServicioReporte {
     private final ServicioPedido servicioPedido;
     private final ServicioEmpleado servicioEmpleado;
     private final ServicioDepartamento servicioDepartamento;
-    private final ExportadorReportes exportadorReportes;
+    private final ContextoExportacion contextoExportacion;
 
     public ServicioReporte(ServicioPedido servicioPedido, ServicioEmpleado servicioEmpleado,
-                           ServicioDepartamento servicioDepartamento, ExportadorReportes exportadorReportes) {
+                           ServicioDepartamento servicioDepartamento, ContextoExportacion contextoExportacion) {
         this.servicioPedido = servicioPedido;
         this.servicioEmpleado = servicioEmpleado;
         this.servicioDepartamento = servicioDepartamento;
-        this.exportadorReportes = exportadorReportes;
+        this.contextoExportacion = contextoExportacion;
     }
 
     // ------------------------------------------------------------------
@@ -116,7 +116,7 @@ public class ServicioReporte {
     public ArchivoReporteDTO exportarClientesPedidos(FiltroReporteDTO filtro, FormatoExportacion formato,
                                                      String correoUsuario) throws MiException {
         ReporteClientesPedidosDTO reporte = generarReporteClientesPedidos(filtro, correoUsuario);
-        byte[] contenido = exportadorReportes.exportar(reporte, formato);
+        byte[] contenido = contextoExportacion.exportar(reporte, formato);
         return new ArchivoReporteDTO("reporte-clientes-pedidos-" + LocalDate.now() + "." + formato.getExtension(),
                 formato.getTipoContenido(), contenido);
     }
@@ -178,7 +178,7 @@ public class ServicioReporte {
     public ArchivoReporteDTO exportarVentas(FiltroReporteDTO filtro, FormatoExportacion formato,
                                             String correoUsuario) throws MiException {
         ReporteVentasDTO reporte = generarReporteVentas(filtro, correoUsuario);
-        byte[] contenido = exportadorReportes.exportar(reporte, formato);
+        byte[] contenido = contextoExportacion.exportar(reporte, formato);
         return new ArchivoReporteDTO("historico-ventas-" + reporte.desde() + "-a-" + reporte.hasta() + "."
                 + formato.getExtension(), formato.getTipoContenido(), contenido);
     }

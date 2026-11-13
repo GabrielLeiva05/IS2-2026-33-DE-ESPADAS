@@ -665,3 +665,48 @@ svg.linea-foto { padding: 10px; color: var(--dm-magenta, #d6336c); }
     .qr-pago-layout { grid-template-columns: 1fr; }
     .qr-pago-encabezado { justify-content: flex-start; }
 }
+
+/* ---------- Cotización del dólar, promociones y asistente de presupuestos ---------- */
+.d-block { display: block; }
+.cotizacion { display: flex; gap: var(--dm-e-3); align-items: flex-start; padding: var(--dm-e-3) var(--dm-e-4);
+  margin-bottom: var(--dm-e-4); border: 1px solid var(--dm-borde); border-radius: 12px; background: var(--dm-superficie);
+  font-size: var(--dm-t-sm); }
+.cotizacion > .icono { color: var(--dm-azul); flex: none; margin-top: 2px; }
+.precio-usd { display: block; color: var(--dm-texto-2); font-size: var(--dm-t-xs); font-weight: 600; }
+.precio-lista { color: var(--dm-texto-3); text-decoration: line-through; font-size: var(--dm-t-sm); margin-right: var(--dm-e-2); }
+.insignia-promo { background: var(--dm-exito); color: #fff; }
+.promo-texto { display: block; color: var(--dm-exito); font-size: var(--dm-t-xs); font-weight: 600; }
+.importe-descuento { color: var(--dm-exito); font-weight: 600; }
+
+/* ---------- Asistente de presupuestos (solo con sesión) ---------- */
+.asistente-abrir {
+    position: fixed; right: 16px; bottom: calc(var(--dm-nav-inferior, 0px) + 16px); z-index: 60;
+    border: 0; border-radius: var(--dm-radio-pill); padding: 12px 18px; cursor: pointer;
+    background: var(--dm-gradiente); color: #fff; font-weight: 700; box-shadow: var(--dm-sombra-lg);
+}
+.asistente {
+    position: fixed; right: 16px; bottom: calc(var(--dm-nav-inferior, 0px) + 16px); z-index: 61;
+    width: min(380px, calc(100vw - 32px)); max-height: min(620px, calc(100vh - 120px));
+    display: flex; flex-direction: column; background: var(--dm-superficie); color: var(--dm-texto);
+    border: 1px solid var(--dm-borde); border-radius: var(--dm-radio-lg); box-shadow: var(--dm-sombra-lg); overflow: hidden;
+}
+.asistente[hidden] { display: none; }
+.asistente-cabecera { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: var(--dm-gradiente); color: #fff; }
+.asistente-enlace { background: none; border: 0; color: inherit; cursor: pointer; font-weight: 600; padding: 2px 6px; }
+.asistente-mensajes { flex: 1; overflow-y: auto; padding: 12px; display: grid; gap: 8px; align-content: start; background: var(--dm-superficie-2); }
+.asistente-msj { margin: 0; padding: 8px 12px; border-radius: var(--dm-radio); max-width: 88%; font-size: var(--dm-t-sm); line-height: 1.4; }
+.asistente-bot { background: var(--dm-superficie); border: 1px solid var(--dm-borde); justify-self: start; }
+.asistente-yo { background: var(--dm-violeta-suave); justify-self: end; }
+.asistente-error { background: #fdecec; color: #a01b1b; justify-self: start; }
+.asistente-opciones { display: flex; flex-wrap: wrap; gap: 6px; }
+.asistente-opciones button { border: 1px solid var(--dm-violeta); background: var(--dm-superficie); color: var(--dm-violeta); border-radius: var(--dm-radio-pill); padding: 4px 10px; cursor: pointer; font-size: var(--dm-t-xs); }
+.asistente-presupuesto { border-top: 1px solid var(--dm-borde); padding: 8px 12px; font-size: var(--dm-t-xs); max-height: 180px; overflow-y: auto; }
+.asistente-presupuesto table { width: 100%; border-collapse: collapse; }
+.asistente-presupuesto td { padding: 2px 0; vertical-align: top; }
+.asistente-presupuesto td:last-child { text-align: right; white-space: nowrap; }
+.asistente-presupuesto .total td { font-weight: 700; border-top: 1px solid var(--dm-borde); padding-top: 4px; }
+.asistente-presupuesto .desc { color: var(--dm-exito); }
+.asistente-form { display: flex; gap: 8px; padding: 10px 12px 4px; }
+.asistente-form .control { flex: 1; min-width: 0; }
+.asistente-nota { display: block; padding: 0 12px 10px; color: var(--dm-texto-3); font-size: var(--dm-t-xs); }
+@media (min-width: 768px) { .asistente-abrir, .asistente { bottom: 16px; } }

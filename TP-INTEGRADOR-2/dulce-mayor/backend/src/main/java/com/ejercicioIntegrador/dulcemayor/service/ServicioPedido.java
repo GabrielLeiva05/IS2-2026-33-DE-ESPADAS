@@ -1,5 +1,14 @@
 package com.ejercicioIntegrador.dulcemayor.service;
 
+import com.ejercicioIntegrador.dulcemayor.dto.DescuentoPedidoDTO;
+import com.ejercicioIntegrador.dulcemayor.dto.RenglonSimuladoDTO;
+import com.ejercicioIntegrador.dulcemayor.dto.SimulacionPedidoDTO;
+import com.ejercicioIntegrador.dulcemayor.model.CodigoDescuento;
+import com.ejercicioIntegrador.dulcemayor.model.DescuentoPedido;
+import com.ejercicioIntegrador.dulcemayor.service.promociones.DescuentoCalculado;
+import com.ejercicioIntegrador.dulcemayor.service.promociones.RenglonDescuento;
+import com.ejercicioIntegrador.dulcemayor.service.promociones.ResultadoDescuentos;
+import java.math.BigDecimal;
 import com.ejercicioIntegrador.dulcemayor.dto.AsignacionPedidosDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.DetallePedidoResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.LineaPedidoDTO;
@@ -74,13 +83,14 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
     private final ServicioRuta servicioRuta;
     private final ServicioPago servicioPago;
     private final ServicioCorreo servicioCorreo;
+    private final ServicioPromocion servicioPromocion;
 
     public ServicioPedido(RepositorioPedido repositorioPedido, ServicioEmpleado servicioEmpleado,
                           ServicioCliente servicioCliente, ServicioPuntoVenta servicioPuntoVenta,
                           ServicioProducto servicioProducto, ServicioCatalogo servicioCatalogo,
                           ServicioStock servicioStock, ServicioRuta servicioRuta,
                           ServicioFacturaCliente servicioFacturaCliente, ServicioPago servicioPago,
-                          ServicioCorreo servicioCorreo) {
+                          ServicioCorreo servicioCorreo, ServicioPromocion servicioPromocion) {
         super(repositorioPedido);
         this.repositorioPedido = repositorioPedido;
         this.servicioEmpleado = servicioEmpleado;
@@ -93,6 +103,7 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         this.servicioFacturaCliente = servicioFacturaCliente;
         this.servicioPago = servicioPago;
         this.servicioCorreo = servicioCorreo;
+        this.servicioPromocion = servicioPromocion;
     }
 
     // ------------------------------------------------------------------
@@ -113,12 +124,38 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         for (Map.Entry<String, Integer> linea : agruparLineas(dto.detalles()).entrySet()) {
             pedido.agregarDetalle(crearDetalle(linea.getKey(), linea.getValue()));
         }
-        // calcularTotal del diagrama: el descuento queda en 0 hasta implementar promociones (HU-22).
-        double subtotal = pedido.getDetalles().stream().mapToDouble(DetallePedido::getSubtotal).sum();
-        pedido.setSubtotal(redondear(subtotal));
-        pedido.setDescuento(0);
-        pedido.setTotal(redondear(subtotal));
+        // calcularTotal del diagrama: promociones automáticas vigentes + código (HU-22), siempre en el backend.
+        ResultadoDescuentos resultado = servicioPromocion.calcular(renglones(pedido.getDetalles()), dto.codigoDescuento());
+        aplicarDescuentos(pedido, resultado);
         return pedido;
+    }
+
+    private static List<RenglonDescuento> renglones(List<DetallePedido> detalles) {
+        return detalles.stream().map(d -> new RenglonDescuento(d.getProducto(), d.getCantidad(),
+                BigDecimal.valueOf(d.getPrecioUnitario()))).toList();
+    }
+
+    /**
+     * Guarda subtotal, descuento y total, y una copia de cada descuento aplicado (DescuentoPedido): si la promoción
+     * se modifica o elimina después, el pedido conserva lo que se le aplicó. La factura descuenta pedido.descuento
+     * antes del IVA.
+     */
+    private static void aplicarDescuentos(Pedido pedido, ResultadoDescuentos resultado) {
+        pedido.setSubtotal(resultado.subtotal().doubleValue());
+        pedido.setDescuento(resultado.totalDescuento().doubleValue());
+        pedido.setTotal(resultado.total().doubleValue());
+        for (DescuentoCalculado calculado : resultado.descuentos()) {
+            DescuentoPedido descuento = new DescuentoPedido();
+            descuento.setDetalle(calculado.indiceRenglon() == DescuentoCalculado.PEDIDO_COMPLETO ? null
+                    : pedido.getDetalles().get(calculado.indiceRenglon()));
+            descuento.setTipo(calculado.promocion().getTipo());
+            descuento.setIdPromocion(calculado.promocion().getId());
+            descuento.setNombrePromocion(calculado.promocion().getNombre());
+            descuento.setCodigo(calculado.promocion() instanceof CodigoDescuento c ? c.getCodigo() : null);
+            descuento.setPorcentaje(calculado.porcentaje());
+            descuento.setImporte(calculado.importe());
+            pedido.agregarDescuento(descuento);
+        }
     }
 
     @Override
@@ -160,9 +197,16 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         pedido.setNumeroPedido(ultimo + 1);
     }
 
-    /** La visita del punto en la ruta de hoy queda "con pedido", dentro de la misma transacción. */
+    /**
+     * Cuenta el uso del código (con el registro bloqueado) y deja la visita del punto en la ruta de hoy
+     * "con pedido", todo dentro de la misma transacción.
+     */
     @Override
     protected void postAlta(Pedido pedido) throws MiException {
+        String idCodigo = idCodigoUsado(pedido);
+        if (idCodigo != null) {
+            servicioPromocion.registrarUsoCodigo(idCodigo);
+        }
         Ruta rutaDeHoy = servicioRuta.buscarRutaDelDia(pedido.getPreventista(), TipoRuta.VISITA, LocalDate.now())
                 .orElse(null);
         if (rutaDeHoy == null) {
@@ -172,6 +216,11 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         if (parada != null && parada.getResultado() != ResultadoVisita.CON_PEDIDO) {
             servicioRuta.registrarResultado(rutaDeHoy, pedido.getPuntoVenta().getId(), ResultadoVisita.CON_PEDIDO, null);
         }
+    }
+
+    private static String idCodigoUsado(Pedido pedido) {
+        return pedido.getDescuentos().stream().filter(d -> d.getCodigo() != null).map(DescuentoPedido::getIdPromocion)
+                .findFirst().orElse(null);
     }
 
     @Override
@@ -214,7 +263,15 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
                 detalles, pedido.isEliminado(),
                 factura == null ? null : factura.getId(), factura == null ? null : factura.getNumeroFactura(),
                 factura == null ? null : factura.getTotal(),
-                pedido.getFormaDePago(), pago == null ? null : pago.getEstado());
+                pedido.getFormaDePago(), pago == null ? null : pago.getEstado(),
+                pedido.getDescuentos().stream().map(ServicioPedido::convertirDescuento).toList(),
+                pedido.getCodigoDescuento());
+    }
+
+    private static DescuentoPedidoDTO convertirDescuento(DescuentoPedido d) {
+        Producto producto = d.getDetalle() == null ? null : d.getDetalle().getProducto();
+        return new DescuentoPedidoDTO(d.getTipo(), d.getNombrePromocion(), d.getCodigo(), d.getPorcentaje(),
+                d.getImporte(), producto == null ? null : producto.getId(), producto == null ? null : producto.getNombre());
     }
 
     @Override
@@ -234,7 +291,41 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         }
         Empleado preventista = servicioEmpleado.obtenerEmpleadoPorCorreo(correoPreventista);
         return convertirAResponse(altaEntidad(new PedidoAltaDTO(preventista.getId(), pedido.idPuntoVenta(),
-                pedido.detalles())));
+                pedido.detalles(), pedido.codigoDescuento())));
+    }
+
+    /**
+     * Vista previa del pedido con sus descuentos (promociones automáticas y código), calculada con los precios
+     * vigentes del catálogo. No guarda nada ni consume usos del código: el descuento definitivo se vuelve a
+     * calcular al cargar el pedido.
+     */
+    @Transactional(readOnly = true)
+    public SimulacionPedidoDTO simularPedido(PedidoRequestDTO pedido) throws MiException {
+        if (pedido == null) {
+            throw new MiException("Debe indicar el pedido");
+        }
+        List<DetallePedido> detalles = new ArrayList<>();
+        for (Map.Entry<String, Integer> linea : agruparLineas(pedido.detalles()).entrySet()) {
+            detalles.add(crearDetalle(linea.getKey(), linea.getValue()));
+        }
+        ResultadoDescuentos resultado = servicioPromocion.calcular(renglones(detalles), pedido.codigoDescuento());
+        List<RenglonSimuladoDTO> renglones = new ArrayList<>();
+        List<DescuentoPedidoDTO> descuentos = new ArrayList<>();
+        for (int i = 0; i < detalles.size(); i++) {
+            DetallePedido d = detalles.get(i);
+            renglones.add(new RenglonSimuladoDTO(d.getProducto().getId(), d.getProducto().getNombre(), d.getCantidad(),
+                    BigDecimal.valueOf(d.getPrecioUnitario()), BigDecimal.valueOf(d.getSubtotal()),
+                    resultado.descuentoDelRenglon(i)));
+        }
+        for (DescuentoCalculado c : resultado.descuentos()) {
+            Producto producto = c.indiceRenglon() == DescuentoCalculado.PEDIDO_COMPLETO ? null
+                    : detalles.get(c.indiceRenglon()).getProducto();
+            descuentos.add(new DescuentoPedidoDTO(c.promocion().getTipo(), c.promocion().getNombre(),
+                    c.promocion() instanceof CodigoDescuento cd ? cd.getCodigo() : null, c.porcentaje(), c.importe(),
+                    producto == null ? null : producto.getId(), producto == null ? null : producto.getNombre()));
+        }
+        return new SimulacionPedidoDTO(renglones, descuentos, resultado.subtotal(), resultado.totalDescuento(),
+                resultado.total(), resultado.codigo() == null ? null : resultado.codigo().getCodigo());
     }
 
     /** listarPedidoPorPreventista del diagrama, para "Mis pedidos" de la app. */
@@ -338,6 +429,10 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         pedido.setEstado(EstadoPedido.ANULADO);
         for (DetallePedido detalle : pedido.getDetalles()) {
             servicioStock.reponerStock(detalle.getProducto().getId(), detalle.getCantidad());
+        }
+        String idCodigo = idCodigoUsado(pedido);
+        if (idCodigo != null) {
+            servicioPromocion.liberarUsoCodigo(idCodigo);   // el uso del código vuelve a estar disponible
         }
         return convertirAResponse(repositorioPedido.save(pedido));
     }
@@ -524,7 +619,8 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
         detalle.setProducto(producto);
         detalle.setCantidad(cantidad);
         detalle.setPrecioUnitario(enCatalogo.precio());
-        detalle.setSubtotal(redondear(enCatalogo.precio() * cantidad));
+        detalle.setSubtotal(new RenglonDescuento(producto, cantidad, BigDecimal.valueOf(enCatalogo.precio()))
+                .subtotal().doubleValue());
         return detalle;
     }
 
@@ -585,10 +681,6 @@ public class ServicioPedido extends BaseService<Pedido, PedidoAltaDTO, PedidoRes
                         // A cobrar: el total facturado (con IVA); sin factura (datos anteriores) el del pedido
                         facturas.containsKey(p.getId()) ? facturas.get(p.getId()).getTotal() : p.getTotal()))
                 .toList();
-    }
-
-    private static double redondear(double valor) {
-        return Math.round(valor * 100.0) / 100.0;
     }
 
     // ------------------------------------------------------------------

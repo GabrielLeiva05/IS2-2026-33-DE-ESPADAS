@@ -22,6 +22,7 @@ public class ControladorCatalogo {
                            Model model) {
         model.addAttribute("productos", servicioCatalogo.buscar(categoria, texto, ofertas));
         model.addAttribute("categorias", servicioCatalogo.categorias());
+        model.addAttribute("cotizacion", servicioCatalogo.cotizacion().orElse(null));
         model.addAttribute("categoria", categoria);
         model.addAttribute("texto", texto);
         model.addAttribute("ofertas", ofertas);

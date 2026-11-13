@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head th:replace="~{fragments/base :: head(${formulario.nuevo} ? 'Nueva promoción' : 'Editar promoción')}"></head>
+<body class="app-admin">
+<div th:replace="~{fragments/iconos :: sprite}"></div>
+<div class="velo" data-velo></div>
+<div class="shell">
+    <aside th:replace="~{fragments/base :: sidebar}"></aside>
+    <div class="shell-main">
+        <header th:replace="~{fragments/base :: topbar(${formulario.nuevo} ? 'Nueva promoción' : 'Editar promoción')}"></header>
+        <main class="contenido">
+            <div class="encabezado-pagina mt-4">
+                <div>
+                    <p class="migas"><a th:href="@{/promociones}"><svg class="icono icono-sm"><use href="#i-volver"/></svg>Promociones</a></p>
+                    <h1 th:text="${formulario.nuevo} ? 'Nueva promoción' : ${formulario.nombre}">Promoción</h1>
+                    <p th:unless="${formulario.nuevo}">Los cambios rigen para los pedidos nuevos: los ya cargados conservan su descuento.</p>
+                </div>
+            </div>
+            <div class="alerta alerta-error mb-4" role="alert" th:if="${error != null}">
+                <svg class="icono"><use href="#i-error"/></svg><span th:text="${error}">Error</span></div>
+
+            <form class="form-pagina" th:action="${formulario.nuevo} ? @{/promociones} : @{/promociones/{id}(id=${formulario.id})}"
+                  th:object="${formulario}" method="post" data-envio-unico data-promocion>
+                <section class="tarjeta">
+                    <div class="tarjeta-encabezado"><h2>Datos generales</h2></div>
+                    <div class="fila-campos dos">
+                        <div class="campo"><label class="requerido" for="tipo">Tipo</label>
+                            <select class="control" id="tipo" th:field="*{tipo}" th:disabled="${!formulario.nuevo}" data-tipo>
+                                <option value="PORCENTAJE_PRODUCTO">Porcentaje sobre productos</option>
+                                <option value="VOLUMEN">Por volumen (según la cantidad)</option>
+                                <option value="CODIGO">Código de descuento</option>
+                            </select>
+                            <input type="hidden" th:unless="${formulario.nuevo}" name="tipo" th:value="*{tipo}">
+                            <span class="ayuda" th:unless="${formulario.nuevo}">El tipo no se puede cambiar.</span></div>
+                        <div class="campo"><label class="requerido" for="nombre">Nombre</label>
+                            <input class="control" id="nombre" th:field="*{nombre}" maxlength="80" required placeholder="Ej.: Semana del alfajor"></div>
+                    </div>
+                    <div class="campo"><label for="descripcion">Descripción</label>
+                        <input class="control" id="descripcion" th:field="*{descripcion}" maxlength="250"></div>
+                    <div class="fila-campos tres">
+                        <div class="campo"><label class="requerido" for="fechaInicio">Desde</label>
+                            <input class="control" id="fechaInicio" type="date" th:field="*{fechaInicio}" required></div>
+                        <div class="campo"><label class="requerido" for="fechaFin">Hasta (inclusive)</label>
+                            <input class="control" id="fechaFin" type="date" th:field="*{fechaFin}" required></div>
+                        <div class="campo campo-casilla">
+                            <label class="casilla"><input type="checkbox" th:field="*{activa}"> Activa</label></div>
+                    </div>
+                </section>
+
+                <section class="tarjeta" data-para="PORCENTAJE_PRODUCTO">
+                    <div class="tarjeta-encabezado"><h2>Descuento</h2></div>
+                    <div class="campo"><label class="requerido" for="porcentaje">Porcentaje de descuento</label>
+                        <input class="control" id="porcentaje" type="number" min="0.01" max="100" step="0.01" th:field="*{porcentaje}">
+                        <span class="ayuda">Sobre el precio mayorista sin IVA.</span></div>
+                </section>
+
+                <section class="tarjeta" data-para="VOLUMEN">
+                    <div class="tarjeta-encabezado"><h2>Tramos por cantidad (bultos)</h2>
+                        <button type="button" class="btn btn-secundario btn-chico" data-agregar-tramo>
+                            <svg class="icono icono-sm"><use href="#i-mas"/></svg>Agregar tramo</button></div>
+                    <p class="texto-secundario">Las cantidades que no caen en ningún tramo pagan precio normal. Dejá «hasta» vacío en el último tramo para «en adelante».</p>
+                    <div class="renglones-factura" data-tramos>
+                        <div class="renglon-factura" th:each="i : ${#numbers.sequence(0, formulario.tramos - 1)}" data-tramo>
+                            <div class="campo"><label>Desde</label>
+                                <input class="control" name="tramoDesde" type="number" min="1" th:value="${formulario.desde(i)}"></div>
+                            <div class="campo"><label>Hasta</label>
+                                <input class="control" name="tramoHasta" type="number" min="1" th:value="${formulario.hasta(i)}" placeholder="en adelante"></div>
+                            <div class="campo"><label>% de descuento</label>
+                                <input class="control" name="tramoPorcentaje" type="number" min="0.01" max="100" step="0.01" th:value="${formulario.porcentajeTramo(i)}"></div>
+                            <button type="button" class="btn btn-fantasma btn-chico" data-quitar-tramo aria-label="Quitar tramo">
+                                <svg class="icono icono-sm"><use href="#i-baja"/></svg></button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="tarjeta" data-para="CODIGO">
+                    <div class="tarjeta-encabezado"><h2>Código</h2></div>
+                    <div class="fila-campos tres">
+                        <div class="campo"><label class="requerido" for="codigo">Código</label>
+                            <input class="control" id="codigo" th:field="*{codigo}" maxlength="30" placeholder="DULCE10" style="text-transform:uppercase">
+                            <span class="ayuda">Letras, números, - o _ (sin espacios).</span></div>
+                        <div class="campo"><label class="requerido" for="tipoValor">Descuenta</label>
+                            <select class="control" id="tipoValor" th:field="*{tipoValor}">
+                                <option value="PORCENTAJE">Un porcentaje</option>
+                                <option value="IMPORTE_FIJO">Un importe fijo ($)</option>
+                            </select></div>
+                        <div class="campo"><label class="requerido" for="valor">Valor</label>
+                            <input class="control" id="valor" type="number" min="0.01" step="0.01" th:field="*{valor}"></div>
+                    </div>
+                    <div class="fila-campos tres">
+                        <div class="campo"><label for="montoMinimo">Compra mínima ($, sin IVA)</label>
+                            <input class="control" id="montoMinimo" type="number" min="0" step="0.01" th:field="*{montoMinimo}"></div>
+                        <div class="campo"><label for="usosMaximos">Usos máximos</label>
+                            <input class="control" id="usosMaximos" type="number" min="1" th:field="*{usosMaximos}" placeholder="Sin límite"></div>
+                        <div class="campo campo-casilla">
+                            <label class="casilla"><input type="checkbox" th:field="*{acumulable}"> Acumulable con promociones</label></div>
+                    </div>
+                </section>
+
+                <section class="tarjeta">
+                    <div class="tarjeta-encabezado"><h2>¿A qué productos se aplica?</h2></div>
+                    <p class="texto-secundario" data-para="CODIGO">Opcional: si no elegís ninguno, el código se aplica al pedido completo.</p>
+                    <p class="texto-secundario" data-para="PORCENTAJE_PRODUCTO VOLUMEN">Elegí al menos un producto o una subcategoría
+                        (con Ctrl o Cmd se eligen varios).</p>
+                    <div class="fila-campos dos">
+                        <div class="campo"><label for="idsProductos">Productos</label>
+                            <select class="control" id="idsProductos" name="idsProductos" multiple size="8">
+                                <option th:each="pr : ${productos}" th:value="${pr.id}" th:text="${pr.nombre} + ' · ' + ${pr.codigo}"
+                                        th:selected="${formulario.idsProductos.contains(pr.id)}">Producto</option>
+                            </select></div>
+                        <div class="campo"><label for="idsSubCategorias">Subcategorías</label>
+                            <select class="control" id="idsSubCategorias" name="idsSubCategorias" multiple size="8">
+                                <option th:each="s : ${subcategorias}" th:value="${s.id}" th:text="${s.nombre}"
+                                        th:selected="${formulario.idsSubCategorias.contains(s.id)}">Subcategoría</option>
+                            </select></div>
+                    </div>
+                </section>
+
+                <div class="barra-acciones">
+                    <a class="btn btn-fantasma" th:href="@{/promociones}">Cancelar</a>
+                    <button type="submit" class="btn btn-primario" th:text="${formulario.nuevo} ? 'Crear promoción' : 'Guardar cambios'">Guardar</button>
+                </div>
+            </form>
+        </main>
+    </div>
+</div>
+<nav th:replace="~{fragments/base :: navInferior}"></nav>
+<script>
+    (function () {
+        var formulario = document.querySelector("[data-promocion]");
+        var tipo = formulario.querySelector("[data-tipo]");
+        function mostrar() {
+            formulario.querySelectorAll("[data-para]").forEach(function (seccion) {
+                var visible = seccion.getAttribute("data-para").split(" ").indexOf(tipo.value) >= 0;
+                seccion.hidden = !visible;
+                seccion.querySelectorAll("input, select").forEach(function (c) { c.disabled = !visible; });
+            });
+        }
+        tipo.addEventListener("change", mostrar);
+        mostrar();
+        var tramos = formulario.querySelector("[data-tramos]");
+        formulario.querySelector("[data-agregar-tramo]").addEventListener("click", function () {
+            var nuevo = tramos.querySelector("[data-tramo]").cloneNode(true);
+            nuevo.querySelectorAll("input").forEach(function (c) { c.value = ""; });
+            tramos.appendChild(nuevo);
+        });
+        tramos.addEventListener("click", function (e) {
+            var boton = e.target.closest("[data-quitar-tramo]");
+            if (boton && tramos.querySelectorAll("[data-tramo]").length > 1) boton.closest("[data-tramo]").remove();
+        });
+    })();
+</script>
+</body>
+</html>

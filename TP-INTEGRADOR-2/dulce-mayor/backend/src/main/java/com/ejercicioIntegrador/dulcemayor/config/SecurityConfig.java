@@ -87,7 +87,7 @@ public class SecurityConfig {
 
                         // --- Público: catálogo, imágenes de productos y clasificación ---
                         .requestMatchers(HttpMethod.GET, "/api/catalogo/**", "/api/imagenes/*/contenido",
-                                "/api/categorias/**", "/api/subcategorias/**").permitAll()
+                                "/api/categorias/**", "/api/subcategorias/**", "/api/cotizacion").permitAll()
 
                         // --- Preventista: consultar productos y disponibilidad de stock ---
                         .requestMatchers(HttpMethod.GET, "/api/stock/producto/*/disponibilidad")
@@ -96,7 +96,7 @@ public class SecurityConfig {
 
                         // --- Facturación (Ola 3). El cliente solo ve las suyas (lo verifica el servicio) ---
                         .requestMatchers(HttpMethod.GET, "/api/facturas/mis-facturas/**").hasRole(CLIENTE)
-                        .requestMatchers("/api/facturas/**", "/api/proveedores/**").hasRole(ADMINISTRATIVO)
+                        .requestMatchers("/api/facturas/**", "/api/proveedores/**", "/api/promociones/**").hasRole(ADMINISTRATIVO)
 
                         // --- Estadísticas del panel (HU-43) ---
                         .requestMatchers(HttpMethod.GET, "/api/estadisticas/pedidos-por-preventista").hasRole(JEFE)
@@ -115,6 +115,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/empleados/rol/*").hasRole(ADMINISTRATIVO)
                         .requestMatchers("/api/empleados/**", "/api/usuarios/**").hasRole(JEFE)
                         .requestMatchers("/api/clientes/yo").hasRole(CLIENTE)
+                        .requestMatchers("/api/presupuestos/**").hasRole(CLIENTE) // asistente de presupuestos
                         // Alta de clientes desde el celular del preventista y búsqueda por correo
                         .requestMatchers(HttpMethod.POST, "/api/clientes/campo").hasAnyRole(ADMINISTRATIVO, PREVENTISTA)
                         .requestMatchers(HttpMethod.GET, "/api/clientes/buscar").hasAnyRole(ADMINISTRATIVO, PREVENTISTA)

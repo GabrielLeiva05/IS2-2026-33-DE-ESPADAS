@@ -534,3 +534,15 @@ select.control {
     .grilla-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .fila-campos.tres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* ---------- Cotización del dólar, promociones y asistente de presupuestos ---------- */
+.d-block { display: block; }
+.cotizacion { display: flex; gap: var(--dm-e-3); align-items: flex-start; padding: var(--dm-e-3) var(--dm-e-4);
+  margin-bottom: var(--dm-e-4); border: 1px solid var(--dm-borde); border-radius: 12px; background: var(--dm-superficie);
+  font-size: var(--dm-t-sm); }
+.cotizacion > .icono { color: var(--dm-azul); flex: none; margin-top: 2px; }
+.precio-usd { display: block; color: var(--dm-texto-2); font-size: var(--dm-t-xs); font-weight: 600; }
+.precio-lista { color: var(--dm-texto-3); text-decoration: line-through; font-size: var(--dm-t-sm); margin-right: var(--dm-e-2); }
+.insignia-promo { background: var(--dm-exito); color: #fff; }
+.promo-texto { display: block; color: var(--dm-exito); font-size: var(--dm-t-xs); font-weight: 600; }
+.importe-descuento { color: var(--dm-exito); font-weight: 600; }

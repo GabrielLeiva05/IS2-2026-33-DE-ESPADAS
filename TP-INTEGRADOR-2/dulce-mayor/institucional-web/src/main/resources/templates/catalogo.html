@@ -34,6 +34,8 @@
             <button type="submit" class="btn btn-azul">Filtrar</button>
         </form>
 
+        <div th:replace="~{fragments/base :: cotizacion(${cotizacion})}"></div>
+
         <div class="alerta alerta-info mb-4" role="note">
             <svg class="icono"><use href="#i-info"/></svg>
             <span>Tu preventista toma el pedido en tu comercio. Después lo confirmás o lo anulás desde «Mis pedidos».</span>

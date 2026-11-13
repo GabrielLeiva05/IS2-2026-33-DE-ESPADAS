@@ -14,9 +14,9 @@ import java.util.List;
  * Origen: los datos que carga administración. El número y la fecha son los del comprobante del proveedor.
  */
 @Component
-public class CreadorFacturaProveedor extends CreadorFactura<DatosFacturaProveedor> {
+public class CreadorConcretoFacturaProveedor extends CreadorFactura<DatosFacturaProveedor> {
 
-    public CreadorFacturaProveedor(@Value("${app.facturacion.alicuota-iva:0.21}") double alicuotaIva) {
+    public CreadorConcretoFacturaProveedor(@Value("${app.facturacion.alicuota-iva:0.21}") double alicuotaIva) {
         super(alicuotaIva);
     }
 

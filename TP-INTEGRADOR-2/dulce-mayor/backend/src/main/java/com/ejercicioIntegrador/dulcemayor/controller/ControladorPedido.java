@@ -6,6 +6,7 @@ import com.ejercicioIntegrador.dulcemayor.dto.AsignacionPedidosDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.ConfirmarPedidoRequestDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoAltaDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoRequestDTO;
+import com.ejercicioIntegrador.dulcemayor.dto.SimulacionPedidoDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.PedidoResponseDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.ResultadoVisitaDTO;
 import com.ejercicioIntegrador.dulcemayor.dto.RutaDelDiaDTO;
@@ -71,6 +72,12 @@ public class ControladorPedido extends BaseController<PedidoAltaDTO, PedidoRespo
             throws MiException {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(servicioPedido.cargarPedido(autenticacion.getName(), pedido));
+    }
+
+    /** Vista previa con promociones y código de descuento, calculada en el backend (no guarda nada). */
+    @PostMapping("/preventista/simular")
+    public ResponseEntity<SimulacionPedidoDTO> simular(@RequestBody PedidoRequestDTO pedido) throws MiException {
+        return ResponseEntity.ok(servicioPedido.simularPedido(pedido));
     }
 
     @GetMapping("/preventista")

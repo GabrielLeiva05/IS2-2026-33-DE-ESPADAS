@@ -24,14 +24,14 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Estrategia concreta: reporte de clientes y pedidos en PDF, con JasperReports.
+ * PATRÓN STRATEGY — ESTRATEGIA CONCRETA: reporte de clientes y pedidos en PDF, con JasperReports.
  *
  * Usa la plantilla reportes/reporte_clientes_pedidos.jrxml (agrupa por comercio, calcula subtotales por comercio
  * y el resumen general). Esta clase solo convierte el DTO en las filas y parámetros que espera la plantilla;
  * no consulta la base ni decide reglas de negocio. La plantilla se compila una sola vez, la primera vez que se usa.
  */
 @Component
-public class ExportadorClientesPedidosPdf implements EstrategiaExportacion<ReporteClientesPedidosDTO> {
+public class EstrategiaConcretaClientesPedidosPdf implements EstrategiaExportacion<ReporteClientesPedidosDTO> {
 
     private static final String PLANTILLA = "/reportes/reporte_clientes_pedidos.jrxml";
     private static final Locale LOCALE_AR = Locale.forLanguageTag("es-AR");
@@ -107,7 +107,7 @@ public class ExportadorClientesPedidosPdf implements EstrategiaExportacion<Repor
             synchronized (this) {
                 compilada = plantillaCompilada;
                 if (compilada == null) {
-                    try (InputStream entrada = ExportadorClientesPedidosPdf.class.getResourceAsStream(PLANTILLA)) {
+                    try (InputStream entrada = EstrategiaConcretaClientesPedidosPdf.class.getResourceAsStream(PLANTILLA)) {
                         if (entrada == null) {
                             throw new JRException("No se encontró la plantilla " + PLANTILLA);
                         }
